@@ -24,7 +24,7 @@
                 </v:Stack>
             </Border>
 
-            <Border Style="{DynamicResource Diktat.Card}">
+            <Border Style="{DynamicResource Diktat.CardStyle}">
                 <CheckBox x:Name="ParagraphsToggle">
                     <StackPanel>
                         <TextBlock Text="Absätze einfügen" FontWeight="SemiBold"/>
@@ -35,7 +35,7 @@
             </Border>
 
             <!-- Working -->
-            <Border x:Name="WorkingCard" Style="{DynamicResource Diktat.Card}" Visibility="Collapsed">
+            <Border x:Name="WorkingCard" Style="{DynamicResource Diktat.CardStyle}" Visibility="Collapsed">
                 <v:Stack Spacing="10">
                     <Grid>
                         <Grid.ColumnDefinitions>

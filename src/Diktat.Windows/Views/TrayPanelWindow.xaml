@@ -71,7 +71,7 @@
                     </Border>
 
                     <!-- Setup needed -->
-                    <Border Style="{DynamicResource Diktat.Card}" Visibility="{Binding NeedsSetup, Converter={StaticResource Diktat.BoolToVisibility}}">
+                    <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding NeedsSetup, Converter={StaticResource Diktat.BoolToVisibility}}">
                         <v:Stack Spacing="8">
                             <TextBlock Text="Einrichtung nötig" FontSize="16" FontWeight="Bold"/>
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}"
@@ -95,7 +95,7 @@
                     </Border>
 
                     <!-- Dictation card: start button, status, levels -->
-                    <Border Style="{DynamicResource Diktat.Card}">
+                    <Border Style="{DynamicResource Diktat.CardStyle}">
                         <v:Stack Spacing="12">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -172,7 +172,7 @@
                     <!-- Modes -->
                     <StackPanel>
                         <TextBlock Text="Modi" Style="{DynamicResource Diktat.SectionHeaderText}" Margin="2,0,0,8"/>
-                        <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+                        <Border Style="{DynamicResource Diktat.CardStyle}" Padding="4">
                             <ItemsControl ItemsSource="{Binding Modes}" Focusable="False">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -239,7 +239,7 @@
                             <TextBlock Text="Verlauf" Style="{DynamicResource Diktat.SectionHeaderText}" VerticalAlignment="Center"/>
                             <Button Content="Alle anzeigen" Style="{DynamicResource Diktat.LinkButton}" HorizontalAlignment="Right" Click="OnHistory"/>
                         </Grid>
-                        <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+                        <Border Style="{DynamicResource Diktat.CardStyle}" Padding="4">
                             <ItemsControl ItemsSource="{Binding RecentHistory}" Focusable="False">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>

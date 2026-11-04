@@ -20,7 +20,7 @@
                     <TextBlock Style="{DynamicResource Diktat.CaptionText}"
                                Text="Das gewählte Mikrofon ist nicht angeschlossen. Diktat nimmt so lange das Standardmikrofon von Windows."/>
                 </Border>
-                <TextBlock x:Name="ListError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                <TextBlock x:Name="ListError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
                            Text="Mit dem Systemstandard folgt Diktat der Einstellung von Windows (Einstellungen, System, Sound, Eingabe). Wähle ein bestimmtes Mikrofon, wenn andere Programme ein anderes nutzen sollen. Die Auswahl gilt für das Diktieren und für Meetings."/>
                 <Border x:Name="VolumeNotice" Style="{DynamicResource Diktat.ErrorNotice}" Visibility="Collapsed">

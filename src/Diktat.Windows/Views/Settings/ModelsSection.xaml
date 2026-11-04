@@ -40,7 +40,7 @@
                         <TextBlock Text="{Binding ProgressText}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,4,0,0"/>
                     </StackPanel>
 
-                    <TextBlock Text="{Binding Error}" Style="{DynamicResource Diktat.ErrorText}"
+                    <TextBlock Text="{Binding Error}" Style="{DynamicResource Diktat.ErrorTextStyle}"
                                Visibility="{Binding Error, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
 
                     <WrapPanel>

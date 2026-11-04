@@ -31,7 +31,7 @@
             </v:Stack>
 
             <!-- The modes -->
-            <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+            <Border Style="{DynamicResource Diktat.CardStyle}" Padding="4">
                 <ItemsControl ItemsSource="{Binding Modes}" Focusable="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

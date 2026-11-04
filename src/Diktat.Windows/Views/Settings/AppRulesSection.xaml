@@ -61,7 +61,7 @@
                     <TextBox x:Name="ExeName" v:Hint.Text="Programm, z. B. outlook.exe" AutomationProperties.Name="Name der exe-Datei" KeyDown="OnExeKey"/>
                     <Button Grid.Column="1" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddExe"/>
                 </Grid>
-                <TextBlock x:Name="AppError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                <TextBlock x:Name="AppError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
             </v:Stack>
         </HeaderedContentControl>
 
@@ -85,7 +85,7 @@
                     <TextBox x:Name="Host" v:Hint.Text="Andere Website, z. B. mail.google.com" AutomationProperties.Name="Adresse der Website" KeyDown="OnHostKey"/>
                     <Button Grid.Column="1" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddHost"/>
                 </Grid>
-                <TextBlock x:Name="AddError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                <TextBlock x:Name="AddError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
             </v:Stack>
         </HeaderedContentControl>
     </v:Stack>

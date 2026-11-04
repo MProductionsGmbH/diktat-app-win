@@ -63,7 +63,7 @@
                     </StackPanel>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}" FontSize="14.5"
                                Text="Kürzel halten, sprechen, loslassen: Diktat schreibt den Text dort, wo dein Cursor steht. Die Sprache wird direkt auf diesem PC erkannt, ohne Konto und ohne Cloud."/>
-                    <Border Style="{DynamicResource Diktat.Card}">
+                    <Border Style="{DynamicResource Diktat.CardStyle}">
                         <v:Stack Spacing="10">
                             <TextBlock Text="In ein paar Minuten eingerichtet:" FontWeight="SemiBold"/>
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="1. Mikrofon prüfen"/>
@@ -97,7 +97,7 @@
                             <Button Content="Erneut prüfen" HorizontalAlignment="Left" Click="OnRecheckMic"/>
                         </v:Stack>
                     </Border>
-                    <Border x:Name="MicOk" Style="{DynamicResource Diktat.Card}" Visibility="Collapsed">
+                    <Border x:Name="MicOk" Style="{DynamicResource Diktat.CardStyle}" Visibility="Collapsed">
                         <v:Stack Spacing="10">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
@@ -106,7 +106,7 @@
                             <TextBlock Text="Mikrofon" Style="{DynamicResource Diktat.CaptionText}"/>
                             <ComboBox x:Name="MicPicker" DisplayMemberPath="Label" SelectedValuePath="Value" SelectionChanged="OnMicPicked"
                                       AutomationProperties.Name="Mikrofon"/>
-                            <TextBlock x:Name="MicVolume" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                            <TextBlock x:Name="MicVolume" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
                         </v:Stack>
                     </Border>
                 </v:Stack>
@@ -116,7 +116,7 @@
                     <TextBlock Text="Sprachmodell laden" Style="{DynamicResource Diktat.TitleText}"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
                                Text="Das Sprachmodell erkennt deine Sprache direkt auf diesem PC. Es wird einmalig geladen, danach geht es ohne Internet."/>
-                    <Border Style="{DynamicResource Diktat.Card}">
+                    <Border Style="{DynamicResource Diktat.CardStyle}">
                         <v:Stack Spacing="10">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="ModelName" FontWeight="SemiBold" FontSize="14.5"/>
@@ -127,10 +127,10 @@
                                 <ProgressBar x:Name="ModelProgress" AutomationProperties.Name="Sprachmodell wird geladen"/>
                                 <TextBlock x:Name="ModelProgressText" Style="{DynamicResource Diktat.CaptionText}" Margin="0,4,0,0"/>
                             </StackPanel>
-                            <TextBlock x:Name="ModelError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                            <TextBlock x:Name="ModelError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
                             <StackPanel x:Name="ModelInstalled" Orientation="Horizontal" Visibility="Collapsed">
                                 <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
-                                <TextBlock x:Name="ModelInstalledText" Style="{DynamicResource Diktat.SuccessText}"/>
+                                <TextBlock x:Name="ModelInstalledText" Style="{DynamicResource Diktat.SuccessTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="ModelDownloadButton" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnDownloadModel" Margin="0,0,8,0"/>
@@ -159,7 +159,7 @@
                             <TextBlock Text="Geklappt! So geht es überall." FontWeight="SemiBold" Foreground="{DynamicResource Diktat.SuccessText}"/>
                         </StackPanel>
                     </Border>
-                    <TextBlock x:Name="TryModelMissing" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"
+                    <TextBlock x:Name="TryModelMissing" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"
                                Text="Ohne Sprachmodell kann Diktat nicht transkribieren. Geh einen Schritt zurück und lade das Modell."/>
                     <TextBlock Style="{DynamicResource Diktat.SmallText}"
                                Text="Das Kürzel kannst du später unter Einstellungen, Allgemein ändern, auch auf „Umschalten“: einmal drücken zum Starten, nochmal zum Beenden."/>
@@ -183,7 +183,7 @@
                     <TextBlock Text="Fertig" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
                                Text="Diktat wartet unsichtbar im Infobereich der Taskleiste. Ein Klick auf das Symbol zeigt die Modi, den letzten Text und den Verlauf."/>
-                    <Border Style="{DynamicResource Diktat.Card}">
+                    <Border Style="{DynamicResource Diktat.CardStyle}">
                         <ItemsControl x:Name="DoneModes" Focusable="False">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>

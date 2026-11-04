@@ -178,7 +178,7 @@
                 <Button Content="Exportdatei öffnen …" Click="OnImport" HorizontalAlignment="Left"/>
                 <TextBlock Text="{Binding ImportMessage}" Visibility="{Binding ImportMessage, Converter={StaticResource Diktat.EmptyToCollapsed}}">
                     <TextBlock.Style>
-                        <Style TargetType="TextBlock" BasedOn="{StaticResource Diktat.SuccessText}">
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Diktat.SuccessTextStyle}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding ImportFailed}" Value="True">
                                     <Setter Property="Foreground" Value="{DynamicResource Diktat.ErrorText}"/>

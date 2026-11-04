@@ -133,11 +133,11 @@
         <Setter Property="Margin" Value="2,0,0,0"/>
     </Style>
 
-    <Style x:Key="Diktat.ErrorText" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
+    <Style x:Key="Diktat.ErrorTextStyle" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
         <Setter Property="Foreground" Value="{DynamicResource Diktat.ErrorText}"/>
     </Style>
 
-    <Style x:Key="Diktat.SuccessText" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
+    <Style x:Key="Diktat.SuccessTextStyle" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
         <Setter Property="Foreground" Value="{DynamicResource Diktat.SuccessText}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
@@ -150,7 +150,7 @@
 
     <!-- ================================ Surfaces ================================ -->
 
-    <Style x:Key="Diktat.Card" TargetType="Border">
+    <Style x:Key="Diktat.CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource Diktat.Card}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Diktat.CardEdge}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -208,7 +208,7 @@
                     <StackPanel>
                         <TextBlock Text="{TemplateBinding Header}" Style="{StaticResource Diktat.SectionHeaderText}" Margin="2,0,0,8"
                                    Visibility="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
-                        <Border Style="{StaticResource Diktat.Card}">
+                        <Border Style="{StaticResource Diktat.CardStyle}">
                             <ContentPresenter/>
                         </Border>
                     </StackPanel>

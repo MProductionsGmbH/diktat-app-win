@@ -9,7 +9,7 @@
 
             <!-- ============ Start ============ -->
             <v:Stack Spacing="14" Visibility="{Binding IsStart, Converter={StaticResource Diktat.BoolToVisibility}}">
-                <Border Style="{DynamicResource Diktat.Card}">
+                <Border Style="{DynamicResource Diktat.CardStyle}">
                     <v:Stack Spacing="8">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE716;" FontSize="16" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
@@ -27,7 +27,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Style="{DynamicResource Diktat.Card}">
+                <Border Style="{DynamicResource Diktat.CardStyle}">
                     <CheckBox IsChecked="{Binding SummarizesMeetings}">
                         <StackPanel>
                             <TextBlock Text="Nach dem Meeting zusammenfassen" FontWeight="SemiBold"/>
@@ -69,7 +69,7 @@
                 <!-- Saved meetings -->
                 <StackPanel Visibility="{Binding HasMeetings, Converter={StaticResource Diktat.BoolToVisibility}}" Margin="0,8,0,0">
                     <TextBlock Text="Gespeicherte Meetings" Style="{DynamicResource Diktat.SectionHeaderText}" Margin="2,0,0,8"/>
-                    <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+                    <Border Style="{DynamicResource Diktat.CardStyle}" Padding="4">
                         <ItemsControl ItemsSource="{Binding Meetings}" Focusable="False">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -101,7 +101,7 @@
 
             <!-- ============ Live ============ -->
             <v:Stack Spacing="14" Visibility="{Binding IsLive, Converter={StaticResource Diktat.BoolToVisibility}}">
-                <Border Style="{DynamicResource Diktat.Card}">
+                <Border Style="{DynamicResource Diktat.CardStyle}">
                     <v:Stack Spacing="14">
                         <Grid>
                             <StackPanel Orientation="Horizontal">
@@ -131,7 +131,7 @@
                     </v:Stack>
                 </Border>
 
-                <Border Style="{DynamicResource Diktat.Card}" Visibility="{Binding LiveNotes, Converter={StaticResource Diktat.EmptyToCollapsed}}">
+                <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding LiveNotes, Converter={StaticResource Diktat.EmptyToCollapsed}}">
                     <v:Stack Spacing="8">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE8FD;" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
@@ -152,7 +152,7 @@
             </v:Stack>
 
             <!-- ============ Processing ============ -->
-            <Border Style="{DynamicResource Diktat.Card}" Visibility="{Binding IsProcessing, Converter={StaticResource Diktat.BoolToVisibility}}">
+            <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding IsProcessing, Converter={StaticResource Diktat.BoolToVisibility}}">
                 <v:Stack Spacing="10">
                     <TextBlock Text="{Binding ProcessingText}" FontWeight="SemiBold"/>
                     <ProgressBar IsIndeterminate="True" AutomationProperties.Name="Meeting wird ausgewertet"/>
@@ -224,7 +224,7 @@
                                    Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                         <TextBlock Text="{Binding SummaryNote}" Style="{DynamicResource Diktat.CaptionText}"
                                    Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}, ConverterParameter=invert}"/>
-                        <TextBlock Text="{Binding SummaryError}" Style="{DynamicResource Diktat.ErrorText}"
+                        <TextBlock Text="{Binding SummaryError}" Style="{DynamicResource Diktat.ErrorTextStyle}"
                                    Visibility="{Binding SummaryError, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
                         <StackPanel Orientation="Horizontal" Visibility="{Binding IsSummarizing, Converter={StaticResource Diktat.BoolToVisibility}}">
                             <ProgressBar IsIndeterminate="True" Width="160" Margin="0,0,10,0" VerticalAlignment="Center" AutomationProperties.Name="Zusammenfassung wird erstellt"/>

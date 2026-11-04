@@ -82,7 +82,7 @@
                     <TextBox x:Name="NewWritten" Grid.Column="2" v:Hint.Text="Geschrieben" AutomationProperties.Name="Geschrieben" KeyDown="OnReplacementKey"/>
                     <Button Grid.Column="3" Content="Hinzufügen" Margin="8,0,0,0" Click="OnAddReplacement"/>
                 </Grid>
-                <TextBlock x:Name="ReplacementError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+                <TextBlock x:Name="ReplacementError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
             </v:Stack>
         </HeaderedContentControl>
 

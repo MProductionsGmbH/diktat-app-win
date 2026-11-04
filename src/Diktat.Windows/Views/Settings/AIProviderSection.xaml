@@ -55,7 +55,7 @@
                     </Grid>
                     <StackPanel x:Name="SavedKeyRow" Orientation="Horizontal" Margin="110,-4,0,0">
                         <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" FontSize="12" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,6,0"/>
-                        <TextBlock x:Name="SavedKeyText" Style="{DynamicResource Diktat.SuccessText}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="SavedKeyText" Style="{DynamicResource Diktat.SuccessTextStyle}" VerticalAlignment="Center"/>
                         <Button Content="Entfernen" Style="{DynamicResource Diktat.LinkButton}" Margin="12,0,0,0" Click="OnDeleteKey" VerticalAlignment="Center"
                                 AutomationProperties.Name="Gespeicherten API-Key entfernen"/>
                     </StackPanel>
