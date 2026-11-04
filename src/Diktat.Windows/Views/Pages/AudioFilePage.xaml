@@ -1,0 +1,75 @@
+<UserControl x:Class="Diktat.Windows.Views.Pages.AudioFilePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:Diktat.Windows.Views"
+             AllowDrop="True" DragEnter="OnDragOver" DragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop">
+    <ScrollViewer Style="{DynamicResource Diktat.PageScroller}">
+        <v:Stack Spacing="18" Margin="32,26,32,32" MaxWidth="760">
+            <v:Stack Spacing="8">
+                <TextBlock Text="Audiodatei" Style="{DynamicResource Diktat.TitleText}"/>
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}" FontSize="13"
+                           Text="Sprachmemo oder WhatsApp-Sprachnachricht transkribieren: Datei hierher ziehen oder auswählen. Die Datei wird auf diesem PC transkribiert und nicht verändert."/>
+            </v:Stack>
+
+            <!-- Drop zone -->
+            <Border x:Name="DropZone" CornerRadius="12" BorderThickness="2" Padding="24,28" Background="{DynamicResource Diktat.Card}"
+                    BorderBrush="{DynamicResource Diktat.Border}">
+                <v:Stack Spacing="10" HorizontalAlignment="Center">
+                    <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE8D6;" FontSize="28" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Diktat.Accent}"/>
+                    <TextBlock x:Name="DropTitle" Text="Audiodatei hierher ziehen" Style="{DynamicResource Diktat.HeadingText}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="WAV, MP3, M4A, OGG oder OPUS" Style="{DynamicResource Diktat.CaptionText}" HorizontalAlignment="Center"/>
+                    <Button x:Name="ChooseButton" Content="Datei wählen …" Style="{DynamicResource Diktat.PrimaryButton}" HorizontalAlignment="Center"
+                            Click="OnChoose" Margin="0,4,0,0"/>
+                </v:Stack>
+            </Border>
+
+            <Border Style="{DynamicResource Diktat.Card}">
+                <CheckBox x:Name="ParagraphsToggle">
+                    <StackPanel>
+                        <TextBlock Text="Absätze einfügen" FontWeight="SemiBold"/>
+                        <TextBlock Text="Lange Aufnahmen bekommen nach etwa vier Sätzen einen Absatz. Wörter und Satzzeichen bleiben, wie sie sind."
+                                   Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </CheckBox>
+            </Border>
+
+            <!-- Working -->
+            <Border x:Name="WorkingCard" Style="{DynamicResource Diktat.Card}" Visibility="Collapsed">
+                <v:Stack Spacing="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE8D6;" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,10,0"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="WorkingFile" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="WorkingStatus" Style="{DynamicResource Diktat.CaptionText}" Text="Wird transkribiert …"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="Abbrechen" Style="{DynamicResource Diktat.SubtleButton}" Click="OnCancel"/>
+                    </Grid>
+                    <ProgressBar IsIndeterminate="True" AutomationProperties.Name="Wird transkribiert"/>
+                </v:Stack>
+            </Border>
+
+            <!-- Error -->
+            <Border x:Name="ErrorCard" Style="{DynamicResource Diktat.ErrorNotice}" Visibility="Collapsed">
+                <TextBlock x:Name="ErrorText" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Result -->
+            <HeaderedContentControl x:Name="ResultSection" Header="Ergebnis" Style="{DynamicResource Diktat.Section}" Visibility="Collapsed">
+                <v:Stack Spacing="12">
+                    <TextBlock x:Name="ResultFile" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBox x:Name="ResultText" Style="{DynamicResource Diktat.ReadOnlyText}" AutomationProperties.Name="Transkript der Audiodatei"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="CopyButton" Content="Kopieren" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnCopy" Margin="0,0,8,0"/>
+                        <Button Content="Als Textdatei speichern …" Click="OnSave"/>
+                    </StackPanel>
+                </v:Stack>
+            </HeaderedContentControl>
+        </v:Stack>
+    </ScrollViewer>
+</UserControl>

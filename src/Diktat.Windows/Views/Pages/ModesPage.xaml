@@ -1,0 +1,148 @@
+<UserControl x:Class="Diktat.Windows.Views.Pages.ModesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:Diktat.Windows.Views"
+             xmlns:c="clr-namespace:Diktat.Windows.Views.Controls">
+    <UserControl.Resources>
+        <!-- A choice card with title, detail and a before/after example -->
+        <DataTemplate x:Key="ChoiceTemplate">
+            <StackPanel AutomationProperties.Name="{Binding Title}">
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13.5"/>
+                <TextBlock Text="{Binding Detail}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,8"/>
+                <Border Background="{DynamicResource Diktat.Card}" CornerRadius="8" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="{Binding ExampleLabel1}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.TextTertiary}"/>
+                        <TextBlock Text="{Binding Example1}" FontSize="12.5" FontStyle="Italic" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource Diktat.TextSecondary}" Margin="0,1,0,6"/>
+                        <TextBlock Text="{Binding ExampleLabel2}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.TextTertiary}"/>
+                        <TextBlock Text="{Binding Example2}" FontSize="12.5" TextWrapping="Wrap" Margin="0,1,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <ScrollViewer Style="{DynamicResource Diktat.PageScroller}">
+        <v:Stack Spacing="22" Margin="32,26,32,32" MaxWidth="760">
+            <v:Stack Spacing="8">
+                <TextBlock Text="Modi" Style="{DynamicResource Diktat.TitleText}"/>
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}" FontSize="13"
+                           Text="Jeder Modus hat sein eigenes Kürzel. Du hältst es, sprichst, und Diktat schreibt den Text so, wie der Modus es verlangt. Ein Klick startet einen Modus auch ohne Kürzel."/>
+            </v:Stack>
+
+            <!-- The modes -->
+            <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+                <ItemsControl ItemsSource="{Binding Modes}" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{DynamicResource Diktat.RowButton}" Command="{Binding StartCommand}" IsEnabled="{Binding IsAvailable}"
+                                    ToolTip="{Binding ToolTip}" ToolTipService.ShowOnDisabled="True" AutomationProperties.Name="{Binding AutomationName}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <c:ModeIcon x:Name="Icon" Mode="{Binding Mode}" Size="36"/>
+                                    <StackPanel x:Name="Texts" Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="12.5" Foreground="{DynamicResource Diktat.TextSecondary}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <c:HotkeyBadge x:Name="Keys" Grid.Column="2" Label="{Binding Hotkey}"/>
+                                </Grid>
+                            </Button>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                    <Setter TargetName="Icon" Property="Opacity" Value="0.45"/>
+                                    <Setter TargetName="Texts" Property="Opacity" Value="0.65"/>
+                                    <Setter TargetName="Keys" Property="Opacity" Value="0.4"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+            <Button Content="Kürzel ändern" Style="{DynamicResource Diktat.LinkButton}" Click="OnShortcuts" Margin="2,-12,0,0"/>
+
+            <!-- Glättung -->
+            <HeaderedContentControl Header="Glättung" Style="{DynamicResource Diktat.Section}">
+                <v:Stack Spacing="10">
+                    <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                               Text="Wie stark Diktat deinen Text aufräumt. Antwortet das Sprachmodell nicht oder unplausibel, bleibt der Text, wie du ihn gesprochen hast."/>
+                    <ListBox Style="{DynamicResource Diktat.ChoiceList}" ItemsSource="{Binding CleanupOptions}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                             SelectedValue="{Binding CleanupLevel}" AutomationProperties.Name="Glättung"/>
+                    <TextBlock Text="{Binding EngineNote}" Style="{DynamicResource Diktat.CaptionText}"
+                               Visibility="{Binding ShowsEngineNote, Converter={StaticResource Diktat.BoolToVisibility}}"/>
+                    <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="Die Beispiele zeigen das Ziel. Ein Sprachmodell formuliert jedes Mal ein wenig anders."/>
+                </v:Stack>
+            </HeaderedContentControl>
+
+            <!-- Stil je Kontext -->
+            <HeaderedContentControl Header="Stil je Kontext" Style="{DynamicResource Diktat.Section}">
+                <v:Stack Spacing="10">
+                    <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="Diktat erkennt, wohin dein Text geht, und schreibt ihn im passenden Ton."/>
+                    <ListBox Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding Contexts}" SelectedValue="{Binding Context}"
+                             AutomationProperties.Name="Kontext"/>
+                    <TextBlock Text="{Binding ContextNote}" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <StackPanel>
+                        <TextBlock Text="Gesprochen" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.TextTertiary}"/>
+                        <TextBlock Text="{Binding ExampleSpoken}" FontStyle="Italic" Style="{DynamicResource Diktat.CaptionText}"/>
+                    </StackPanel>
+                    <ListBox Style="{DynamicResource Diktat.ChoiceList}" ItemsSource="{Binding ToneOptions}" ItemTemplate="{StaticResource ChoiceTemplate}"
+                             SelectedValue="{Binding Tone}" AutomationProperties.Name="Ton"/>
+                    <TextBlock Style="{DynamicResource Diktat.SmallText}"
+                               Text="Die Beispiele zeigen dieselbe Aufnahme. Ohne KI-Schreibstil ändert der Ton nur den Punkt am Ende. Mit KI-Schreibstil formuliert das Sprachmodell auch im gewählten Ton, jedes Mal ein wenig anders."/>
+                </v:Stack>
+            </HeaderedContentControl>
+
+            <!-- KI-Schreibstil -->
+            <HeaderedContentControl Header="KI-Schreibstil" Style="{DynamicResource Diktat.Section}">
+                <v:Stack Spacing="10">
+                    <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                               Text="Gilt, wenn die Glättung auf „KI-Schreibstil“ steht, und für Diktat KI-Schreibstil in den Regeln je App. Den Ton stellst du oben je Kontext ein."/>
+                    <TextBlock Text="Eigener Name" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBox Text="{Binding ImproverName, UpdateSourceTrigger=PropertyChanged}" v:Hint.Text="{Binding ImproverTitle}"
+                             AutomationProperties.Name="Eigener Name für KI-Schreibstil"/>
+                    <TextBlock Text="Kontext" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBox Text="{Binding ImproverContext, UpdateSourceTrigger=PropertyChanged}"
+                             v:Hint.Text="z. B. „E-Mails im Bereich Unternehmensberatung“" AutomationProperties.Name="Kontext für KI-Schreibstil"/>
+                    <Expander Header="{Binding ImproverPromptHeader}">
+                        <TextBox Style="{DynamicResource Diktat.MultilineTextBox}" Height="80" Text="{Binding ImproverPrompt, UpdateSourceTrigger=PropertyChanged}"
+                                 v:Hint.Text="z. B. „Schreibe prägnant und ohne Füllwörter.“" AutomationProperties.Name="Eigene Anweisung"/>
+                    </Expander>
+                </v:Stack>
+            </HeaderedContentControl>
+
+            <!-- WTF -->
+            <HeaderedContentControl Header="{Binding WtfTitle}" Style="{DynamicResource Diktat.Section}">
+                <v:Stack Spacing="10">
+                    <TextBlock Text="{Binding WtfSummary}" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBlock Text="Eigener Name" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBox Text="{Binding WtfName, UpdateSourceTrigger=PropertyChanged}" v:Hint.Text="Diktat WTF" AutomationProperties.Name="Eigener Name für WTF"/>
+                    <Expander Header="{Binding WtfPromptHeader}">
+                        <v:Stack Spacing="6">
+                            <TextBox Style="{DynamicResource Diktat.MultilineTextBox}" Height="150" Text="{Binding WtfPrompt, UpdateSourceTrigger=PropertyChanged}"
+                                     v:Hint.Text="z. B. „Formuliere den Text sachlich und freundlich um.“" AutomationProperties.Name="Anweisung für WTF"/>
+                            <Button Content="Standard wiederherstellen" Style="{DynamicResource Diktat.SubtleButton}" HorizontalAlignment="Left"
+                                    Click="OnRestoreWtf" Visibility="{Binding WtfPromptIsCustom, Converter={StaticResource Diktat.BoolToVisibility}}"/>
+                        </v:Stack>
+                    </Expander>
+                </v:Stack>
+            </HeaderedContentControl>
+
+            <!-- :-) -->
+            <HeaderedContentControl Header="{Binding EmojiTitle}" Style="{DynamicResource Diktat.Section}">
+                <v:Stack Spacing="10">
+                    <TextBlock Text="{Binding EmojiSummary}" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBlock Text="Eigener Name" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <TextBox Text="{Binding EmojiName, UpdateSourceTrigger=PropertyChanged}" v:Hint.Text="Diktat :-)" AutomationProperties.Name="Eigener Name für :-)"/>
+                    <TextBlock Text="Emoji-Dichte" Style="{DynamicResource Diktat.CaptionText}"/>
+                    <ListBox Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding Densities}" SelectedValue="{Binding Density}"
+                             AutomationProperties.Name="Emoji-Dichte" HorizontalAlignment="Left" MinWidth="300"/>
+                </v:Stack>
+            </HeaderedContentControl>
+
+            <Button Content="Modus je App festlegen" Style="{DynamicResource Diktat.LinkButton}" Click="OnAppRules"/>
+        </v:Stack>
+    </ScrollViewer>
+</UserControl>

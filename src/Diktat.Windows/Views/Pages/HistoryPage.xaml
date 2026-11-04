@@ -1,0 +1,128 @@
+<UserControl x:Class="Diktat.Windows.Views.Pages.HistoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:Diktat.Windows.Views"
+             xmlns:c="clr-namespace:Diktat.Windows.Views.Controls">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Margin="32,26,32,14" MaxWidth="760">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Verlauf" Style="{DynamicResource Diktat.TitleText}" VerticalAlignment="Center"/>
+            <TextBox x:Name="Search" Grid.Column="1" Width="220" Margin="12,0,8,0" v:Hint.Text="Suchen"
+                     Text="{Binding Query, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Verlauf durchsuchen"
+                     Visibility="{Binding HasEntries, Converter={StaticResource Diktat.BoolToVisibility}}"/>
+            <Button Grid.Column="2" Content="Alles löschen" Style="{DynamicResource Diktat.DangerButton}" Click="OnClearAll"
+                    Visibility="{Binding HasEntries, Converter={StaticResource Diktat.BoolToVisibility}}"
+                    ToolTip="Löscht den ganzen Verlauf auf diesem PC"/>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Style="{DynamicResource Diktat.PageScroller}">
+            <v:Stack Spacing="18" Margin="32,0,32,32" MaxWidth="760">
+
+                <!-- Statistics -->
+                <StackPanel Visibility="{Binding ShowsStatistics, Converter={StaticResource Diktat.BoolToVisibility}}">
+                    <UniformGrid Rows="1">
+                        <Border Style="{DynamicResource Diktat.Card}" Margin="0,0,6,0" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Words}" FontSize="22" FontWeight="Bold"/>
+                                <TextBlock Text="Wörter" Style="{DynamicResource Diktat.CaptionText}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{DynamicResource Diktat.Card}" Margin="3,0,3,0" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Dictations}" FontSize="22" FontWeight="Bold"/>
+                                <TextBlock Text="Diktate" Style="{DynamicResource Diktat.CaptionText}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{DynamicResource Diktat.Card}" Margin="6,0,0,0" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="{Binding WordsPerDictation}" FontSize="22" FontWeight="Bold"/>
+                                <TextBlock Text="Wörter pro Diktat" Style="{DynamicResource Diktat.CaptionText}"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                    <TextBlock Margin="2,8,0,0" Style="{DynamicResource Diktat.SmallText}"
+                               Text="Nur auf diesem PC aus dem Verlauf berechnet. Abschaltbar unter Einstellungen, Allgemein."/>
+                </StackPanel>
+
+                <!-- Empty states -->
+                <Border Style="{DynamicResource Diktat.Card}" Padding="24" Visibility="{Binding EmptyTitle, Converter={StaticResource Diktat.EmptyToCollapsed}}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="{Binding EmptyGlyph}" FontSize="26" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource Diktat.TextTertiary}"/>
+                        <TextBlock Text="{Binding EmptyTitle}" Style="{DynamicResource Diktat.HeadingText}" HorizontalAlignment="Center" Margin="0,10,0,4"/>
+                        <TextBlock Text="{Binding EmptyDetail}" Style="{DynamicResource Diktat.CaptionText}" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Days -->
+                <ItemsControl ItemsSource="{Binding Groups}" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,18">
+                                <TextBlock Text="{Binding Title}" Style="{DynamicResource Diktat.SectionHeaderText}" Margin="2,0,0,8"/>
+                                <Border Style="{DynamicResource Diktat.Card}" Padding="4">
+                                    <ItemsControl ItemsSource="{Binding Entries}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="12,10,6,10" AutomationProperties.Name="{Binding AutomationName}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <c:ModeIcon Mode="{Binding Mode}" Size="26" VerticalAlignment="Top" Margin="0,1,12,0"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBox Text="{Binding Text, Mode=OneWay}" Style="{DynamicResource Diktat.ReadOnlyText}"
+                                                                 AutomationProperties.Name="{Binding AutomationName}"/>
+                                                        <TextBlock Margin="0,4,0,0" FontSize="11.5" Foreground="{DynamicResource Diktat.TextTertiary}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text">
+                                                                        <Setter.Value>
+                                                                            <MultiBinding StringFormat="{}{0} · {1}">
+                                                                                <Binding Path="Time"/>
+                                                                                <Binding Path="ModeName"/>
+                                                                            </MultiBinding>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Copied}" Value="True">
+                                                                            <Setter Property="Text" Value="Kopiert"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource Diktat.SuccessText}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,-4,0,0">
+                                                        <Button Style="{DynamicResource Diktat.IconButton}" Content="&#xE8C8;" Click="OnCopy"
+                                                                ToolTip="Kopieren" AutomationProperties.Name="Kopieren"/>
+                                                        <Button Style="{DynamicResource Diktat.IconButton}" Content="&#xE74D;" Click="OnDelete"
+                                                                ToolTip="Löschen" AutomationProperties.Name="Löschen"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="{Binding FooterText}" Style="{DynamicResource Diktat.SmallText}" Margin="2,0,0,0"
+                           Visibility="{Binding FooterText, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
+            </v:Stack>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

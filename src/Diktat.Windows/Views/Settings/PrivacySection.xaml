@@ -1,0 +1,66 @@
+<UserControl x:Class="Diktat.Windows.Views.SettingsSections.PrivacySection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:Diktat.Windows.Views">
+    <UserControl.Resources>
+        <Style x:Key="FactLabel" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,16,10"/>
+            <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        </Style>
+        <Style x:Key="FactText" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </UserControl.Resources>
+    <v:Stack Spacing="22">
+        <HeaderedContentControl Header="Datenschutz" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="12">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE72E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
+                    <TextBlock Text="Alles auf diesem PC" Style="{DynamicResource Diktat.HeadingText}" Foreground="{DynamicResource Diktat.SuccessText}"/>
+                </StackPanel>
+                <TextBlock Style="{DynamicResource Diktat.BodyText}"
+                           Text="Diktat hat kein Konto und kein Backend und sammelt keine Daten. Audio, Text und Verlauf bleiben auf diesem PC. Das Internet erreichen nur der Download der Sprachmodelle (Hugging Face, GitHub), der Update-Check (GitHub, abschaltbar) und, wenn du einen eigenen Anbieter einträgst, der erkannte Text."/>
+            </v:Stack>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="Was wo läuft" Style="{DynamicResource Diktat.Section}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Spracherkennung" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource FactText}"
+                           Text="Immer auf diesem PC (Parakeet über sherpa-onnx oder Whisper über whisper.cpp). Die Aufnahme wird nach dem Diktat gelöscht."/>
+                <TextBlock Grid.Row="1" Text="KI-Modi" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource FactText}"
+                           Text="Über deinen eigenen Modell-Anbieter mit deinem API-Key oder über einen Modell-Server auf diesem PC (Ollama, LM Studio). Zum Anbieter geht nur der erkannte Text, nie die Sprache, und der Text am Cursor nur, wenn du das einschaltest."/>
+                <TextBlock Grid.Row="2" Text="Meetings" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource FactText}"
+                           Text="Auf diesem PC. Zusammenfassungen nur mit einem Modell-Server auf diesem PC."/>
+                <TextBlock Grid.Row="3" Text="API-Keys, Verlauf" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource FactText}"
+                           Text="Verschlüsselt für dein Windows-Konto (DPAPI). Der Verlauf hält höchstens 7 Tage und lässt sich ausschalten."/>
+                <TextBlock Grid.Row="4" Text="Modell-Download" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource FactText}" Text="Hugging Face und GitHub, einmal je Modell."/>
+                <TextBlock Grid.Row="5" Text="Update-Check" Style="{StaticResource FactLabel}"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource FactText}" Text="Die Releases dieses Projekts auf GitHub. Abschaltbar unter Allgemein."/>
+            </Grid>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="Textfelder" Style="{DynamicResource Diktat.Section}">
+            <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                       Text="Damit der Text passend am Cursor landet, liest Diktat das Textfeld über die Windows-Bedienungshilfen (UI Automation). Passwortfelder liest Diktat nie. Eingefügt wird über die Zwischenablage, die danach wiederhergestellt wird."/>
+        </HeaderedContentControl>
+    </v:Stack>
+</UserControl>

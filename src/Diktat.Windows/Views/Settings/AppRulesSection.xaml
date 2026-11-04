@@ -1,0 +1,92 @@
+<UserControl x:Class="Diktat.Windows.Views.SettingsSections.AppRulesSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:Diktat.Windows.Views">
+    <v:Stack Spacing="22">
+        <HeaderedContentControl Header="Modus je App" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="12">
+                <TextBlock x:Name="Intro" Style="{DynamicResource Diktat.CaptionText}"/>
+                <TextBlock x:Name="EmptyText" Text="Noch keine Regeln. Überall diktiert Diktat wortgenau." Style="{DynamicResource Diktat.CaptionText}"
+                           FontStyle="Italic" Visibility="Collapsed"/>
+                <ItemsControl x:Name="Rules" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{DynamicResource Diktat.InsetCard}" Margin="0,0,0,8" Padding="12,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{DynamicResource Diktat.IconText}" Text="{Binding Glyph}" Foreground="{DynamicResource Diktat.TextSecondary}" Margin="0,0,10,0"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource Diktat.TextTertiary}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="2" ItemsSource="{Binding Modes}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                                              SelectedValue="{Binding Mode}" SelectionChanged="OnRuleModeChanged" Margin="8,0"
+                                              AutomationProperties.Name="{Binding Title, StringFormat='Modus für {0}'}"/>
+                                    <Button Grid.Column="3" Style="{DynamicResource Diktat.IconButton}" Content="&#xE74D;" Click="OnRemoveRule"
+                                            ToolTip="Regel entfernen" AutomationProperties.Name="{Binding Title, StringFormat='Regel für {0} entfernen'}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="AiNote" Style="{DynamicResource Diktat.CaptionText}" Foreground="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"
+                           Text="KI-Modi brauchen einen Modell-Anbieter (KI-Anbieter). Bis dahin diktiert Diktat dort wortgenau."/>
+            </v:Stack>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="App hinzufügen" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="10">
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="Wähle ein laufendes Programm oder trage den Namen der .exe ein, zum Beispiel outlook.exe."/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="RunningApps" DisplayMemberPath="Label" AutomationProperties.Name="Laufende Programme" DropDownOpened="OnAppsDropDown"/>
+                    <Button Grid.Column="1" Style="{DynamicResource Diktat.IconButton}" Content="&#xE72C;" Margin="6,0,0,0" Click="OnReloadApps"
+                            ToolTip="Liste aktualisieren" AutomationProperties.Name="Laufende Programme neu laden"/>
+                    <Button Grid.Column="2" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddRunningApp"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="ExeName" v:Hint.Text="Programm, z. B. outlook.exe" AutomationProperties.Name="Name der exe-Datei" KeyDown="OnExeKey"/>
+                    <Button Grid.Column="1" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddExe"/>
+                </Grid>
+                <TextBlock x:Name="AppError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+            </v:Stack>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="Website hinzufügen" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="10">
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                           Text="Websites erkennt Diktat in Edge, Chrome, Brave, Vivaldi, Opera und Firefox. Eine Website-Regel gilt vor der Regel für den Browser und auch für Unteradressen."/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="Presets" DisplayMemberPath="Label" SelectedValuePath="Value" AutomationProperties.Name="Bekannte Websites"/>
+                    <Button Grid.Column="1" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddPreset"/>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="Host" v:Hint.Text="Andere Website, z. B. mail.google.com" AutomationProperties.Name="Adresse der Website" KeyDown="OnHostKey"/>
+                    <Button Grid.Column="1" Content="Hinzufügen" Margin="6,0,0,0" Click="OnAddHost"/>
+                </Grid>
+                <TextBlock x:Name="AddError" Style="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"/>
+            </v:Stack>
+        </HeaderedContentControl>
+    </v:Stack>
+</UserControl>

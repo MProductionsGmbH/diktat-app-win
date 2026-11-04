@@ -1,0 +1,1099 @@
+<!--
+  The Diktat look for Windows: tokens of DiktatTokens.swift (day = light, night = dark),
+  Public Sans, calm cards. The brushes below are the light defaults; Views/Common/ThemeManager
+  overrides them in Application.Resources for the dark theme and on every theme switch, so
+  always reference brushes with DynamicResource.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:v="clr-namespace:Diktat.Windows.Views">
+
+    <sys:Boolean x:Key="Diktat.ThemeMarker">True</sys:Boolean>
+
+    <!-- Fonts -->
+    <FontFamily x:Key="Diktat.Font">pack://application:,,,/Assets/Fonts/#Public Sans</FontFamily>
+    <FontFamily x:Key="Diktat.IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+    <!-- Light defaults (ThemeManager replaces them) -->
+    <SolidColorBrush x:Key="Diktat.Page" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="Diktat.Sidebar" Color="#EDEDF1"/>
+    <SolidColorBrush x:Key="Diktat.Card" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Diktat.CardEdge" Color="#17000000"/>
+    <SolidColorBrush x:Key="Diktat.Inset" Color="#F3F3F5"/>
+    <SolidColorBrush x:Key="Diktat.Hover" Color="#0F000000"/>
+    <SolidColorBrush x:Key="Diktat.Pressed" Color="#1C000000"/>
+    <SolidColorBrush x:Key="Diktat.Popup" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Diktat.Text" Color="#111111"/>
+    <SolidColorBrush x:Key="Diktat.TextSecondary" Color="#5C5C5C"/>
+    <SolidColorBrush x:Key="Diktat.TextTertiary" Color="#737373"/>
+    <SolidColorBrush x:Key="Diktat.Border" Color="#CFCECD"/>
+    <SolidColorBrush x:Key="Diktat.Stroke" Color="#1F000000"/>
+    <SolidColorBrush x:Key="Diktat.Primary" Color="#3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.PrimaryHover" Color="#2F33E3"/>
+    <SolidColorBrush x:Key="Diktat.PrimaryPressed" Color="#0B0EC1"/>
+    <SolidColorBrush x:Key="Diktat.OnPrimary" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Diktat.Accent" Color="#3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.AccentSoft" Color="#1F3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.FocusRing" Color="#3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.Tonal" Color="#4270A5FF"/>
+    <SolidColorBrush x:Key="Diktat.OnTonal" Color="#0B0EC1"/>
+    <SolidColorBrush x:Key="Diktat.Success" Color="#5BDFBD"/>
+    <SolidColorBrush x:Key="Diktat.SuccessText" Color="#3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.SuccessSoft" Color="#245BDFBD"/>
+    <SolidColorBrush x:Key="Diktat.Error" Color="#D94C76"/>
+    <SolidColorBrush x:Key="Diktat.ErrorText" Color="#B3305A"/>
+    <SolidColorBrush x:Key="Diktat.ErrorSoft" Color="#1FD94C76"/>
+    <SolidColorBrush x:Key="Diktat.Warning" Color="#B86E00"/>
+    <SolidColorBrush x:Key="Diktat.Mode.Day" Color="#3E41F4"/>
+    <SolidColorBrush x:Key="Diktat.Mode.DaySoft" Color="#243E41F4"/>
+    <SolidColorBrush x:Key="Diktat.Mode.Night" Color="#8337A8"/>
+    <SolidColorBrush x:Key="Diktat.Mode.NightSoft" Color="#248337A8"/>
+    <SolidColorBrush x:Key="Diktat.Mode.Evening" Color="#593AB6"/>
+    <SolidColorBrush x:Key="Diktat.Mode.EveningSoft" Color="#24593AB6"/>
+    <SolidColorBrush x:Key="Diktat.Key" Color="#F3F3F5"/>
+    <SolidColorBrush x:Key="Diktat.KeyStroke" Color="#2B000000"/>
+    <SolidColorBrush x:Key="Diktat.ScrollThumb" Color="#47000000"/>
+    <SolidColorBrush x:Key="Diktat.Recording" Color="#D94C76"/>
+
+    <!-- Radii of design.json -->
+    <CornerRadius x:Key="Diktat.RadiusSmall">8</CornerRadius>
+    <CornerRadius x:Key="Diktat.RadiusMedium">12</CornerRadius>
+    <CornerRadius x:Key="Diktat.RadiusLarge">16</CornerRadius>
+
+    <!-- Converters -->
+    <v:BoolToVisibilityConverter x:Key="Diktat.BoolToVisibility"/>
+    <v:EmptyToCollapsedConverter x:Key="Diktat.EmptyToCollapsed"/>
+    <v:InverseBoolConverter x:Key="Diktat.InverseBool"/>
+
+    <!-- Keyboard focus: a ring in the accent, drawn by the templates themselves -->
+    <Style x:Key="Diktat.NoFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.FocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="10" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Text ================================ -->
+
+    <Style x:Key="Diktat.TitleText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.HeadingText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.LabelText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.BodyText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.CaptionText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextSecondary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.SmallText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextTertiary}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Diktat.SectionHeaderText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextSecondary}"/>
+        <Setter Property="Margin" Value="2,0,0,0"/>
+    </Style>
+
+    <Style x:Key="Diktat.ErrorText" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.ErrorText}"/>
+    </Style>
+
+    <Style x:Key="Diktat.SuccessText" TargetType="TextBlock" BasedOn="{StaticResource Diktat.CaptionText}">
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.SuccessText}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style x:Key="Diktat.IconText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Diktat.IconFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ================================ Surfaces ================================ -->
+
+    <Style x:Key="Diktat.Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Diktat.Card}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.CardEdge}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Diktat.InsetCard" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="12,10"/>
+    </Style>
+
+    <Style x:Key="Diktat.Notice" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Diktat.AccentSoft}"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="12,10"/>
+    </Style>
+
+    <Style x:Key="Diktat.ErrorNotice" TargetType="Border" BasedOn="{StaticResource Diktat.Notice}">
+        <Setter Property="Background" Value="{DynamicResource Diktat.ErrorSoft}"/>
+    </Style>
+
+    <Style x:Key="Diktat.SuccessNotice" TargetType="Border" BasedOn="{StaticResource Diktat.Notice}">
+        <Setter Property="Background" Value="{DynamicResource Diktat.SuccessSoft}"/>
+    </Style>
+
+    <Style x:Key="Diktat.Divider" TargetType="Separator">
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Background="{DynamicResource Diktat.Stroke}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.BetaBadge" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Diktat.AccentSoft}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="6,1"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="ToolTip" Value="Neu und noch in Erprobung. Rückmeldungen gern über „Feedback senden“."/>
+    </Style>
+
+    <!-- A settings section: neutral title above a card -->
+    <Style x:Key="Diktat.Section" TargetType="HeaderedContentControl">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="HeaderedContentControl">
+                    <StackPanel>
+                        <TextBlock Text="{TemplateBinding Header}" Style="{StaticResource Diktat.SectionHeaderText}" Margin="2,0,0,8"
+                                   Visibility="{Binding Header, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
+                        <Border Style="{StaticResource Diktat.Card}">
+                            <ContentPresenter/>
+                        </Border>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Buttons ================================ -->
+
+    <!-- Secondary (default) -->
+    <Style TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Card}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="14,7"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <Border x:Name="Overlay" CornerRadius="8" Background="Transparent"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <Border x:Name="Focus" CornerRadius="10" Margin="-3" BorderThickness="2"
+                                BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Overlay" Property="Background" Value="{DynamicResource Diktat.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Overlay" Property="Background" Value="{DynamicResource Diktat.Pressed}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"/>
+
+    <Style x:Key="Diktat.PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{DynamicResource Diktat.Primary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.OnPrimary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Primary}"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Diktat.PrimaryHover}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Diktat.PrimaryPressed}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- No fill until hovered -->
+    <Style x:Key="Diktat.SubtleButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+    </Style>
+
+    <Style x:Key="Diktat.DangerButton" TargetType="Button" BasedOn="{StaticResource Diktat.SubtleButton}">
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.ErrorText}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <!-- Square button with a Segoe Fluent glyph; set AutomationProperties.Name and ToolTip -->
+    <Style x:Key="Diktat.IconButton" TargetType="Button" BasedOn="{StaticResource Diktat.SubtleButton}">
+        <Setter Property="FontFamily" Value="{StaticResource Diktat.IconFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextSecondary}"/>
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <!-- The round microphone button (Background switches to Diktat.Recording while recording) -->
+    <Style x:Key="Diktat.MicButton" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Primary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.OnPrimary}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Ellipse x:Name="Bg" Fill="{TemplateBinding Background}"/>
+                        <Ellipse x:Name="Overlay" Fill="Transparent"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="Focus" Margin="-4" Stroke="{DynamicResource Diktat.FocusRing}" StrokeThickness="2" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Overlay" Property="Fill" Value="#1FFFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Overlay" Property="Fill" Value="#29000000"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Text link in the accent -->
+    <Style x:Key="Diktat.LinkButton" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.FocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Accent}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter x:Name="Content" RecognizesAccessKey="True"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Content" Property="Opacity" Value="0.8"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A whole row as a button (mode rows, history entries, meetings) -->
+    <Style x:Key="Diktat.RowButton" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="Padding" Value="12,9"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="10" Background="{TemplateBinding Background}"/>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center"/>
+                        <Border x:Name="Focus" CornerRadius="10" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Pressed}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Background" Value="Transparent"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Toggle switch ================================ -->
+
+    <!-- Label left, switch right, so all switches of a card line up (Mac TrailingSwitchToggleStyle) -->
+    <Style TargetType="CheckBox">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter VerticalAlignment="Center" Margin="0,0,14,0" RecognizesAccessKey="True">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <Border x:Name="Focus" Margin="-3" CornerRadius="13" BorderThickness="2"
+                                    BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                            <Border x:Name="Track" Width="40" Height="20" CornerRadius="10" BorderThickness="1"
+                                    Background="{DynamicResource Diktat.Inset}" BorderBrush="{DynamicResource Diktat.Border}">
+                                <Ellipse x:Name="Knob" Width="12" Height="12" HorizontalAlignment="Left" Margin="4,0,0,0"
+                                         Fill="{DynamicResource Diktat.TextSecondary}"/>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Diktat.TextTertiary}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource Diktat.Primary}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Diktat.Primary}"/>
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource Diktat.OnPrimary}"/>
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
+                            <Setter TargetName="Knob" Property="Margin" Value="0,0,4,0"/>
+                            <Setter TargetName="Knob" Property="Width" Value="14"/>
+                            <Setter TargetName="Knob" Property="Height" Value="14"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Text input ================================ -->
+
+    <Style TargetType="TextBox">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Diktat.Accent}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,7"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <TextBlock x:Name="Placeholder" Text="{Binding (v:Hint.Text), RelativeSource={RelativeSource TemplatedParent}}"
+                                   Foreground="{DynamicResource Diktat.TextTertiary}" Margin="{TemplateBinding Padding}" Padding="2,0,0,0"
+                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" IsHitTestVisible="False"
+                                   TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" Focusable="False"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Border}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.FocusRing}"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Multi-line text (prompts) -->
+    <Style x:Key="Diktat.MultilineTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <TextBlock x:Name="Placeholder" Text="{Binding (v:Hint.Text), RelativeSource={RelativeSource TemplatedParent}}"
+                                   Foreground="{DynamicResource Diktat.TextTertiary}" Margin="{TemplateBinding Padding}" Padding="2,0,0,0"
+                                   TextWrapping="Wrap" IsHitTestVisible="False" Visibility="Collapsed"/>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" Focusable="False"
+                                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Border}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.FocusRing}"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Read-only text the user may select and copy (results, transcripts) -->
+    <Style x:Key="Diktat.ReadOnlyText" TargetType="TextBox">
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="IsReadOnlyCaretVisible" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Diktat.Accent}"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="PasswordBox">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Diktat.Accent}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,7"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" Focusable="False"
+                                      VerticalAlignment="Center" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Border}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.FocusRing}"/>
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ ComboBox ================================ -->
+
+    <ControlTemplate x:Key="Diktat.ComboToggle" TargetType="ToggleButton">
+        <Grid Background="Transparent">
+            <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10" Margin="0,0,11,0"
+                       HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource Diktat.TextSecondary}"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Border}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,7,32,7"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="MinHeight" Value="34"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="MaxDropDownHeight" Value="320"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="Toggle" Focusable="False" ClickMode="Press" Template="{StaticResource Diktat.ComboToggle}"
+                                      Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Margin="{TemplateBinding Padding}"
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                          VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                        <Border x:Name="Focus" CornerRadius="8" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}"
+                                Visibility="Collapsed" IsHitTestVisible="False"/>
+                        <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" AllowsTransparency="True"
+                               Focusable="False" PopupAnimation="Fade" VerticalOffset="4">
+                            <Border x:Name="DropDown" Background="{DynamicResource Diktat.Popup}" BorderBrush="{DynamicResource Diktat.Stroke}"
+                                    BorderThickness="1" CornerRadius="10" Padding="4" Margin="0,0,6,6"
+                                    MinWidth="{Binding ActualWidth, ElementName=Toggle}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.18" Direction="270"/>
+                                </Border.Effect>
+                                <ScrollViewer SnapsToDevicePixels="True">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="Padding" Value="10,7"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Bd" CornerRadius="6" Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Tonal}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Diktat.OnTonal}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Lists ================================ -->
+
+    <!-- Segmented control: a ListBox of Option<T> with SelectedValuePath="Value" -->
+    <Style x:Key="Diktat.SegmentItem" TargetType="ListBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextSecondary}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="7" Background="Transparent" Padding="10,6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Border>
+                        <Border x:Name="Focus" CornerRadius="7" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Card}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.Segmented" TargetType="ListBox">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="DisplayMemberPath" Value="Label"/>
+        <Setter Property="SelectedValuePath" Value="Value"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Diktat.SegmentItem}"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1"/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border CornerRadius="9" Background="{TemplateBinding Background}" Padding="3">
+                        <ItemsPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Choice cards (cleanup levels, tones): a vertical ListBox; the selected card gets an accent edge -->
+    <Style x:Key="Diktat.ChoiceItem" TargetType="ListBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="10" Background="{DynamicResource Diktat.Inset}" BorderThickness="2"
+                                BorderBrush="Transparent" Padding="12,10">
+                            <ContentPresenter/>
+                        </Border>
+                        <Border x:Name="Focus" CornerRadius="12" Margin="-3" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Diktat.Accent}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.AccentSoft}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.ChoiceList" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Diktat.ChoiceItem}"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="SelectedValuePath" Value="Value"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <ItemsPresenter/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Sidebar navigation of the main window -->
+    <Style x:Key="Diktat.SidebarItem" TargetType="ListBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Diktat.NoFocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border x:Name="Bd" CornerRadius="8" Height="38" Padding="10,0" Background="Transparent">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="Pill" Width="3" Height="16" CornerRadius="1.5" HorizontalAlignment="Left"
+                                Background="{DynamicResource Diktat.Accent}" Visibility="Collapsed"/>
+                        <Border x:Name="Focus" CornerRadius="8" BorderThickness="2" BorderBrush="{DynamicResource Diktat.FocusRing}" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.Tonal}"/>
+                            <Setter TargetName="Pill" Property="Visibility" Value="Visible"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Diktat.OnTonal}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.SidebarList" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Diktat.SidebarItem}"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <ItemsPresenter/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Tabs of the settings page: segmented pills that wrap -->
+    <Style x:Key="Diktat.TabStrip" TargetType="ListBox" BasedOn="{StaticResource Diktat.SidebarList}">
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource Diktat.SegmentItem}">
+                    <Setter Property="Margin" Value="0,0,4,4"/>
+                    <Setter Property="FontSize" Value="13.5"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ================================ Misc controls ================================ -->
+
+    <Style TargetType="ProgressBar">
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Accent}"/>
+        <Setter Property="Background" Value="{DynamicResource Diktat.Inset}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Maximum" Value="1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid x:Name="TemplateRoot">
+                        <Border x:Name="PART_Track" CornerRadius="3" Background="{TemplateBinding Background}"/>
+                        <Border x:Name="PART_Indicator" CornerRadius="3" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left"/>
+                        <Border x:Name="Indeterminate" CornerRadius="3" Background="{TemplateBinding Foreground}" Opacity="0.45" Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="True">
+                            <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Indeterminate" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource Diktat.Popup}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Diktat.Font}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="MaxWidth" Value="360"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Padding="10,6">
+                        <ContentPresenter>
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Disclosure (prompt editors): a chevron header that opens the content below -->
+    <Style TargetType="Expander">
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.TextSecondary}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <StackPanel>
+                        <ToggleButton x:Name="Header" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      Cursor="Hand" HorizontalAlignment="Left" FocusVisualStyle="{StaticResource Diktat.FocusVisual}"
+                                      AutomationProperties.Name="{TemplateBinding Header}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <StackPanel Orientation="Horizontal" Background="Transparent">
+                                        <TextBlock x:Name="Chevron" Text="&#xE76C;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10"
+                                                   VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource Diktat.TextSecondary}"/>
+                                        <ContentPresenter VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Chevron" Property="Text" Value="&#xE70D;"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+                        </ToggleButton>
+                        <ContentPresenter x:Name="Body" Margin="0,8,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="Body" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource Diktat.Popup}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Diktat.Text}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Diktat.Stroke}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Diktat.Font}"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
+    <!-- Slim scroll bars -->
+    <Style x:Key="Diktat.ScrollPage" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Background="Transparent"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Diktat.ScrollThumbStyle" TargetType="Thumb">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border x:Name="Bd" CornerRadius="3" Background="{DynamicResource Diktat.ScrollThumb}"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Diktat.TextTertiary}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="Diktat.VerticalScrollBar" TargetType="ScrollBar">
+        <Grid Background="Transparent">
+            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource Diktat.ScrollPage}"/>
+                </Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource Diktat.ScrollPage}"/>
+                </Track.IncreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb Style="{StaticResource Diktat.ScrollThumbStyle}" Margin="3,2"/>
+                </Track.Thumb>
+            </Track>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="Diktat.HorizontalScrollBar" TargetType="ScrollBar">
+        <Grid Background="Transparent">
+            <Track x:Name="PART_Track" IsDirectionReversed="False">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource Diktat.ScrollPage}"/>
+                </Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource Diktat.ScrollPage}"/>
+                </Track.IncreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb Style="{StaticResource Diktat.ScrollThumbStyle}" Margin="2,3"/>
+                </Track.Thumb>
+            </Track>
+        </Grid>
+    </ControlTemplate>
+
+    <Style TargetType="ScrollBar">
+        <Setter Property="Width" Value="11"/>
+        <Setter Property="MinWidth" Value="11"/>
+        <Setter Property="Template" Value="{StaticResource Diktat.VerticalScrollBar}"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="Height" Value="11"/>
+                <Setter Property="MinHeight" Value="11"/>
+                <Setter Property="Template" Value="{StaticResource Diktat.HorizontalScrollBar}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The page scroller of the main window: no focus ring, panning with touch -->
+    <Style x:Key="Diktat.PageScroller" TargetType="ScrollViewer">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="PanningMode" Value="VerticalOnly"/>
+    </Style>
+
+</ResourceDictionary>

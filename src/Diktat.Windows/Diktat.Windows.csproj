@@ -9,17 +9,32 @@
     <RootNamespace>Diktat.Windows</RootNamespace>
     <AssemblyName>Diktat</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Diktat.ico</ApplicationIcon>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <!-- WPF takes its DPI awareness from app.manifest; the WinForms hint does not apply. -->
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <!-- App.xaml is a plain Page: Program.Main starts the app (single instance, smoke test). -->
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
   <ItemGroup>
     <!-- WASAPI capture/loopback and Core Audio endpoints for the platform layer. -->
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Diktat.Windows.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
     <ProjectReference Include="..\Diktat.AI\Diktat.AI.csproj" />
     <ProjectReference Include="..\Diktat.Transcription\Diktat.Transcription.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Icons and fonts are compiled into the app (pack://application:,,,/Assets/...). -->
+    <Resource Include="Assets\Diktat.ico" />
+    <Resource Include="Assets\icon-256.png" />
+    <Resource Include="Assets\icon-64.png" />
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <!-- The start sound is read from next to the exe (Platform/Audio/RecordingSound). -->
+    <Content Include="Assets\start.wav" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
 </Project>

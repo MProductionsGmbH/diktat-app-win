@@ -9,5 +9,6 @@
     <Project Path="tests/Diktat.Core.Tests/Diktat.Core.Tests.csproj" />
     <Project Path="tests/Diktat.AI.Tests/Diktat.AI.Tests.csproj" />
     <Project Path="tests/Diktat.Transcription.Tests/Diktat.Transcription.Tests.csproj" />
+    <Project Path="tests/Diktat.Windows.Tests/Diktat.Windows.Tests.csproj" />
   </Folder>
 </Solution>
