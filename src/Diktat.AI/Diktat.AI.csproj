@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Prompts, model providers, rewrites and meeting summaries. Platform-neutral. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Diktat.AI</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
+    <InternalsVisibleTo Include="Diktat.AI.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Diktat.Core/Diktat.Core.csproj" />
+    <Project Path="src/Diktat.AI/Diktat.AI.csproj" />
+    <Project Path="src/Diktat.Transcription/Diktat.Transcription.csproj" />
+    <Project Path="src/Diktat.Windows/Diktat.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Diktat.Core.Tests/Diktat.Core.Tests.csproj" />
+    <Project Path="tests/Diktat.AI.Tests/Diktat.AI.Tests.csproj" />
+    <Project Path="tests/Diktat.Transcription.Tests/Diktat.Transcription.Tests.csproj" />
+  </Folder>
+</Solution>

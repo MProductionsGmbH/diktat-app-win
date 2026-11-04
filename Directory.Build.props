@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.1.0</Version>
+    <Company>MProductions GmbH</Company>
+    <Product>Diktat</Product>
+    <Copyright>Copyright (c) 2026 MProductions GmbH</Copyright>
+    <!-- Lets the Windows app compile on macOS and Linux too (CI and development). -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Windows app: tray icon, windows, hotkeys, microphone, paste. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Diktat.Windows</RootNamespace>
+    <AssemblyName>Diktat</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- WPF takes its DPI awareness from app.manifest; the WinForms hint does not apply. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WASAPI capture/loopback and Core Audio endpoints for the platform layer. -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
+    <ProjectReference Include="..\Diktat.AI\Diktat.AI.csproj" />
+    <ProjectReference Include="..\Diktat.Transcription\Diktat.Transcription.csproj" />
+  </ItemGroup>
+</Project>

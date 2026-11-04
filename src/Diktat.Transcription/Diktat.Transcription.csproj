@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Local speech recognition (Whisper, Parakeet), model downloads, audio decoding. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Diktat.Transcription</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Diktat.Transcription.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Parakeet and speaker diarization. The package pulls the native
+         runtime packages for every RID (win-x64, win-arm64, osx-arm64, ...) as dependencies;
+         their runtimes/<rid>/native files flow to the Windows app like any runtime asset. -->
+    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="2.0.1" />
+    <!-- Whisper (whisper.cpp). Whisper.net.Runtime is the CPU build; its build/*.targets adds
+         runtimes/<platform>/ native files as CopyToOutputDirectory items, which MSBuild copies
+         into the output of every project that references this one. -->
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+    <!-- Managed decoders: MP3 (no Windows ACM needed) and Opus in Ogg (WhatsApp voice messages). -->
+    <PackageReference Include="NLayer" Version="3.0.1" />
+    <PackageReference Include="Concentus" Version="2.2.2" />
+    <PackageReference Include="Concentus.Oggfile" Version="1.0.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
+  </ItemGroup>
+</Project>
