@@ -520,7 +520,8 @@ public sealed class DictationController : ObservableObject, IDisposable
                     if (!replaced && result.Outcome != PasteOutcome.Failed)
                     {
                         LastTextWasOnlyCopied = true;
-                        ShowResult(DictationPhase.Done, DictationRules.ReplaceFailed, DictationRules.CopiedDuration);
+                        // A dictation started meanwhile owns the phase; never end it from here.
+                        if (!IsBusy) ShowResult(DictationPhase.Done, DictationRules.ReplaceFailed, DictationRules.CopiedDuration);
                         return;
                     }
                 }
@@ -533,12 +534,12 @@ public sealed class DictationController : ObservableObject, IDisposable
         if (replaced)
         {
             LastTextWasOnlyCopied = false;
-            ShowResult(DictationPhase.Done, DictationRules.PastedStatus, DictationRules.DoneDuration);
+            if (!IsBusy) ShowResult(DictationPhase.Done, DictationRules.PastedStatus, DictationRules.DoneDuration);
             return;
         }
         await _paste.CopyOnlyAsync(last?.Transcript ?? transcript);
         LastTextWasOnlyCopied = true;
-        ShowResult(DictationPhase.Done, DictationRules.ReplaceFailed, DictationRules.CopiedDuration);
+        if (!IsBusy) ShowResult(DictationPhase.Done, DictationRules.ReplaceFailed, DictationRules.CopiedDuration);
     }
 
     public void CopyToClipboard(string text) => _ = CopyAsync(text);

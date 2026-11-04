@@ -317,7 +317,7 @@ public sealed class ClipboardPasteService : IDisposable
         if (_pending is not { } pending) return;
         pending.Check?.Dispose();
         pending.Check = null;
-        var decision = pending.Tracker.Decide(Now(), Win32.GetClipboardSequenceNumber(), out var until);
+        var decision = pending.Tracker.Decide(Now(), CurrentSequence(pending), out var until);
         if (decision == ClipboardRestoreTracker.Decision.Wait)
         {
             pending.Check = _thread.Schedule(TimeSpan.FromSeconds(Math.Max(0.01, until - Now())), Evaluate);
@@ -331,8 +331,17 @@ public sealed class ClipboardPasteService : IDisposable
         if (_pending is not { } pending) return;
         pending.Check?.Dispose();
         pending.Check = null;
-        Finish(pending, pending.Tracker.Settle(Win32.GetClipboardSequenceNumber()), trigger);
+        Finish(pending, pending.Tracker.Settle(CurrentSequence(pending)), trigger);
     }
+
+    /// The clipboard counts as unchanged while our window still owns it: anyone else writing to
+    /// it must empty it first, which takes the ownership away and sends us WM_DESTROYCLIPBOARD
+    /// (Replaced). The sequence number alone is not reliable here, because Windows may count
+    /// the delayed rendering of the transcript as a change after OwnSequence was read.
+    private uint CurrentSequence(PendingPaste pending) =>
+        Win32.GetClipboardOwner() == _thread.Handle && !pending.Tracker.Replaced
+            ? pending.Tracker.OwnSequence
+            : Win32.GetClipboardSequenceNumber();
 
     private void DropPending()
     {

@@ -125,6 +125,25 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
             return;
         }
 
+        // The files first: a recorder that runs without them would fill the memory unseen, and
+        // this session could never start again.
+        TrackWriter? micWriter = null;
+        TrackWriter? systemWriter = null;
+        try
+        {
+            micWriter = new TrackWriter(MeetingAudio.MicrophonePath(_id), AudioRecorder.SampleRate);
+            systemWriter = online && systemError is null ? new TrackWriter(MeetingAudio.SystemAudioPath(_id), LoopbackRecorder.SampleRate) : null;
+        }
+        catch (Exception ex)
+        {
+            if (micWriter is not null) await micWriter.CloseAsync();
+            await Task.Run(recorder.Dispose);
+            MeetingAudio.Delete(_id);
+            Log.Warn("Meeting audio files could not be created", ex);
+            ErrorMessage = "Die Aufnahme ließ sich nicht speichern: " + ex.Message;
+            return;
+        }
+
         _recorder = recorder;
         IsOnline = online && systemError is null;
         if (online && systemError is not null)
@@ -133,8 +152,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         }
         recorder.Microphone.Interrupted += OnMicrophoneInterrupted;
         recorder.SystemAudio.OutputChanged += OnOutputChanged;
-        _micWriter = new TrackWriter(MeetingAudio.MicrophonePath(_id), AudioRecorder.SampleRate);
-        _systemWriter = IsOnline ? new TrackWriter(MeetingAudio.SystemAudioPath(_id), LoopbackRecorder.SampleRate) : null;
+        _micWriter = micWriter;
+        _systemWriter = systemWriter;
         _aligned = !IsOnline;
         // Stored as pending from the start, so a crash or quit keeps the audio for a later evaluation.
         _services.Meetings.Upsert(record);
