@@ -53,7 +53,17 @@ jobs:
         shell: pwsh
         run: |
           $p = Start-Process -FilePath publish/win-x64/Diktat.exe -ArgumentList "--smoke-test" -PassThru -Wait -NoNewWindow
-          if ($p.ExitCode -ne 0) { throw "Smoke test failed with exit code $($p.ExitCode)" }
+          $text = ""
+          foreach ($log in @("publish/win-x64/smoke-test.log") + @(Get-ChildItem "$env:LOCALAPPDATA/Diktat/Logs" -Filter *.log -ErrorAction SilentlyContinue | ForEach-Object FullName)) {
+            if (Test-Path $log) { $text += "== $log`n" + (Get-Content $log -Raw) + "`n" }
+          }
+          Write-Output $text
+          if ($p.ExitCode -ne 0) {
+            # Annotations are readable without signing in; logs are not.
+            $escaped = $text.Replace('%', '%25').Replace("`r", '').Replace("`n", '%0A')
+            Write-Output "::error title=Smoke test failed (exit $($p.ExitCode))::$escaped"
+            exit 1
+          }
 
       - name: Upload app
         uses: actions/upload-artifact@v4

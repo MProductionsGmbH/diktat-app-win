@@ -1,3 +1,4 @@
+using Diktat.Core.Text;
 using Diktat.Transcription.Meeting;
 
 namespace Diktat.Transcription.Tests;

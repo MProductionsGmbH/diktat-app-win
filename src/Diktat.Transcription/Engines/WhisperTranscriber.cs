@@ -1,3 +1,4 @@
+using Diktat.Core.Text;
 using Whisper.net;
 
 namespace Diktat.Transcription.Engines;

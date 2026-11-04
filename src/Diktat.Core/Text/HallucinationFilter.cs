@@ -90,9 +90,10 @@ public static class HallucinationFilter
         return voicedSeconds < MinimumVoicedSeconds && DoubtfulPhrases.Contains(key);
     }
 
-    private static readonly Regex ControlToken = new(@"<\|[^|]*\|>", RegexOptions.CultureInvariant);
+    private static readonly Regex ControlToken = new(@"<\|[^|]*\|>|\[_[A-Z]+_?\d*\]|\[[A-Z][A-Z_ ]*\]", RegexOptions.CultureInvariant);
 
-    /// Whisper's control tokens ("&lt;|de|&gt;", "&lt;|3.20|&gt;") are no text.
+    /// Whisper's control tokens ("&lt;|de|&gt;", "&lt;|3.20|&gt;", "[_BEG_]") and whisper.cpp's
+    /// annotations in capitals ("[BLANK_AUDIO]", "[MUSIC]") are no text.
     public static string StrippingTokens(string text) => ControlToken.Replace(text, "").Trim();
 
     /// Seconds of audio loud enough to be speech: 30 ms frames above about -40 dBFS.
@@ -111,6 +112,14 @@ public static class HallucinationFilter
 
     /// Removes credits at the end of a transcript ("... bis morgen. Untertitel im Auftrag des
     /// ZDF, 2021."). Works on any engine's text, so Parakeet output is covered too.
+    /// Voiced seconds between two times of a 16 kHz recording.
+    public static double VoicedSeconds(float[] samples, double startSeconds, double endSeconds)
+    {
+        var from = Math.Clamp((int)(startSeconds * 16_000), 0, samples.Length);
+        var to = Math.Clamp((int)(endSeconds * 16_000), from, samples.Length);
+        return VoicedSeconds(samples.AsSpan(from, to - from));
+    }
+
     public static string RemovingTrailingCredits(string text)
     {
         var result = text.Trim();
