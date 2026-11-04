@@ -41,10 +41,19 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Restore
+        run: dotnet restore Diktat.slnx
+
+      - name: Build
+        run: dotnet build Diktat.slnx -c Release --no-restore
+
+      # Same as CI. A test that hangs fails after 3 minutes and is named in the annotations.
       - name: Test
-        run: dotnet test Diktat.slnx -c Release
+        timeout-minutes: 15
+        run: dotnet test Diktat.slnx -c Release --no-build --logger GitHubActions --blame-hang-timeout 3m
 
       - name: Publish x64 and arm64
+        timeout-minutes: 20
         shell: pwsh
         run: |
           foreach ($rid in "win-x64", "win-arm64") {
