@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 namespace Diktat.AI.Updates;
 
 /// The newest release on GitHub.
-/// <param name="DownloadUrl">The installer (Diktat-Setup-*.exe) or the portable zip
-/// (Diktat-*-win-x64.zip); the release page when neither is attached.</param>
+/// <param name="DownloadUrl">The installer (Diktat-Setup.exe, also with a version) or the
+/// portable zip (Diktat-win-x64.zip); the release page when neither is attached.</param>
 public sealed record UpdateInfo(string Version, bool IsNewer, string DownloadUrl, string ReleasePageUrl, string? ReleaseNotes);
 
 /// The update check failed. <see cref="Exception.Message"/> is German text for the user.
@@ -24,8 +24,8 @@ public sealed class UpdateChecker
 
     private const string FailedMessage = "Die Suche nach Updates ist fehlgeschlagen. Bitte später nochmal versuchen.";
 
-    private static readonly Regex SetupAsset = new(@"^Diktat-Setup-.+\.exe$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    private static readonly Regex ZipAsset = new(@"^Diktat-.+-win-x64\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex SetupAsset = new(@"^Diktat-Setup(-.+)?\.exe$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex ZipAsset = new(@"^Diktat-(.+-)?win-x64\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     private readonly HttpMessageHandler? _handler;
 

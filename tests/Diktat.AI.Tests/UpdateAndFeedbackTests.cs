@@ -46,6 +46,16 @@ public sealed class UpdateCheckerTests
         Assert.StartsWith("Diktat-Windows/0.2.1", sent.Headers["user-agent"]);
     }
 
+    /// The names .github/workflows/release.yml attaches, fixed so releases/latest/download works.
+    [Fact]
+    public void FindsTheAssetNamesOfTheReleaseWorkflow()
+    {
+        const string json = """{"tag_name":"v0.2.0","html_url":"https://x.test/r","assets":[{"name":"Diktat-win-arm64.zip","browser_download_url":"https://x.test/arm.zip"},{"name":"Diktat-win-x64.zip","browser_download_url":"https://x.test/x64.zip"},{"name":"Diktat-Setup.exe","browser_download_url":"https://x.test/setup.exe"}]}""";
+        Assert.Equal("https://x.test/setup.exe", UpdateChecker.Parse(json, "0.1.0").DownloadUrl);
+        const string zipOnly = """{"tag_name":"v0.2.0","html_url":"https://x.test/r","assets":[{"name":"Diktat-win-arm64.zip","browser_download_url":"https://x.test/arm.zip"},{"name":"Diktat-win-x64.zip","browser_download_url":"https://x.test/x64.zip"}]}""";
+        Assert.Equal("https://x.test/x64.zip", UpdateChecker.Parse(zipOnly, "0.1.0").DownloadUrl);
+    }
+
     [Fact]
     public void FallsBackToTheZipAndThenToTheReleasePage()
     {
