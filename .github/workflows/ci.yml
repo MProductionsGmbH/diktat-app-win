@@ -37,7 +37,7 @@ jobs:
         run: dotnet build Diktat.slnx --configuration Release --no-restore
 
       - name: Unit tests
-        run: dotnet test Diktat.slnx --configuration Release --no-build --logger "trx;LogFileName=results.trx" --results-directory TestResults
+        run: dotnet test Diktat.slnx --configuration Release --no-build --logger GitHubActions --logger "trx;LogFileName=results.trx" --results-directory TestResults
 
       - name: Upload test results
         if: always()
@@ -72,5 +72,6 @@ jobs:
           global-json-file: global.json
       - name: Test platform-neutral projects
         run: |
-          dotnet test tests/Diktat.Core.Tests -c Release
-          dotnet test tests/Diktat.AI.Tests -c Release
+          dotnet test tests/Diktat.Core.Tests -c Release --logger GitHubActions
+          dotnet test tests/Diktat.AI.Tests -c Release --logger GitHubActions
+          dotnet test tests/Diktat.Transcription.Tests -c Release --logger GitHubActions
