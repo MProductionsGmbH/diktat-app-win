@@ -50,7 +50,7 @@ Without an installer: download `Diktat-win-x64.zip` (or `Diktat-win-arm64.zip` f
 | **Diktat WTF** | `Ctrl + Win + Alt` | Frustrated speech to a calm, effective message |
 | **Diktat :-)** | `Ctrl + Win + Shift` | Text with fitting emojis |
 
-Every shortcut can be changed in the settings, also to "press once to start, again to stop".
+Every shortcut can be changed in the settings, also to "press once to start, again to stop". `Esc` throws a recording away.
 
 ## Features
 
@@ -86,7 +86,7 @@ Diktat has no backend and collects no data.
 ## Requirements
 
 - Windows 10 (version 2004 or newer) or Windows 11, x64 or ARM64.
-- About 1 GB of disk space for the Parakeet model, 1.6 GB for Whisper Large v3 Turbo.
+- About 700 MB of disk space for the Parakeet model (Whisper Small 490 MB, Whisper Large v3 Turbo 570 to 870 MB).
 - 8 GB of memory recommended.
 
 ## Build It Yourself
@@ -124,6 +124,7 @@ Push a tag `vX.Y.Z`. The release workflow tests, publishes x64 and ARM64 builds,
 
 ## Known Limitations
 
+- **Early version:** CI builds and starts the app on Windows and runs the unit tests, but the first runs on real PCs are still ahead. The [test checklist](docs/windows-test-checklist.md) lists what needs a person and a microphone.
 - **Not signed yet:** SmartScreen warns on first start.
 - **Apps running as administrator:** Windows does not let a normal app paste into them. Start Diktat as administrator too, or paste with `Ctrl + V` yourself (the text is on the clipboard).
 - **Whisper on silence** sometimes invents phrases like "Untertitel im Auftrag des ZDF". Diktat filters the known ones.
