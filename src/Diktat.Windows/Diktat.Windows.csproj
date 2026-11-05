@@ -19,6 +19,8 @@
   <ItemGroup>
     <!-- WASAPI capture/loopback and Core Audio endpoints for the platform layer. -->
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- llama.cpp for the built-in AI model; with a runtime identifier only that one's builds. -->
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.30.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Diktat.Windows.Tests" />
@@ -41,4 +43,13 @@
   <ItemGroup>
     <Using Include="Diktat.Core.Localization" />
   </ItemGroup>
+  <!-- llama.cpp (Diktat.LocalModel) is loaded by full path from runtimes/<rid>/native next to
+       Diktat.exe, so it must stay beside the exe instead of going into the single-file bundle. -->
+  <Target Name="DiktatKeepLlamaBesideExe" BeforeTargets="_ComputeFilesToBundle;PrepareForBundle;GenerateSingleFileBundle">
+    <ItemGroup>
+      <ResolvedFileToPublish Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\','/').Replace('//','/').StartsWith('runtimes/win-')) and $([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\','/').Contains('/native/'))">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 </Project>

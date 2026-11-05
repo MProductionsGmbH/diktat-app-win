@@ -6,7 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LLamaSharp" Version="0.30.0" />
-    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.30.0" />
+    <!-- The native llama.cpp builds (LLamaSharp.Backend.Cpu) come from the app and the tests, so
+         the app ships only the ones for its own runtime identifier. -->
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Diktat.LocalModel.Tests" />
