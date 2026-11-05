@@ -6,6 +6,7 @@ namespace Diktat.LocalModel;
 public static class LocalModelRuntime
 {
     private static readonly object Gate = new();
+    private static readonly Queue<string> Recent = new();
     private static bool _configured;
 
     /// Where llama.cpp writes its messages (warnings and errors only); the app passes its log.
@@ -19,7 +20,20 @@ public static class LocalModelRuntime
     public static string CheckNative()
     {
         Configure();
-        NativeApi.llama_empty_call();
+        try
+        {
+            NativeApi.llama_empty_call();
+        }
+        catch (Exception ex)
+        {
+            var runtimes = Path.Combine(AppContext.BaseDirectory, "runtimes");
+            var files = Directory.Exists(runtimes)
+                ? string.Join(", ", Directory.EnumerateFiles(runtimes, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(AppContext.BaseDirectory, f)).Take(40))
+                : "no runtimes folder in " + AppContext.BaseDirectory;
+            string log;
+            lock (Gate) log = string.Join("\n", Recent);
+            throw new InvalidOperationException($"llama.cpp did not load. Files: {files}\nLoader log:\n{log}", ex);
+        }
         return $"llama.cpp loaded, {NativeApi.llama_max_devices()} device(s), GPU offload {(NativeApi.llama_supports_gpu_offload() ? "yes" : "no")}";
     }
 
@@ -31,11 +45,19 @@ public static class LocalModelRuntime
             _configured = true;
             if (NativeLibraryConfig.LLama.LibraryHasLoaded) return;
             NativeLibraryConfig.All
+                // LLamaSharp looks next to its own assembly, which a single-file app does not have:
+                // the native libraries are in runtimes/<rid>/native/ next to Diktat.exe.
+                .WithSearchDirectory(AppContext.BaseDirectory)
                 .WithAutoFallback(true)
                 .WithLogCallback((level, message) =>
                 {
-                    if (level is LLamaLogLevel.Warning or LLamaLogLevel.Error && !string.IsNullOrWhiteSpace(message))
-                        Log?.Invoke("llama.cpp: " + message.TrimEnd());
+                    if (string.IsNullOrWhiteSpace(message)) return;
+                    lock (Gate)
+                    {
+                        Recent.Enqueue($"{level}: {message.TrimEnd()}");
+                        while (Recent.Count > 40) Recent.Dequeue();
+                    }
+                    if (level is LLamaLogLevel.Warning or LLamaLogLevel.Error) Log?.Invoke("llama.cpp: " + message.TrimEnd());
                 });
         }
     }
