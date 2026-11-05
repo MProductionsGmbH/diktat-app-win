@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The language model the app runs itself (Gemma 4 via llama.cpp / LLamaSharp). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Diktat.LocalModel</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="LLamaSharp" Version="0.30.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.30.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Diktat.LocalModel.Tests" />
+    <Using Include="Diktat.Core.Localization" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
+    <ProjectReference Include="..\Diktat.AI\Diktat.AI.csproj" />
+  </ItemGroup>
+</Project>

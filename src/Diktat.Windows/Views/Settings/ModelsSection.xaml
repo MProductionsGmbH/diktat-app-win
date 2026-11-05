@@ -43,6 +43,8 @@
 
                     <TextBlock Text="{Binding Error}" Style="{DynamicResource Diktat.ErrorTextStyle}"
                                Visibility="{Binding Error, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
+                    <TextBlock Text="{Binding Requirement}" Style="{DynamicResource Diktat.CaptionText}" Foreground="{DynamicResource Diktat.ErrorText}"
+                               Visibility="{Binding Requirement, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
 
                     <WrapPanel>
                         <Button Content="{l:T 'Laden'}" Style="{DynamicResource Diktat.PrimaryButton}" Padding="14,6" Margin="0,0,8,0" Click="OnDownload"
@@ -70,6 +72,15 @@
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Diktat transkribiert immer auf diesem PC. Das Audio verlässt das Gerät nicht. Ein Modell wird einmalig von Hugging Face geladen.'}"/>
                 <TextBlock Text="{Binding InstalledSummary}" FontWeight="SemiBold" FontSize="13"/>
                 <ItemsControl ItemsSource="{Binding TranscriptionModels}" ItemTemplate="{StaticResource ModelTemplate}" Focusable="False"/>
+            </v:Stack>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="{l:T 'KI-Modell'}" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="12">
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                           Text="{l:T 'Optional: Ein Sprachmodell, das Diktat selbst auf diesem PC ausführt, für KI-Schreibstil, WTF, :-), die Stufen Mittel und Stark und Meeting-Zusammenfassungen. Ohne Internet, ohne Ollama, ohne API-Key. Es wird einmalig von Hugging Face geladen und braucht beim Schreiben einige GB Arbeitsspeicher.'}"/>
+                <TextBlock Text="{Binding LanguageModelSummary}" FontWeight="SemiBold" FontSize="13"/>
+                <ItemsControl ItemsSource="{Binding LanguageModels}" ItemTemplate="{StaticResource ModelTemplate}" Focusable="False"/>
             </v:Stack>
         </HeaderedContentControl>
 

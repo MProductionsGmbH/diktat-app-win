@@ -371,10 +371,13 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
 
     // ------------------------------------------------------------------ live notes
 
-    /// Live notes need a model server on this PC (Ollama, LM Studio); the text never leaves the PC.
+    /// Live notes need a model on this PC (the built-in model, Ollama, LM Studio); the text never
+    /// leaves the PC. "Immer Modell-Anbieter" puts the server first, like for the summary.
     private void StartLiveNotes()
     {
-        var backend = LiveNotesBackend.ServerOnThisPC(_services.Rewriter);
+        var server = LiveNotesBackend.ServerOnThisPC(_services.Rewriter);
+        var builtIn = LiveNotesBackend.BuiltIn(_services.Rewriter);
+        var backend = _services.Settings.App.RewriteEngine == RewriteEngine.Provider ? server ?? builtIn : builtIn ?? server;
         if (backend is null) return;
         var notes = new Diktat.AI.Meetings.LiveNotes(_ => Task.FromResult(backend));
         notes.Changed += (_, _) => LiveNotes = notes.Notes;

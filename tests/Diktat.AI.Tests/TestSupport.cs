@@ -47,6 +47,7 @@ internal sealed class FakeRewriter : ITextRewriter
     public List<Call> Calls { get; } = new();
     public bool Configured { get; set; } = true;
     public AIProviderConfig? ServerOnThisPC { get; set; }
+    public ILocalTextModel? BuiltInModel { get; set; }
 
     public FakeRewriter(Func<string, string, string>? answer = null)
     {
@@ -68,6 +69,20 @@ internal sealed class FakeRewriter : ITextRewriter
         if (ServerOnThisPC is null) throw new TextRewriterException();
         Calls.Add(new Call(text, instruction, RewriteEngine.Provider, null, false));
         return Task.FromResult(_answer(text, instruction));
+    }
+}
+
+/// A built-in model that answers with a fixed text.
+internal sealed class FakeLocalModel(string answer, bool cutOff = false) : ILocalTextModel
+{
+    public bool IsAvailable { get; set; } = true;
+    public string Name => "Gemma 4 E2B";
+    public List<string> Instructions { get; } = new();
+
+    public Task<LocalTextAnswer> CompleteAsync(string instruction, string text, int maxTokens, CancellationToken cancellationToken = default)
+    {
+        Instructions.Add(instruction);
+        return Task.FromResult(new LocalTextAnswer(answer, cutOff));
     }
 }
 

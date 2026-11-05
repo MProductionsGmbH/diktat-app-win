@@ -87,6 +87,12 @@ internal static class SmokeTest
                 return Task.FromResult(true);
             });
 
+            await Step(report, "local language model runtime", () =>
+            {
+                report.Line("  " + Diktat.LocalModel.LocalModelRuntime.CheckNative());
+                return Task.FromResult(true);
+            });
+
             foreach (var language in new[] { UiLanguage.German, UiLanguage.English })
             {
                 L.Use(language);

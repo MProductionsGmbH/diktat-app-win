@@ -85,3 +85,4 @@ jobs:
           dotnet test tests/Diktat.Core.Tests -c Release --logger GitHubActions --blame-hang-timeout 3m
           dotnet test tests/Diktat.AI.Tests -c Release --logger GitHubActions
           dotnet test tests/Diktat.Transcription.Tests -c Release --logger GitHubActions
+          dotnet test tests/Diktat.LocalModel.Tests -c Release --logger GitHubActions

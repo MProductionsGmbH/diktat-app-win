@@ -55,13 +55,14 @@ Every shortcut can be changed in the settings, also to "press once to start, aga
 ## Features
 
 - **Local speech recognition:** Parakeet TDT 0.6B v3 (fast, 25 European languages) via sherpa-onnx, or OpenAI Whisper via whisper.cpp (about 100 languages). Both detect the spoken language.
-- **Writing modes with your own model:** KI-Schreibstil, WTF and :-) use a model provider with your own API key (OpenAI, Anthropic, Google Gemini, Mistral, OpenRouter) or a local server on your PC such as Ollama or LM Studio, so it can run offline. Diktat finds Ollama and LM Studio by itself.
+- **Built-in AI model:** download Gemma 4 by Google under Einstellungen › Modelle (E2B, 3.3 GB, or E4B, 5.2 GB) and KI-Schreibstil, WTF, :-), the Mittel and Stark cleanup levels and meeting summaries run on your PC itself: no internet, no Ollama, no API key. It plays the part Apple Intelligence plays on the Mac. See [docs/local-model.md](docs/local-model.md).
+- **Or your own model:** a model provider with your own API key (OpenAI, Anthropic, Google Gemini, Mistral, OpenRouter) or a local server on your PC such as Ollama or LM Studio. Diktat finds Ollama and LM Studio by itself.
 - **Smooths what you stumble over:** *Leicht* removes "ähm", stutters and phrases said twice without any model. *Mittel* also drops restarts and self-corrections, *Stark* also fixes grammar, word order and punctuation.
 - **Fits where you type:** spaces and capitals follow the text around your cursor (read through Windows UI Automation). Password fields are never read.
 - **Mode per app or website:** Outlook always in AI written style, Slack with emojis, everything else word for word.
 - **Text lands in the right place:** if you click into another window while a writing mode still works, the text goes to the clipboard instead of the wrong field.
 - **Sound off while recording:** music or a podcast is muted while you speak and back right after.
-- **Meetings:** record a conversation through the microphone, or an online meeting (Teams, Zoom, Meet) with the sound your PC plays. You get the transcript by person and, with a model server on this PC, a summary with decisions and to-dos. Meetings never go to an internet provider. Please ask everyone before you record.
+- **Meetings:** record a conversation through the microphone, or an online meeting (Teams, Zoom, Meet) with the sound your PC plays. You get the transcript by person and, with the built-in AI model or a model server on this PC, a summary with decisions and to-dos. Meetings never go to an internet provider. Please ask everyone before you record.
 - **Voice memos and WhatsApp voice messages:** drop an audio file on Diktat and get the text.
 - **Dictionary:** names and terms spelled your way, fixed replacements ("n acht n" becomes "n8n").
 - **History:** recent results, encrypted for your Windows user (DPAPI) and stored only on your PC.
@@ -73,9 +74,10 @@ Every shortcut can be changed in the settings, also to "press once to start, aga
 
 ```text
 Speech recognition:  your PC (Parakeet via sherpa-onnx or Whisper via whisper.cpp)
-Writing modes:       your own model provider with your own API key,
+Writing modes:       your PC with the built-in AI model (Gemma 4 via llama.cpp),
+                     your own model provider with your own API key,
                      or a local server on your PC (Ollama, LM Studio)
-Meetings:            your PC; summaries only with a model server on this PC
+Meetings:            your PC; summaries only with a model on this PC
 API keys, history:   encrypted for your Windows user (DPAPI)
 Model download:      Hugging Face / GitHub, once per model
 Update check:        GitHub releases of this repository (can be turned off)

@@ -164,14 +164,15 @@ public sealed class AIProviderStoreTests
 
 public sealed class TextRewriterTests
 {
-    private static (TextRewriter Rewriter, FakeHandler Handler, AIProviderStore Store, TempDirectory Directory) Make(AIProviderConfig? config, string? key = null)
+    private static (TextRewriter Rewriter, FakeHandler Handler, AIProviderStore Store, TempDirectory Directory) Make(AIProviderConfig? config, string? key = null,
+        ILocalTextModel? local = null)
     {
         var directory = new TempDirectory();
         var store = new AIProviderStore(Path.Combine(directory.Path, "p.json"), new InMemorySecretStore());
         if (config is not null) store.Config = config;
         if (key is not null && config is not null) store.SaveKey(config.Provider, key);
         var handler = FakeHandler.Json("""{"choices":[{"message":{"content":"Fertig."}}]}""");
-        return (new TextRewriter(store, new AIClient(handler)), handler, store, directory);
+        return (new TextRewriter(store, new AIClient(handler), local), handler, store, directory);
     }
 
     [Fact]
@@ -181,7 +182,7 @@ public sealed class TextRewriterTests
         using var _d = directory;
         Assert.False(rewriter.CanRewrite(RewriteEngine.Automatic));
         var error = await Assert.ThrowsAsync<TextRewriterException>(() => rewriter.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Automatic));
-        Assert.Equal("Für diesen Modus braucht Diktat einen Modell-Anbieter: einen API-Key oder einen lokalen Server wie Ollama in den Einstellungen.", error.Message);
+        Assert.Equal("Für diesen Modus braucht Diktat ein Sprachmodell: das KI-Modell unter Einstellungen › Modelle, einen lokalen Server wie Ollama oder einen Modell-Anbieter mit API-Key.", error.Message);
     }
 
     [Fact]
@@ -218,4 +219,61 @@ public sealed class TextRewriterTests
         Assert.Equal("Anweisung", handler.Requests[0].Json["messages"]![0]!["content"]!.GetValue<string>());
         Assert.False(handler.Requests[0].Headers.ContainsKey("authorization"));
     }
+
+    [Fact]
+    public async Task TheBuiltInModelAloneIsEnough()
+    {
+        var local = new FakeLocalModel("Vom PC.");
+        var (rewriter, handler, _, directory) = Make(null, local: local);
+        using var _d = directory;
+        Assert.True(rewriter.CanRewrite(RewriteEngine.Automatic));
+        Assert.True(rewriter.CanRewrite(RewriteEngine.Provider));
+        Assert.Same(local, rewriter.BuiltInModel);
+        Assert.Equal("Vom PC.", await rewriter.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Provider));
+        Assert.StartsWith("Anweisung\n\n", local.Instructions[0]);
+        Assert.Empty(handler.Requests);
+    }
+
+    [Fact]
+    public async Task AutomaticPrefersTheBuiltInModelAndProviderTheProvider()
+    {
+        var local = new FakeLocalModel("Vom PC.");
+        var (rewriter, handler, _, directory) = Make(new AIProviderConfig(AIProvider.OpenAI), "sk-test-123456789", local);
+        using var _d = directory;
+        Assert.Equal("Vom PC.", await rewriter.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Automatic));
+        Assert.Empty(handler.Requests);
+        Assert.Equal("Fertig.", await rewriter.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Provider));
+        Assert.Single(handler.Requests);
+        Assert.Single(local.Instructions);
+    }
+
+    [Fact]
+    public async Task AFailingOrCutOffBuiltInModelHandsOverToTheProvider()
+    {
+        var (rewriter, handler, _, directory) = Make(new AIProviderConfig(AIProvider.OpenAI), "sk-test-123456789", new FakeLocalModel("Halb", cutOff: true));
+        using var _d = directory;
+        Assert.Equal("Fertig.", await rewriter.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Automatic));
+        Assert.Single(handler.Requests);
+
+        var (alone, _, _, directory2) = Make(null, local: new FakeLocalModel("Halb", cutOff: true));
+        using var _d2 = directory2;
+        var error = await Assert.ThrowsAsync<TextRewriterException>(() => alone.RewriteAsync("Hallo", "Anweisung", RewriteEngine.Automatic));
+        Assert.Equal("Die Antwort des Modells wurde zu lang.", error.Message);
+    }
+
+    [Fact]
+    public void AnUninstalledBuiltInModelDoesNotCount()
+    {
+        var (rewriter, _, _, directory) = Make(null, local: new FakeLocalModel("x") { IsAvailable = false });
+        using var _d = directory;
+        Assert.Null(rewriter.BuiltInModel);
+        Assert.False(rewriter.CanRewrite(RewriteEngine.Automatic));
+    }
+
+    [Theory]
+    [InlineData(10, 512)]
+    [InlineData(2_000, 1_256)]
+    [InlineData(100_000, 4_096)]
+    public void TheAnswerMayBeAboutAsLongAsTheText(int length, int tokens) =>
+        Assert.Equal(tokens, TextRewriter.MaxTokensFor(new string('a', length)));
 }

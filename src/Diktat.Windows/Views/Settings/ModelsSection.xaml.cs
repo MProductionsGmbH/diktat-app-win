@@ -57,7 +57,9 @@ public partial class ModelsSection : UserControl, IMainPage
     private void OnDelete(object sender, RoutedEventArgs e)
     {
         if (ItemOf(sender) is not { } item) return;
-        var question = item.IsSelected
+        var question = item.IsSelected && item.IsLanguageModel
+            ? L.F("{0} ist das aktive KI-Modell. Löschen? Die KI-Modi laufen dann über einen Modell-Anbieter, wenn einer eingetragen ist.", item.Name)
+            : item.IsSelected
             ? L.F("{0} ist das aktive Sprachmodell. Löschen? Bis du ein anderes lädst, kann Diktat nicht transkribieren.", item.Name)
             : L.F("{0} von diesem PC löschen? Du kannst es jederzeit wieder laden.", item.Name);
         if (Ui.Confirm(this, question, L.T("Modell löschen"))) _model.Delete(item);

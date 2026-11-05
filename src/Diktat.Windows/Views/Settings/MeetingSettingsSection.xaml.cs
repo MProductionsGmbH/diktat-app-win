@@ -1,4 +1,5 @@
 using System.Windows;
+using Diktat.Core.Settings;
 using Diktat.Transcription.Models;
 using Diktat.Windows.Runtime;
 using UserControl = System.Windows.Controls.UserControl;
@@ -43,10 +44,13 @@ public partial class MeetingSettingsSection : UserControl, IMainPage
     private void Load()
     {
         Summarize.IsChecked = _app.Services.Settings.App.SummarizesMeetings;
-        var local = _app.Services.Rewriter.ServerOnThisPC;
-        SummaryNote.Text = local is not null
-            ? L.F("Zusammenfassungen schreibt {0} auf diesem PC. Das Transkript verlässt den PC nicht.", local.Model)
-            : L.T("Meetings fasst Diktat nur mit einem Modell auf diesem PC zusammen (Ollama oder LM Studio), damit das Gespräch den PC nicht verlässt. Gerade ist keins eingetragen: Du bekommst das Transkript ohne Zusammenfassung.");
+        var server = _app.Services.Rewriter.ServerOnThisPC;
+        var builtIn = _app.Services.Rewriter.BuiltInModel;
+        var preferServer = _app.Services.Settings.App.RewriteEngine == RewriteEngine.Provider;
+        var name = (preferServer ? server?.Model : null) ?? builtIn?.Name ?? server?.Model;
+        SummaryNote.Text = name is not null
+            ? L.F("Zusammenfassungen schreibt {0} auf diesem PC. Das Transkript verlässt den PC nicht.", name)
+            : L.T("Meetings fasst Diktat nur mit einem Modell auf diesem PC zusammen: dem KI-Modell unter Einstellungen › Modelle, Ollama oder LM Studio. So verlässt das Gespräch den PC nicht. Gerade ist keins da: Du bekommst das Transkript ohne Zusammenfassung.");
         bool installed;
         try { installed = _app.Services.Models.IsInstalled(ModelCatalog.SpeakerDiarization); }
         catch { installed = false; }

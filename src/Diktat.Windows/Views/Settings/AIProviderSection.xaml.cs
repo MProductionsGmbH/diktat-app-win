@@ -142,10 +142,12 @@ public partial class AIProviderSection : UserControl, IMainPage
     private void UpdateEngineNote(AIProviderConfig? config)
     {
         var engine = _app.Services.Settings.App.RewriteEngine;
+        var builtIn = _app.Services.Rewriter.BuiltInModel;
         EngineNote.Text = engine == RewriteEngine.Automatic
-            ? L.T("Ist oben ein Modell auf diesem PC eingetragen (Ollama, LM Studio), laufen die KI-Modi dort. Sonst über den Modell-Anbieter.")
-            : L.T("Die KI-Modi laufen immer über den eingetragenen Modell-Anbieter.");
-        if (config is null) EngineNote.Text += " " + L.T("Gerade ist keiner eingetragen: Diktat schreibt dann wortgenau.");
+            ? L.T("Ist das KI-Modell unter Einstellungen › Modelle geladen, laufen die KI-Modi damit auf diesem PC. Sonst über den Modell-Anbieter oben, auch Ollama oder LM Studio.")
+            : L.T("Die KI-Modi laufen zuerst über den eingetragenen Modell-Anbieter. Antwortet er nicht, übernimmt das KI-Modell auf diesem PC, wenn es geladen ist.");
+        if (config is null && builtIn is null) EngineNote.Text += " " + L.T("Gerade gibt es weder einen Anbieter noch das KI-Modell: Diktat schreibt dann wortgenau.");
+        else if (config is null) EngineNote.Text += " " + L.F("Gerade ist kein Anbieter eingetragen: Die KI-Modi laufen mit {0} auf diesem PC.", builtIn!.Name);
     }
 
     private void Write(Action action)

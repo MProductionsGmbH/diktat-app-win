@@ -36,6 +36,18 @@ public sealed record LiveNotesBackend(string Name, int CharacterLimit, Func<stri
         return new LiveNotesBackend($"{config.Model} ({server})", MeetingModelBackend.LocalServerCharacterLimit,
             (instruction, text, cancellationToken) => rewriter.RewriteOnServerOnThisPCAsync(text, instruction, cancellationToken));
     }
+
+    /// The model the app runs itself, or null when none is installed.
+    public static LiveNotesBackend? BuiltIn(ITextRewriter rewriter)
+    {
+        if (rewriter.BuiltInModel is not { } model) return null;
+        return new LiveNotesBackend(model.Name, MeetingModelBackend.LocalModelCharacterLimit,
+            async (instruction, text, cancellationToken) =>
+            {
+                var answer = await model.CompleteAsync(instruction, text, 1_500, cancellationToken).ConfigureAwait(false);
+                return answer.CutOff ? throw new LiveNotesException(LiveNotesFailureKind.AnswerCutOff) : answer.Text;
+            });
+    }
 }
 
 /// Notes that grow while a meeting runs: every few minutes the newest stretch is transcribed and

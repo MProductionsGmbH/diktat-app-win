@@ -2,6 +2,7 @@ using System.IO;
 using Diktat.AI;
 using Diktat.AI.Meetings;
 using Diktat.AI.Updates;
+using Diktat.LocalModel;
 using Diktat.Core.History;
 using Diktat.Core.Settings;
 using Diktat.Core.Support;
@@ -29,13 +30,15 @@ public sealed class AppServices : IDisposable
 
         AIProviders = new AIProviderStore(Path.Combine(AppPaths.RoamingDirectory, "ai-provider.json"), Secrets);
         AIClient = new AIClient();
-        Rewriter = new TextRewriter(AIProviders, AIClient);
+        Models = new ModelStore(AppPaths.ModelsDirectory);
+        LocalModelRuntime.Log = message => Log.Warn(message);
+        LocalModel = new BuiltInLanguageModel(ChooseLanguageModel);
+        Rewriter = new TextRewriter(AIProviders, AIClient, LocalModel);
         ModeRewriter = new ModeRewriter(Rewriter);
         SpeechPolisher = new SpeechPolisher(Rewriter);
         ServerDiscovery = new LocalServerDiscovery();
         MeetingSummaries = new MeetingSummaryService(Rewriter);
 
-        Models = new ModelStore(AppPaths.ModelsDirectory);
         Transcription = new LocalTranscriptionService(Models, Settings.App.TranscriptionModel);
 
         History = new TranscriptHistoryStore(AppPaths.HistoryDirectory, Protector, Settings.App.HistoryRetention);
@@ -84,6 +87,19 @@ public sealed class AppServices : IDisposable
     public LocalServerDiscovery ServerDiscovery { get; }
     public MeetingSummaryService MeetingSummaries { get; }
 
+    /// The language model the app runs itself (Gemma 4), when one is downloaded.
+    public BuiltInLanguageModel LocalModel { get; }
+
+    /// The installed language model to use: the one picked, else the first installed one.
+    public ModelInfo? LanguageModel => ModelCatalog.InstalledLanguageModel(Settings.App.LanguageModel, Models.IsInstalled);
+
+    private LocalModelChoice? ChooseLanguageModel() =>
+        LanguageModel is { } model ? new LocalModelChoice(ShortName(model), Models.FilePath(model, model.Files[0])) : null;
+
+    /// "Gemma 4 E2B" without "(empfohlen)".
+    private static string ShortName(ModelInfo model) =>
+        model.DisplayName.Split(" (", 2)[0];
+
     // Speech recognition
     public ModelStore Models { get; }
     public LocalTranscriptionService Transcription { get; }
@@ -100,6 +116,7 @@ public sealed class AppServices : IDisposable
     public void Dispose()
     {
         Transcription.Unload();
+        LocalModel.Dispose();
         AIClient.Dispose();
         SpellChecker.Dispose();
     }

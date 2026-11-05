@@ -3,12 +3,14 @@
     <Project Path="src/Diktat.Core/Diktat.Core.csproj" />
     <Project Path="src/Diktat.AI/Diktat.AI.csproj" />
     <Project Path="src/Diktat.Transcription/Diktat.Transcription.csproj" />
+    <Project Path="src/Diktat.LocalModel/Diktat.LocalModel.csproj" />
     <Project Path="src/Diktat.Windows/Diktat.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Diktat.Core.Tests/Diktat.Core.Tests.csproj" />
     <Project Path="tests/Diktat.AI.Tests/Diktat.AI.Tests.csproj" />
     <Project Path="tests/Diktat.Transcription.Tests/Diktat.Transcription.Tests.csproj" />
+    <Project Path="tests/Diktat.LocalModel.Tests/Diktat.LocalModel.Tests.csproj" />
     <Project Path="tests/Diktat.Windows.Tests/Diktat.Windows.Tests.csproj" />
   </Folder>
 </Solution>

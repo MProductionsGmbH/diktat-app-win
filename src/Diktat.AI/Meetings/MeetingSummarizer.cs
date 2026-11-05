@@ -22,6 +22,15 @@ public sealed record MeetingModelBackend(string Name, int CharacterLimit, Func<s
         return new MeetingModelBackend(config.Model, LocalServerCharacterLimit,
             (instruction, text, cancellationToken) => rewriter.RewriteOnServerOnThisPCAsync(text, instruction, cancellationToken));
     }
+
+    /// The model the app runs itself, or null when none is installed.
+    public static MeetingModelBackend? BuiltIn(ITextRewriter rewriter)
+    {
+        if (rewriter.BuiltInModel is not { } model) return null;
+        return new MeetingModelBackend(model.Name, LocalModelCharacterLimit,
+            async (instruction, text, cancellationToken) =>
+                (await model.CompleteAsync(instruction, text, 1_500, cancellationToken).ConfigureAwait(false)).Text);
+    }
 }
 
 /// Summary, decisions and to-dos for a meeting transcript.
@@ -168,7 +177,7 @@ public sealed record MeetingSummaryResult(string? Summary, string? Note);
 /// provider on the internet, whatever the engine setting.
 public sealed class MeetingSummaryService
 {
-    public static string NoModelNote => L.T("Für die Zusammenfassung braucht Diktat ein Modell auf diesem PC, etwa Ollama oder LM Studio. Meetings gehen nie an einen Modell-Anbieter im Internet.");
+    public static string NoModelNote => L.T("Für die Zusammenfassung braucht Diktat ein Modell auf diesem PC: das KI-Modell unter Einstellungen › Modelle, Ollama oder LM Studio. Meetings gehen nie an einen Modell-Anbieter im Internet.");
 
     private readonly ITextRewriter _rewriter;
 
@@ -178,7 +187,8 @@ public sealed class MeetingSummaryService
     }
 
     /// Whether a model on this PC can summarize: the model server, or a local model the app brings.
-    public bool IsAvailable(MeetingModelBackend? localModel = null) => localModel is not null || _rewriter.ServerOnThisPC is not null;
+    public bool IsAvailable(MeetingModelBackend? localModel = null) =>
+        localModel is not null || _rewriter.BuiltInModel is not null || _rewriter.ServerOnThisPC is not null;
 
     /// <param name="ownName">The first name of the Windows account, so tasks the person at this PC
     /// took on are assigned to them; null without one.</param>
@@ -189,6 +199,7 @@ public sealed class MeetingSummaryService
     {
         var transcript = meeting.TranscriptText(ownName);
         var server = MeetingModelBackend.ServerOnThisPC(_rewriter);
+        localModel ??= MeetingModelBackend.BuiltIn(_rewriter);
         string? failure = null;
 
         if (prefersServerOnThisPC && server is not null)

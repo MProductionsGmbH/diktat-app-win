@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
     <ProjectReference Include="..\Diktat.AI\Diktat.AI.csproj" />
     <ProjectReference Include="..\Diktat.Transcription\Diktat.Transcription.csproj" />
+    <ProjectReference Include="..\Diktat.LocalModel\Diktat.LocalModel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Icons and fonts are compiled into the app (pack://application:,,,/Assets/...). -->

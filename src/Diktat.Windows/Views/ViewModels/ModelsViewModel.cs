@@ -24,6 +24,10 @@ public sealed class ModelItemViewModel : ObservableObject
     public string Size => Model.SizeLabel;
     public string? Attribution => Model.Attribution;
     public bool IsTranscription => Model.IsTranscriptionModel;
+    public bool IsLanguageModel => Model.IsLanguageModel;
+
+    /// Why this PC cannot run the model (too little memory), else null.
+    public string? Requirement => Model.MemoryProblem(ModelsViewModel.InstalledMemoryGB);
 
     public bool IsInstalled { get; private set; }
     public bool IsSelected { get; private set; }
@@ -32,8 +36,8 @@ public sealed class ModelItemViewModel : ObservableObject
     public string ProgressText => _download?.StatusText ?? "";
     public string? Error { get; private set; }
 
-    public bool CanDownload => !IsInstalled && !IsDownloading;
-    public bool CanSelect => IsTranscription && IsInstalled && !IsSelected;
+    public bool CanDownload => !IsInstalled && !IsDownloading && Requirement is null;
+    public bool CanSelect => (IsTranscription || IsLanguageModel) && IsInstalled && !IsSelected;
     public bool CanDelete => IsInstalled && !IsDownloading;
 
     public string StateText
@@ -53,7 +57,9 @@ public sealed class ModelItemViewModel : ObservableObject
     {
         try { IsInstalled = _app.Services.Models.IsInstalled(Model); }
         catch { IsInstalled = false; }
-        IsSelected = IsTranscription && ModelCatalog.TranscriptionModelOrDefault(_app.Services.Settings.App.TranscriptionModel).Id == Model.Id;
+        IsSelected = IsTranscription
+            ? ModelCatalog.TranscriptionModelOrDefault(_app.Services.Settings.App.TranscriptionModel).Id == Model.Id
+            : IsLanguageModel && _app.Services.LanguageModel?.Id == Model.Id;
         Attach(ModelDownloads.Find(Model.Id));
         OnAllPropertiesChanged();
     }
@@ -101,17 +107,35 @@ public sealed class ModelsViewModel : ObservableObject
         _app = app;
         TranscriptionModels = new ObservableCollection<ModelItemViewModel>(ModelCatalog.TranscriptionModels.Select(m => new ModelItemViewModel(app, m)));
         SpeakerModel = new ModelItemViewModel(app, ModelCatalog.SpeakerDiarization);
+        LanguageModels = new ObservableCollection<ModelItemViewModel>(ModelCatalog.LanguageModels.Select(m => new ModelItemViewModel(app, m)));
     }
 
     public ObservableCollection<ModelItemViewModel> TranscriptionModels { get; }
     public ModelItemViewModel SpeakerModel { get; }
+    public ObservableCollection<ModelItemViewModel> LanguageModels { get; }
 
-    public IEnumerable<ModelItemViewModel> All => TranscriptionModels.Append(SpeakerModel);
+    public IEnumerable<ModelItemViewModel> All => TranscriptionModels.Append(SpeakerModel).Concat(LanguageModels);
+
+    /// The memory of this PC in GB (0 when unknown).
+    public static int InstalledMemoryGB
+    {
+        get
+        {
+            try { return (int)Math.Round(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 1_073_741_824.0); }
+            catch { return 0; }
+        }
+    }
+
+    /// Which language model runs, in one line.
+    public string LanguageModelSummary => _app.Services.LanguageModel is { } model
+        ? L.F("Die KI-Modi laufen mit {0} auf diesem PC.", model.DisplayName.Split(" (", 2)[0])
+        : L.T("Noch kein KI-Modell geladen. Die KI-Modi brauchen dann einen Modell-Anbieter oder Ollama.");
 
     public void Select(ModelItemViewModel item)
     {
-        if (!item.IsTranscription) return;
-        _app.Services.Settings.App.TranscriptionModel = item.Model.Id;
+        if (item.IsTranscription) _app.Services.Settings.App.TranscriptionModel = item.Model.Id;
+        else if (item.IsLanguageModel) _app.Services.Settings.App.LanguageModel = item.Model.Id;
+        else return;
         _app.Services.SaveSettings();
         Refresh();
     }
@@ -121,7 +145,8 @@ public sealed class ModelsViewModel : ObservableObject
         try
         {
             // The loaded model holds its files open.
-            if (item.IsSelected && _app.Phase is not (DictationPhase.Recording or DictationPhase.Processing)) _app.Services.Transcription.Unload();
+            if (item.IsSelected && item.IsTranscription && _app.Phase is not (DictationPhase.Recording or DictationPhase.Processing)) _app.Services.Transcription.Unload();
+            if (item.IsLanguageModel) _app.Services.LocalModel.Unload();
             _app.Services.Models.Delete(item.Model);
         }
         catch (Exception ex)

@@ -10,6 +10,8 @@ public enum ModelEngine
     Whisper,
     /// Speaker segmentation and embedding models for meetings, via sherpa-onnx.
     SpeakerDiarization,
+    /// A language model in GGUF for the AI modes and meeting summaries, via llama.cpp (Diktat.LocalModel).
+    LanguageModel,
 }
 
 /// One file of a model: where it comes from and how large it must be.
@@ -24,6 +26,7 @@ public sealed record ModelFile(string FileName, string Url, long SizeBytes, stri
 /// <param name="Description">German one-liner for the model list; the property gives it in the UI language.</param>
 /// <param name="Recommended">Shown first and preselected.</param>
 /// <param name="Attribution">Credit the license requires, or null; the property gives it in the UI language.</param>
+/// <param name="MinimumMemoryGB">Memory a PC needs to run the model next to other apps; 0 for no limit.</param>
 public sealed record ModelInfo(
     string Id,
     string DisplayName,
@@ -33,7 +36,8 @@ public sealed record ModelInfo(
     IReadOnlyList<ModelFile> Files,
     bool Recommended = false,
     string? PageUrl = null,
-    string? Attribution = null)
+    string? Attribution = null,
+    int MinimumMemoryGB = 0)
 {
     // The catalog keeps the German texts (also for equality); the properties translate when read,
     // so the texts follow the UI language.
@@ -59,6 +63,15 @@ public sealed record ModelInfo(
     /// Whether the model turns speech into text (and can be picked for dictation).
     public bool IsTranscriptionModel => Engine is ModelEngine.Parakeet or ModelEngine.Whisper;
 
+    /// Whether the model writes text (AI modes, cleanup, meeting summaries).
+    public bool IsLanguageModel => Engine == ModelEngine.LanguageModel;
+
+    /// Null when this PC has enough memory, else why the model does not fit.
+    public string? MemoryProblem(int installedMemoryGB) =>
+        MinimumMemoryGB > 0 && installedMemoryGB > 0 && installedMemoryGB < MinimumMemoryGB
+            ? L.F("Braucht mindestens {0} GB Arbeitsspeicher, dieser PC hat {1} GB.", MinimumMemoryGB, installedMemoryGB)
+            : null;
+
     /// The settings label, like the macOS picker: "Whisper Small (nicht installiert)".
     public string PickerLabel(bool installed) => installed ? DisplayName : L.F("{0} (nicht installiert)", DisplayName);
 }
@@ -82,6 +95,11 @@ internal static class ModelTexts
         "Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)." => L.T("Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)."),
         "Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx." => L.T("Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx."),
         "pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx." => L.T("pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx."),
+        "Gemma 4 E2B (empfohlen)" => L.T("Gemma 4 E2B (empfohlen)"),
+        "Kompakt und schnell, auch ohne Grafikkarte." => L.T("Kompakt und schnell, auch ohne Grafikkarte."),
+        "Gründlicher und genauer, braucht mehr Zeit und Speicher." => L.T("Gründlicher und genauer, braucht mehr Zeit und Speicher."),
+        "Schreibt Deutsch, Englisch und über 100 weitere Sprachen." => L.T("Schreibt Deutsch, Englisch und über 100 weitere Sprachen."),
+        "Gemma 4 von Google, Apache 2.0, in der 4-Bit-Fassung von Google (QAT)." => L.T("Gemma 4 von Google, Apache 2.0, in der 4-Bit-Fassung von Google (QAT)."),
         _ => german,
     };
 }
@@ -95,6 +113,11 @@ public static class ModelCatalog
     public const string WhisperTurboId = "whisper-large-v3-turbo-q5_0";
     public const string WhisperTurboQ8Id = "whisper-large-v3-turbo-q8_0";
     public const string SpeakerDiarizationId = "speaker-diarization";
+    public const string GemmaE2BId = "gemma-4-e2b-it-q4_0";
+    public const string GemmaE4BId = "gemma-4-e4b-it-q4_0";
+
+    /// The language model a new installation offers first.
+    public const string DefaultLanguageModelId = GemmaE2BId;
 
     /// What a new installation starts with (same id as on the Mac).
     public const string DefaultTranscriptionModelId = ParakeetId;
@@ -165,10 +188,42 @@ public static class ModelCatalog
         PageUrl: "https://k2-fsa.github.io/sherpa/onnx/speaker-diarization/index.html",
         Attribution: "pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx.");
 
+    // Gemma 4 by Google in Google's own quantization-aware 4-bit GGUF (the same model family as the
+    // local model on the Mac, there in MLX). Only the text model; the vision projector is not needed.
+    private const string GemmaE2BBase = "https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/675cff42a74c774d6cb76f76d8eacb49b48c9b93/";
+    private const string GemmaE4BBase = "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/4b4a2c1d584be7264f87aac328a1bc739ce81b6c/";
+    private const string GemmaLanguages = "Schreibt Deutsch, Englisch und über 100 weitere Sprachen.";
+    private const string GemmaAttribution = "Gemma 4 von Google, Apache 2.0, in der 4-Bit-Fassung von Google (QAT).";
+
+    public static readonly ModelInfo GemmaE2B = new(
+        GemmaE2BId,
+        "Gemma 4 E2B (empfohlen)",
+        ModelEngine.LanguageModel,
+        GemmaLanguages,
+        "Kompakt und schnell, auch ohne Grafikkarte.",
+        [new("gemma-4-E2B_q4_0-it.gguf", GemmaE2BBase + "gemma-4-E2B_q4_0-it.gguf", 3_349_516_256, "fa401b55b07ee70a54c6dae3903c783a6e65064312529ea57175cb5f8dec6634")],
+        Recommended: true,
+        PageUrl: "https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf",
+        Attribution: GemmaAttribution,
+        MinimumMemoryGB: 8);
+
+    public static readonly ModelInfo GemmaE4B = new(
+        GemmaE4BId,
+        "Gemma 4 E4B",
+        ModelEngine.LanguageModel,
+        GemmaLanguages,
+        "Gründlicher und genauer, braucht mehr Zeit und Speicher.",
+        [new("gemma-4-E4B_q4_0-it.gguf", GemmaE4BBase + "gemma-4-E4B_q4_0-it.gguf", 5_154_941_280, "676c35070db6dbe52f93e9c864ee0fba4eddea94b9c875d9cb10daff453fbaee")],
+        PageUrl: "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf",
+        Attribution: GemmaAttribution,
+        MinimumMemoryGB: 16);
+
     /// Recommended first, then by size.
-    public static IReadOnlyList<ModelInfo> All { get; } = [Parakeet, WhisperSmall, WhisperTurbo, WhisperTurboQ8, SpeakerDiarization];
+    public static IReadOnlyList<ModelInfo> All { get; } = [Parakeet, WhisperSmall, WhisperTurbo, WhisperTurboQ8, SpeakerDiarization, GemmaE2B, GemmaE4B];
 
     public static IReadOnlyList<ModelInfo> TranscriptionModels { get; } = All.Where(m => m.IsTranscriptionModel).ToList();
+
+    public static IReadOnlyList<ModelInfo> LanguageModels { get; } = All.Where(m => m.IsLanguageModel).ToList();
 
     public static ModelInfo? Find(string? id)
     {
@@ -179,6 +234,14 @@ public static class ModelCatalog
     /// The transcription model for a settings value; unknown or empty values give the default.
     public static ModelInfo TranscriptionModelOrDefault(string? id) =>
         Find(id) is { IsTranscriptionModel: true } model ? model : Parakeet;
+
+    /// The language model for a settings value: the one picked when it is installed, else the first
+    /// installed one (a download is then used without another click); null when none is installed.
+    public static ModelInfo? InstalledLanguageModel(string? id, Func<ModelInfo, bool> isInstalled)
+    {
+        if (Find(id) is { IsLanguageModel: true } picked && isInstalled(picked)) return picked;
+        return LanguageModels.FirstOrDefault(isInstalled);
+    }
 
     /// File names inside the speaker diarization folder.
     public static class SherpaFiles
