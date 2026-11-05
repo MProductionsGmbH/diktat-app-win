@@ -12,18 +12,18 @@ public enum TranscriptionError
     NoText,
 }
 
-/// A transcription problem with a German message for the UI (wording of the macOS app).
+/// A transcription problem with a message for the UI, in the UI language (wording of the macOS app).
 public sealed class TranscriptionException(TranscriptionError error, string message, Exception? inner = null) : Exception(message, inner)
 {
     public TranscriptionError Error { get; } = error;
 
-    public const string NoModelMessage = "Kein Sprachmodell geladen. Bitte in den Einstellungen unter Modelle eines laden.";
-    public const string NoTextMessage = "Das lokale Modell hat keinen Text erkannt.";
+    public static string NoModelMessage => L.T("Kein Sprachmodell geladen. Bitte in den Einstellungen unter Modelle eines laden.");
+    public static string NoTextMessage => L.T("Das lokale Modell hat keinen Text erkannt.");
 
-    public static string IncompleteMessage(string modelName) => $"Das geladene Modell ist unvollständig: {modelName}";
+    public static string IncompleteMessage(string modelName) => L.F("Das geladene Modell ist unvollständig: {0}", modelName);
 
     public static string LoadFailedMessage(string modelName) =>
-        $"Das Sprachmodell {modelName} ließ sich nicht starten. Bitte in den Einstellungen unter Modelle löschen und neu laden.";
+        L.F("Das Sprachmodell {0} ließ sich nicht starten. Bitte in den Einstellungen unter Modelle löschen und neu laden.", modelName);
 
     public static TranscriptionException NoModel() => new(TranscriptionError.NoModel, NoModelMessage);
 

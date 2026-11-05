@@ -14,7 +14,8 @@ namespace Diktat.Windows.Views;
 /// Small helpers the windows share.
 public static class Ui
 {
-    public static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
+    /// Dates and numbers follow the language of the texts.
+    public static CultureInfo Culture => L.Culture;
 
     /// Runs <paramref name="action"/> on the UI thread (now when already there). Service events
     /// (history, meetings, model downloads) may come from worker threads.
@@ -122,12 +123,12 @@ public static class Ui
         if (mode is WorkflowType.TapTalk or WorkflowType.LocalTapTalk)
         {
             var model = ModelCatalog.TranscriptionModelOrDefault(app.Services.Settings.App.TranscriptionModel);
-            return $"Lokal: {ShortModelName(model)}.";
+            return L.F("Lokal: {0}.", ShortModelName(model));
         }
         return mode.Subtitle();
     }
 
-    public static string ShortModelName(ModelInfo model) => model.DisplayName.Replace(" (empfohlen)", "");
+    public static string ShortModelName(ModelInfo model) => model.DisplayName.Replace(" (empfohlen)", "").Replace(" (recommended)", "");
 
     // --- Text ---------------------------------------------------------------------------
 
@@ -136,26 +137,26 @@ public static class Ui
     {
         var current = now ?? DateTimeOffset.Now;
         var span = current - moment;
-        if (span < TimeSpan.FromMinutes(1)) return "gerade eben";
+        if (span < TimeSpan.FromMinutes(1)) return L.T("gerade eben");
         if (span < TimeSpan.FromHours(1))
         {
             var m = (int)span.TotalMinutes;
-            return m == 1 ? "vor 1 Minute" : $"vor {m} Minuten";
+            return m == 1 ? L.T("vor 1 Minute") : L.F("vor {0} Minuten", m);
         }
         if (span < TimeSpan.FromDays(1))
         {
             var h = (int)span.TotalHours;
-            return h == 1 ? "vor 1 Stunde" : $"vor {h} Stunden";
+            return h == 1 ? L.T("vor 1 Stunde") : L.F("vor {0} Stunden", h);
         }
         var days = (int)Math.Round(span.TotalDays);
-        return days <= 1 ? "gestern" : $"vor {days} Tagen";
+        return days <= 1 ? L.T("gestern") : L.F("vor {0} Tagen", days);
     }
 
     public static string DayTitle(HistoryDay day) => day.Kind switch
     {
-        HistoryDayKind.Today => "Heute",
-        HistoryDayKind.Yesterday => "Gestern",
-        _ => day.Date.ToString("dddd, d. MMMM yyyy", German),
+        HistoryDayKind.Today => L.T("Heute"),
+        HistoryDayKind.Yesterday => L.T("Gestern"),
+        _ => day.Date.ToString(L.Current == UiLanguage.English ? "dddd, MMMM d, yyyy" : "dddd, d. MMMM yyyy", Culture),
     };
 
     public static string Clock(TimeSpan elapsed) =>
@@ -163,22 +164,22 @@ public static class Ui
             ? $"{(int)elapsed.TotalHours}:{elapsed.Minutes:00}:{elapsed.Seconds:00}"
             : $"{elapsed.Minutes:00}:{elapsed.Seconds:00}";
 
-    public static string Number(int value) => value.ToString("N0", German);
+    public static string Number(int value) => value.ToString("N0", Culture);
 
     /// "unter 1 Min., 3 Personen".
     public static string MeetingSummaryLine(Diktat.AI.Meetings.MeetingRecord record)
     {
         var minutes = (int)Math.Round(record.Duration / 60);
-        var duration = minutes < 1 ? "unter 1 Min." : $"{minutes} Min.";
+        var duration = minutes < 1 ? L.T("unter 1 Min.") : L.F("{0} Min.", minutes);
         var count = record.Speakers.Count;
-        var people = count == 1 ? "1 Person" : $"{count} Personen";
+        var people = count == 1 ? L.T("1 Person") : L.F("{0} Personen", count);
         return count == 0 ? duration : $"{duration}, {people}";
     }
 
     public static string RetentionHint(HistoryRetention retention) => retention switch
     {
-        HistoryRetention.Day => "24 Stunden",
-        HistoryRetention.Week => "7 Tage",
+        HistoryRetention.Day => L.T("24 Stunden"),
+        HistoryRetention.Week => L.T("7 Tage"),
         _ => "",
     };
 }

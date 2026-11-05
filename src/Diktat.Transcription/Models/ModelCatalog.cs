@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Diktat.Transcription.Models;
 
 public enum ModelEngine
@@ -17,11 +19,11 @@ public sealed record ModelFile(string FileName, string Url, long SizeBytes, stri
 
 /// A downloadable model.
 /// <param name="Id">Stable id, saved in the settings (AppSettings.TranscriptionModel).</param>
-/// <param name="DisplayName">German name for the settings and the tray menu.</param>
-/// <param name="Languages">German note on the languages the model handles.</param>
-/// <param name="Description">German one-liner for the model list.</param>
+/// <param name="DisplayName">German name for the settings and the tray menu; the property gives it in the UI language.</param>
+/// <param name="Languages">German note on the languages the model handles; the property gives it in the UI language.</param>
+/// <param name="Description">German one-liner for the model list; the property gives it in the UI language.</param>
 /// <param name="Recommended">Shown first and preselected.</param>
-/// <param name="Attribution">Credit the license requires, or null.</param>
+/// <param name="Attribution">Credit the license requires, or null; the property gives it in the UI language.</param>
 public sealed record ModelInfo(
     string Id,
     string DisplayName,
@@ -33,18 +35,55 @@ public sealed record ModelInfo(
     string? PageUrl = null,
     string? Attribution = null)
 {
+    // The catalog keeps the German texts (also for equality); the properties translate when read,
+    // so the texts follow the UI language.
+    private readonly string _displayName = DisplayName;
+    private readonly string _languages = Languages;
+    private readonly string _description = Description;
+    private readonly string? _attribution = Attribution;
+
+    public string DisplayName { get => ModelTexts.Shown(_displayName); init => _displayName = value; }
+    public string Languages { get => ModelTexts.Shown(_languages); init => _languages = value; }
+    public string Description { get => ModelTexts.Shown(_description); init => _description = value; }
+    public string? Attribution { get => _attribution is null ? null : ModelTexts.Shown(_attribution); init => _attribution = value; }
+
     public long SizeBytes => Files.Sum(f => f.SizeBytes);
 
     /// Rounded size in MB (10^6 bytes) for the UI.
     public int SizeMB => (int)Math.Round(SizeBytes / 1_000_000.0);
 
-    public string SizeLabel => SizeBytes >= 1_000_000_000 ? $"{SizeBytes / 1_000_000_000.0:0.0} GB".Replace('.', ',') : $"{SizeMB} MB";
+    public string SizeLabel => SizeBytes < 1_000_000_000 ? $"{SizeMB} MB"
+        : L.Current == UiLanguage.English ? (SizeBytes / 1_000_000_000.0).ToString("0.0", CultureInfo.InvariantCulture) + " GB"
+        : $"{SizeBytes / 1_000_000_000.0:0.0} GB".Replace('.', ',');
 
     /// Whether the model turns speech into text (and can be picked for dictation).
     public bool IsTranscriptionModel => Engine is ModelEngine.Parakeet or ModelEngine.Whisper;
 
     /// The settings label, like the macOS picker: "Whisper Small (nicht installiert)".
-    public string PickerLabel(bool installed) => installed ? DisplayName : $"{DisplayName} (nicht installiert)";
+    public string PickerLabel(bool installed) => installed ? DisplayName : L.F("{0} (nicht installiert)", DisplayName);
+}
+
+/// The catalog texts in the UI language. The keys must be literals here (the localization test
+/// scans for them), so every German text of the catalog has its own arm; others stay as they are.
+internal static class ModelTexts
+{
+    public static string Shown(string german) => german switch
+    {
+        "Parakeet v3 (empfohlen)" => L.T("Parakeet v3 (empfohlen)"),
+        "Whisper Large v3 Turbo (hohe Qualität)" => L.T("Whisper Large v3 Turbo (hohe Qualität)"),
+        "Sprecher-Erkennung" => L.T("Sprecher-Erkennung"),
+        "Erkennt die Sprache selbst, rund 100 Sprachen." => L.T("Erkennt die Sprache selbst, rund 100 Sprachen."),
+        "Erkennt die Sprache selbst: Deutsch, Englisch und 23 weitere europäische Sprachen." => L.T("Erkennt die Sprache selbst: Deutsch, Englisch und 23 weitere europäische Sprachen."),
+        "Unabhängig von der Sprache." => L.T("Unabhängig von der Sprache."),
+        "Sehr schnell und genau, auch ohne Grafikkarte." => L.T("Sehr schnell und genau, auch ohne Grafikkarte."),
+        "Klein und schnell, etwas ungenauer." => L.T("Klein und schnell, etwas ungenauer."),
+        "Genau und für viele Sprachen, langsamer als Parakeet." => L.T("Genau und für viele Sprachen, langsamer als Parakeet."),
+        "Weniger stark komprimiert: minimal genauer, größer und langsamer." => L.T("Weniger stark komprimiert: minimal genauer, größer und langsamer."),
+        "Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)." => L.T("Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)."),
+        "Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx." => L.T("Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx."),
+        "pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx." => L.T("pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx."),
+        _ => german,
+    };
 }
 
 /// The models Diktat for Windows offers. URLs are pinned to a repository revision, so a

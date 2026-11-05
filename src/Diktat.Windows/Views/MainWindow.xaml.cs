@@ -39,11 +39,11 @@ public partial class MainWindow : Window
     private readonly Dictionary<string, FrameworkElement> _pages = new();
     private readonly List<NavItem> _items =
     [
-        new("history", "Verlauf", ""),
-        new("modes", "Modi", ""),
-        new("meetings", "Meetings", ""),
-        new("audio", "Audiodatei", ""),
-        new("settings", "Einstellungen", ""),
+        new("history", L.T("Verlauf"), ""),
+        new("modes", L.T("Modi"), ""),
+        new("meetings", L.T("Meetings"), ""),
+        new("audio", L.T("Audiodatei"), ""),
+        new("settings", L.T("Einstellungen"), ""),
     ];
     private IMainPage? _current;
     private string? _pendingSection;
@@ -54,7 +54,7 @@ public partial class MainWindow : Window
         _app = app;
         InitializeComponent();
         ThemeManager.RegisterWindow(this);
-        VersionText.Text = $"Version {AppServices.Version}";
+        VersionText.Text = L.F("Version {0}", AppServices.Version);
         Nav.ItemsSource = _items;
 
         SourceInitialized += (_, _) =>

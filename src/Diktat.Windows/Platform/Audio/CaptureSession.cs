@@ -129,7 +129,7 @@ internal sealed class CaptureSession : IDisposable
         _stopped.Set();
         if (!_stopRequested)
         {
-            var error = e.Exception ?? new AudioCaptureException(AudioCaptureFailure.DeviceLost, "Die Audioaufnahme wurde unterbrochen.");
+            var error = e.Exception ?? new AudioCaptureException(AudioCaptureFailure.DeviceLost, L.T("Die Audioaufnahme wurde unterbrochen."));
             Log.Warn($"Capture on '{DeviceName}' ended unexpectedly", error);
             Faulted?.Invoke(error);
         }

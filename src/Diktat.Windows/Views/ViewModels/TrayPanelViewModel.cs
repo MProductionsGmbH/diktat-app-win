@@ -78,7 +78,7 @@ public sealed class TrayPanelViewModel : ObservableObject
 
     public bool CanStartDictation => SafeAvailable(WorkflowType.TapTalk);
 
-    public string MicToolTip => IsRecording ? "Aufnahme beenden" : IsProcessing ? "Wird verarbeitet" : "Diktat jetzt starten";
+    public string MicToolTip => IsRecording ? L.T("Aufnahme beenden") : IsProcessing ? L.T("Wird verarbeitet") : L.T("Diktat jetzt starten");
 
     /// "Strg + Win halten und sprechen" or what is happening right now.
     public string StatusTitle
@@ -89,19 +89,19 @@ public sealed class TrayPanelViewModel : ObservableObject
             {
                 case DictationPhase.Recording:
                     var mode = _app.ActiveMode is { } m ? Ui.DisplayName(_app.Services.Settings, m) : "Diktat";
-                    return $"{mode}: Aufnahme läuft";
+                    return L.F("{0}: Aufnahme läuft", mode);
                 case DictationPhase.Processing:
-                    return _app.StatusMessage ?? "Wird transkribiert …";
+                    return _app.StatusMessage ?? L.T("Wird transkribiert …");
                 case DictationPhase.Done:
-                    return _app.LastTextWasOnlyCopied ? "In der Zwischenablage" : "Eingefügt";
+                    return _app.LastTextWasOnlyCopied ? L.T("In der Zwischenablage") : L.T("Eingefügt");
                 case DictationPhase.Error:
-                    return "Das hat nicht geklappt";
+                    return L.T("Das hat nicht geklappt");
             }
             var hotkey = Ui.HotkeyLabel(_app.Services.Settings, WorkflowType.TapTalk);
             if (hotkey.Length == 0) return "Diktat";
             return _app.Services.Settings.App.HotkeyMode == HotkeyMode.Hold
-                ? $"{hotkey} halten und sprechen"
-                : $"{hotkey} drücken und sprechen";
+                ? L.F("{0} halten und sprechen", hotkey)
+                : L.F("{0} drücken und sprechen", hotkey);
         }
     }
 
@@ -112,24 +112,24 @@ public sealed class TrayPanelViewModel : ObservableObject
             switch (_app.Phase)
             {
                 case DictationPhase.Recording:
-                    if (_app.NoSignal) return "Das Mikrofon liefert nur Stille. Ist es stummgeschaltet oder das falsche gewählt?";
+                    if (_app.NoSignal) return L.T("Das Mikrofon liefert nur Stille. Ist es stummgeschaltet oder das falsche gewählt?");
                     return _app.Services.Settings.App.HotkeyMode == HotkeyMode.Hold
-                        ? "Loslassen beendet die Aufnahme."
-                        : "Nochmal drücken beendet die Aufnahme, Escape bricht ab.";
+                        ? L.T("Loslassen beendet die Aufnahme.")
+                        : L.T("Nochmal drücken beendet die Aufnahme, Escape bricht ab.");
                 case DictationPhase.Processing:
-                    return "Läuft auf diesem PC.";
+                    return L.T("Läuft auf diesem PC.");
                 case DictationPhase.Done:
                     return _app.LastTextWasOnlyCopied
-                        ? "Kein Textfeld im Fokus. Mit Strg + V einfügen."
-                        : "Der Text steht dort, wo dein Cursor war.";
+                        ? L.T("Kein Textfeld im Fokus. Mit Strg + V einfügen.")
+                        : L.T("Der Text steht dort, wo dein Cursor war.");
                 case DictationPhase.Error:
-                    return _app.StatusMessage ?? "Bitte nochmal versuchen.";
+                    return _app.StatusMessage ?? L.T("Bitte nochmal versuchen.");
             }
             var model = ModelCatalog.TranscriptionModelOrDefault(_app.Services.Settings.App.TranscriptionModel);
             bool installed;
             try { installed = _app.Services.Models.IsInstalled(model); }
             catch { installed = false; }
-            return installed ? "Der Text landet direkt am Cursor." : $"{Ui.ShortModelName(model)} ist noch nicht installiert.";
+            return installed ? L.T("Der Text landet direkt am Cursor.") : L.F("{0} ist noch nicht installiert.", Ui.ShortModelName(model));
         }
     }
 
@@ -142,10 +142,10 @@ public sealed class TrayPanelViewModel : ObservableObject
             if (store.IsConfigured && store.Config is { } config)
             {
                 return config.IsOnThisPC
-                    ? $"Sprache und KI-Modi bleiben auf diesem PC ({config.Model})."
-                    : $"Sprache bleibt auf diesem PC, KI-Modi über {Diktat.AI.AIProviderInfo.DisplayName(config.Provider)}.";
+                    ? L.F("Sprache und KI-Modi bleiben auf diesem PC ({0}).", config.Model)
+                    : L.F("Sprache bleibt auf diesem PC, KI-Modi über {0}.", Diktat.AI.AIProviderInfo.DisplayName(config.Provider));
             }
-            return "Sprache bleibt auf diesem PC. KI-Modi brauchen einen Modell-Anbieter.";
+            return L.T("Sprache bleibt auf diesem PC. KI-Modi brauchen einen Modell-Anbieter.");
         }
     }
 
@@ -156,18 +156,18 @@ public sealed class TrayPanelViewModel : ObservableObject
     public bool NeedsSetup => !_app.Services.Settings.App.HasSeenOnboarding;
 
     public bool HasUpdate => _app.AvailableUpdate is { IsNewer: true };
-    public string UpdateTitle => _app.AvailableUpdate is { } u ? $"Diktat {u.Version} ist da" : "";
+    public string UpdateTitle => _app.AvailableUpdate is { } u ? L.F("Diktat {0} ist da", u.Version) : "";
 
     public bool ShowsMeetingBanner => _app.Meeting is { Phase: not MeetingPhase.Idle };
-    public string MeetingBannerTitle => _app.Meeting?.Phase == MeetingPhase.Recording ? "Meeting wird aufgenommen" : "Meeting wird ausgewertet";
+    public string MeetingBannerTitle => _app.Meeting?.Phase == MeetingPhase.Recording ? L.T("Meeting wird aufgenommen") : L.T("Meeting wird ausgewertet");
 
     public bool ShowsInsertTranscript => _app.LastTranscript is not null && _app.Phase is DictationPhase.Done or DictationPhase.Idle;
     public string InsertTranscriptTitle
     {
         get
         {
-            var mode = LastMode is { } m ? Ui.DisplayName(_app.Services.Settings, m) : "KI-Modus";
-            return $"Wortgenau statt {mode}";
+            var mode = LastMode is { } m ? Ui.DisplayName(_app.Services.Settings, m) : L.T("KI-Modus");
+            return L.F("Wortgenau statt {0}", mode);
         }
     }
 
@@ -183,13 +183,13 @@ public sealed class TrayPanelViewModel : ObservableObject
     {
         get
         {
-            if (_lastCopied) return "Kopiert";
+            if (_lastCopied) return L.T("Kopiert");
             var entry = _app.Services.History.Entries.FirstOrDefault();
             if (entry is not null && (_app.LastText is null || entry.Text == _app.LastText?.Trim()))
             {
                 return $"{Ui.DisplayName(_app.Services.Settings, entry.Workflow)}, {Ui.RelativeTime(entry.CreatedAt)}";
             }
-            return "Letzter Text";
+            return L.T("Letzter Text");
         }
     }
 

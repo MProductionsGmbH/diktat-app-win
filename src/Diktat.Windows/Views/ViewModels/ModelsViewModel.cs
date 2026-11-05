@@ -40,10 +40,10 @@ public sealed class ModelItemViewModel : ObservableObject
     {
         get
         {
-            if (IsDownloading) return "Wird geladen";
-            if (IsSelected && IsInstalled) return "Aktiv";
-            if (IsSelected) return "Ausgewählt, nicht installiert";
-            return IsInstalled ? "Installiert" : "Nicht installiert";
+            if (IsDownloading) return L.T("Wird geladen");
+            if (IsSelected && IsInstalled) return L.T("Aktiv");
+            if (IsSelected) return L.T("Ausgewählt, nicht installiert");
+            return IsInstalled ? L.T("Installiert") : L.T("Nicht installiert");
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class ModelsViewModel : ObservableObject
 
     public IReadOnlyList<Option<string>> Languages { get; } =
     [
-        new("auto", "Automatisch"),
+        new("auto", L.T("Automatisch")),
         new("de", "Deutsch"),
         new("en", "English"),
         new("fr", "Français"),
@@ -162,10 +162,10 @@ public sealed class ModelsViewModel : ObservableObject
 
     public string LanguageNote => Language switch
     {
-        "auto" => "Diktat erkennt bei jedem Diktat selbst, welche Sprache du sprichst. Wähle eine Sprache, wenn es bei kurzen Sätzen danebenliegt.",
-        "de" => "Mit Whisper hört Diktat nur auf Deutsch. Sprichst du Englisch, wird daraus deutscher Text. Parakeet erkennt die Sprache immer selbst.",
-        "en" => "Mit Whisper hört Diktat nur auf Englisch. Sprichst du Deutsch, wird daraus englischer Text. Parakeet erkennt die Sprache immer selbst.",
-        _ => "Mit Whisper hört Diktat nur auf diese Sprache. Parakeet erkennt die Sprache immer selbst.",
+        "auto" => L.T("Diktat erkennt bei jedem Diktat selbst, welche Sprache du sprichst. Wähle eine Sprache, wenn es bei kurzen Sätzen danebenliegt."),
+        "de" => L.T("Mit Whisper hört Diktat nur auf Deutsch. Sprichst du Englisch, wird daraus deutscher Text. Parakeet erkennt die Sprache immer selbst."),
+        "en" => L.T("Mit Whisper hört Diktat nur auf Englisch. Sprichst du Deutsch, wird daraus englischer Text. Parakeet erkennt die Sprache immer selbst."),
+        _ => L.T("Mit Whisper hört Diktat nur auf diese Sprache. Parakeet erkennt die Sprache immer selbst."),
     };
 
     public string InstalledSummary
@@ -175,9 +175,9 @@ public sealed class ModelsViewModel : ObservableObject
             var count = TranscriptionModels.Count(m => m.IsInstalled);
             return count switch
             {
-                0 => "Noch kein Sprachmodell installiert. Ohne Modell kann Diktat nicht transkribieren.",
-                1 => "1 Sprachmodell installiert.",
-                _ => $"{count} Sprachmodelle installiert.",
+                0 => L.T("Noch kein Sprachmodell installiert. Ohne Modell kann Diktat nicht transkribieren."),
+                1 => L.T("1 Sprachmodell installiert."),
+                _ => L.F("{0} Sprachmodelle installiert.", count),
             };
         }
     }

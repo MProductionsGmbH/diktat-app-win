@@ -6,9 +6,10 @@ namespace Diktat.AI;
 /// The model said there was nothing to work with ("Keine Aufnahme erkannt.").
 public sealed class NothingRecognizedException : Exception
 {
+    /// The German text (a constant, the app uses it in constants); the message is in the UI language.
     public const string DefaultMessage = "Keine Aufnahme erkannt.";
 
-    public NothingRecognizedException() : base(DefaultMessage) { }
+    public NothingRecognizedException() : base(L.T("Keine Aufnahme erkannt.")) { }
 }
 
 /// The AI step of KI-Schreibstil, WTF and :-): transcript (and, when allowed, the text around
@@ -29,9 +30,9 @@ public sealed class ModeRewriter
     /// The status line while the AI step runs.
     public static string StatusText(WorkflowType mode) => mode switch
     {
-        WorkflowType.DampfAblassen => "Wird umformuliert ...",
-        WorkflowType.EmojiText => "Emojis werden eingefügt ...",
-        _ => "Text wird verbessert ...",
+        WorkflowType.DampfAblassen => L.T("Wird umformuliert ..."),
+        WorkflowType.EmojiText => L.T("Emojis werden eingefügt ..."),
+        _ => L.T("Text wird verbessert ..."),
     };
 
     public bool CanRewrite(RewriteEngine engine) => _rewriter.CanRewrite(engine);

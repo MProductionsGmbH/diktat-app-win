@@ -85,7 +85,7 @@ public sealed class SettingsStore
     {
         if (TryParseObject(json) is not JsonObject export || !LooksLikeExport(export))
         {
-            throw new FormatException("Die Datei ist keine Diktat-Einstellungsdatei.");
+            throw new FormatException(L.T("Die Datei ist keine Diktat-Einstellungsdatei."));
         }
 
         var exported = FromJson(export);

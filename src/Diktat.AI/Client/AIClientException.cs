@@ -14,7 +14,7 @@ public enum AIClientErrorKind
     Unreachable,
 }
 
-/// A failed model request. <see cref="Exception.Message"/> is the German text for the user.
+/// A failed model request. <see cref="Exception.Message"/> is the text for the user, in the UI language.
 public sealed class AIClientException : Exception
 {
     public AIClientErrorKind Kind { get; }
@@ -35,34 +35,34 @@ public sealed class AIClientException : Exception
     }
 
     public static AIClientException NotConfigured() => new(AIClientErrorKind.NotConfigured,
-        "Kein Modell-Anbieter eingerichtet. Bitte in den Einstellungen einen API-Key hinterlegen.");
+        L.T("Kein Modell-Anbieter eingerichtet. Bitte in den Einstellungen einen API-Key hinterlegen."));
 
     public static AIClientException MissingKey(AIProvider provider) => new(AIClientErrorKind.MissingKey,
-        $"Für {provider.DisplayName()} fehlt der API-Key.", provider);
+        L.F("Für {0} fehlt der API-Key.", provider.DisplayName()), provider);
 
     public static AIClientException InvalidAddress() => new(AIClientErrorKind.InvalidAddress,
-        "Die Adresse des Modell-Anbieters ist ungültig.");
+        L.T("Die Adresse des Modell-Anbieters ist ungültig."));
 
     public static AIClientException Http(int status, string? message) => new(AIClientErrorKind.Http, HttpMessage(status, message),
         status: status, providerMessage: message);
 
     public static AIClientException Refused() => new(AIClientErrorKind.Refused,
-        "Der Modell-Anbieter hat die Anfrage abgelehnt.");
+        L.T("Der Modell-Anbieter hat die Anfrage abgelehnt."));
 
     public static AIClientException EmptyResponse() => new(AIClientErrorKind.EmptyResponse,
-        "Keine Antwort vom Modell-Anbieter erhalten. Bitte nochmal versuchen.");
+        L.T("Keine Antwort vom Modell-Anbieter erhalten. Bitte nochmal versuchen."));
 
     // The two below stand in for URLSession's own errors on the Mac, in the system's German wording.
     public static AIClientException TimedOut(Exception? inner = null) => new(AIClientErrorKind.TimedOut,
-        "Zeitüberschreitung bei der Anforderung.", inner: inner);
+        L.T("Zeitüberschreitung bei der Anforderung."), inner: inner);
 
     public static AIClientException Unreachable(Exception? inner = null) => new(AIClientErrorKind.Unreachable,
-        "Es konnte keine Verbindung zum Server hergestellt werden.", inner: inner);
+        L.T("Es konnte keine Verbindung zum Server hergestellt werden."), inner: inner);
 
     private static string HttpMessage(int status, string? message) => status switch
     {
-        401 or 403 => "Der API-Key wurde abgelehnt. Bitte in den Einstellungen prüfen.",
-        429 => "Zu viele Anfragen oder das Guthaben beim Anbieter ist aufgebraucht.",
-        _ => $"Fehler vom Modell-Anbieter ({status})" + (message is null ? "." : ": " + message),
+        401 or 403 => L.T("Der API-Key wurde abgelehnt. Bitte in den Einstellungen prüfen."),
+        429 => L.T("Zu viele Anfragen oder das Guthaben beim Anbieter ist aufgebraucht."),
+        _ => L.F("Fehler vom Modell-Anbieter ({0})", status) + (message is null ? "." : ": " + message),
     };
 }

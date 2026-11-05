@@ -24,13 +24,13 @@ public static class FeedbackMail
     {
         var facts = new List<string>
         {
-            $"App: Diktat {version} (Build {build}) für Windows",
+            L.F("App: Diktat {0} (Build {1}) für {2}", version, build, "Windows"),
             $"System: Windows {Environment.OSVersion.Version} ({RuntimeInformation.OSArchitecture})",
-            $"Gerät: {(string.IsNullOrWhiteSpace(deviceModel) ? RuntimeInformation.ProcessArchitecture.ToString() : deviceModel)}",
+            L.F("Gerät: {0}", string.IsNullOrWhiteSpace(deviceModel) ? RuntimeInformation.ProcessArchitecture.ToString() : deviceModel),
         };
         facts.AddRange(details ?? []);
-        var subject = $"Diktat Feedback (Windows {version}, Build {build})";
-        var body = "\n\n\n---\nBitte oberhalb der Linie schreiben. Diese Angaben helfen uns beim Nachvollziehen, du kannst sie auch löschen:\n"
+        var subject = L.F("Diktat Feedback ({0} {1}, Build {2})", "Windows", version, build);
+        var body = L.T("\n\n\n---\nBitte oberhalb der Linie schreiben. Diese Angaben helfen uns beim Nachvollziehen, du kannst sie auch löschen:\n")
             + string.Join("\n", facts);
         return $"mailto:{address}?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}";
     }

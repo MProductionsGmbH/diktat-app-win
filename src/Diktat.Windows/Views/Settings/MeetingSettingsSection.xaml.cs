@@ -45,12 +45,12 @@ public partial class MeetingSettingsSection : UserControl, IMainPage
         Summarize.IsChecked = _app.Services.Settings.App.SummarizesMeetings;
         var local = _app.Services.Rewriter.ServerOnThisPC;
         SummaryNote.Text = local is not null
-            ? $"Zusammenfassungen schreibt {local.Model} auf diesem PC. Das Transkript verlässt den PC nicht."
-            : "Meetings fasst Diktat nur mit einem Modell auf diesem PC zusammen (Ollama oder LM Studio), damit das Gespräch den PC nicht verlässt. Gerade ist keins eingetragen: Du bekommst das Transkript ohne Zusammenfassung.";
+            ? L.F("Zusammenfassungen schreibt {0} auf diesem PC. Das Transkript verlässt den PC nicht.", local.Model)
+            : L.T("Meetings fasst Diktat nur mit einem Modell auf diesem PC zusammen (Ollama oder LM Studio), damit das Gespräch den PC nicht verlässt. Gerade ist keins eingetragen: Du bekommst das Transkript ohne Zusammenfassung.");
         bool installed;
         try { installed = _app.Services.Models.IsInstalled(ModelCatalog.SpeakerDiarization); }
         catch { installed = false; }
-        SpeakerState.Text = installed ? "Installiert" : "Nicht installiert";
+        SpeakerState.Text = installed ? L.T("Installiert") : L.T("Nicht installiert");
     }
 
     private void OnSummarizeClick(object sender, RoutedEventArgs e)

@@ -67,27 +67,27 @@ public sealed class HistoryPageViewModel : ObservableObject
         if (retention == HistoryRetention.Off && !HasEntries)
         {
             EmptyGlyph = "";
-            EmptyTitle = "Verlauf ist aus";
-            EmptyDetail = "In den Einstellungen unter Allgemein, „Verlauf aufbewahren“ einschalten.";
+            EmptyTitle = L.T("Verlauf ist aus");
+            EmptyDetail = L.T("In den Einstellungen unter Allgemein, „Verlauf aufbewahren“ einschalten.");
         }
         else if (!HasEntries)
         {
             EmptyGlyph = "";
-            EmptyTitle = "Noch nichts im Verlauf";
-            EmptyDetail = $"Ergebnisse bleiben {Ui.RetentionHint(retention)} nur auf diesem PC, verschlüsselt.";
+            EmptyTitle = L.T("Noch nichts im Verlauf");
+            EmptyDetail = L.F("Ergebnisse bleiben {0} nur auf diesem PC, verschlüsselt.", Ui.RetentionHint(retention));
         }
         else if (matching.Count == 0)
         {
             EmptyGlyph = "";
-            EmptyTitle = "Nichts gefunden";
-            EmptyDetail = "Kein Eintrag enthält diesen Suchbegriff.";
+            EmptyTitle = L.T("Nichts gefunden");
+            EmptyDetail = L.T("Kein Eintrag enthält diesen Suchbegriff.");
         }
         else
         {
             EmptyTitle = "";
             EmptyDetail = "";
         }
-        FooterText = HasEntries && retention != HistoryRetention.Off ? $"Nur auf diesem PC, {Ui.RetentionHint(retention)}." : "";
+        FooterText = HasEntries && retention != HistoryRetention.Off ? L.F("Nur auf diesem PC, {0}.", Ui.RetentionHint(retention)) : "";
         OnAllPropertiesChanged();
     }
 }
@@ -143,6 +143,6 @@ public partial class HistoryPage : UserControl, IMainPage
 
     private void OnClearAll(object sender, RoutedEventArgs e)
     {
-        if (Ui.Confirm(this, "Den ganzen Verlauf auf diesem PC löschen?", "Verlauf löschen")) _app.Services.History.Clear();
+        if (Ui.Confirm(this, L.T("Den ganzen Verlauf auf diesem PC löschen?"), L.T("Verlauf löschen"))) _app.Services.History.Clear();
     }
 }

@@ -10,16 +10,16 @@ namespace Diktat.Windows.Runtime;
 /// The small decisions of the dictation flow, free of Windows and of state, so they can be tested.
 public static class DictationRules
 {
-    public const string RecordingStatus = "Aufnahme läuft ...";
-    public const string TranscribingStatus = "Wird transkribiert ...";
-    public const string LoadingModelStatus = "Sprachmodell wird geladen ...";
-    public const string PolishingStatus = "Text wird geglättet ...";
-    public const string PastedStatus = "Eingefügt";
-    public const string CopiedStatus = "Text liegt in der Zwischenablage";
-    public const string NothingRecognized = NothingRecognizedException.DefaultMessage;
-    public const string OnlySilence = "Das Mikrofon liefert nur Stille. Ist das richtige Mikrofon gewählt? Wähle in den Einstellungen unter Mikrofon ein anderes.";
-    public const string ClipboardBusy = "Die Zwischenablage war belegt, der Text wurde nicht eingefügt. Du findest ihn im Verlauf.";
-    public const string ReplaceFailed = "Ersetzen ging hier nicht. Der wortgenaue Text liegt in der Zwischenablage.";
+    public static string RecordingStatus => L.T("Aufnahme läuft ...");
+    public static string TranscribingStatus => L.T("Wird transkribiert ...");
+    public static string LoadingModelStatus => L.T("Sprachmodell wird geladen ...");
+    public static string PolishingStatus => L.T("Text wird geglättet ...");
+    public static string PastedStatus => L.T("Eingefügt");
+    public static string CopiedStatus => L.T("Text liegt in der Zwischenablage");
+    public static string NothingRecognized => L.T("Keine Aufnahme erkannt.");
+    public static string OnlySilence => L.T("Das Mikrofon liefert nur Stille. Ist das richtige Mikrofon gewählt? Wähle in den Einstellungen unter Mikrofon ein anderes.");
+    public static string ClipboardBusy => L.T("Die Zwischenablage war belegt, der Text wurde nicht eingefügt. Du findest ihn im Verlauf.");
+    public static string ReplaceFailed => L.T("Ersetzen ging hier nicht. Der wortgenaue Text liegt in der Zwischenablage.");
 
     /// How long "Done" stays before the app is idle again; a text that was only copied stays longer.
     public static readonly TimeSpan DoneDuration = TimeSpan.FromSeconds(1.5);
@@ -59,7 +59,7 @@ public static class DictationRules
     public static string StatusFor(PasteOutcome outcome) => outcome switch
     {
         PasteOutcome.Pasted => PastedStatus,
-        PasteOutcome.CopiedTargetElevated => "Text liegt in der Zwischenablage. Das Fenster läuft als Administrator, dort kann Diktat nicht einfügen.",
+        PasteOutcome.CopiedTargetElevated => L.T("Text liegt in der Zwischenablage. Das Fenster läuft als Administrator, dort kann Diktat nicht einfügen."),
         PasteOutcome.Failed => ClipboardBusy,
         _ => CopiedStatus,
     };
@@ -90,13 +90,13 @@ public static class DictationRules
     public static string MeetingDuration(double seconds)
     {
         int minutes = Math.Max(1, (int)Math.Round(seconds / 60));
-        return minutes >= 60 ? $"{minutes / 60} Std. {minutes % 60} Min." : $"{minutes} Min.";
+        return minutes >= 60 ? L.F("{0} Std. {1} Min.", minutes / 60, minutes % 60) : L.F("{0} Min.", minutes);
     }
 
     /// The toast after a meeting: length and number of people, never what was said.
     public static string MeetingFinishedText(double durationSeconds, int speakers)
     {
-        var people = speakers == 1 ? "1 Person" : $"{speakers} Personen";
-        return $"{MeetingDuration(durationSeconds)}, {people}. In Diktat unter Meetings.";
+        var people = speakers == 1 ? L.T("1 Person") : L.F("{0} Personen", speakers);
+        return L.F("{0}, {1}. In Diktat unter Meetings.", MeetingDuration(durationSeconds), people);
     }
 }

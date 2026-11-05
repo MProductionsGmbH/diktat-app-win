@@ -74,7 +74,7 @@ public partial class App : WpfApplication
         try
         {
             WpfMessageBox.Show(
-                "In Diktat ist ein Fehler aufgetreten. Diktat läuft weiter; falls etwas nicht mehr geht, beende Diktat und starte es neu.\n\n" + e.Exception.Message,
+                L.T("In Diktat ist ein Fehler aufgetreten. Diktat läuft weiter; falls etwas nicht mehr geht, beende Diktat und starte es neu.") + "\n\n" + e.Exception.Message,
                 "Diktat", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally

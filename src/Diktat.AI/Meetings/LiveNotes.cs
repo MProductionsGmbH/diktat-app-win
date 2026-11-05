@@ -13,8 +13,8 @@ public sealed class LiveNotesException : Exception
 
     public LiveNotesException(LiveNotesFailureKind kind) : base(kind switch
     {
-        LiveNotesFailureKind.NotesTooLong => "Die Notizen sind zu lang für das Modell geworden.",
-        _ => "Die Antwort des Modells wurde zu lang.",
+        LiveNotesFailureKind.NotesTooLong => L.T("Die Notizen sind zu lang für das Modell geworden."),
+        _ => L.T("Die Antwort des Modells wurde zu lang."),
     })
     {
         Kind = kind;
@@ -118,7 +118,7 @@ public sealed class LiveNotes
                 .ConfigureAwait(true);
             UpdatedAt = _time.GetUtcNow();
             Problem = leftOut
-                ? "Ein Abschnitt ließ sich nicht in die Notizen übernehmen. Im Transkript nach dem Meeting fehlt nichts."
+                ? L.T("Ein Abschnitt ließ sich nicht in die Notizen übernehmen. Im Transkript nach dem Meeting fehlt nichts.")
                 : null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -126,7 +126,7 @@ public sealed class LiveNotes
         }
         catch (Exception e)
         {
-            Problem = $"Live-Notizen gerade nicht möglich: {e.Message}";
+            Problem = L.F("Live-Notizen gerade nicht möglich: {0}", e.Message);
         }
         finally
         {
@@ -194,7 +194,7 @@ public sealed class LiveNotes
         var recent = string.Join("\n\n", _stretches.Where(s => s.At >= since).Select(s => s.Text));
         if (recent.Length == 0)
         {
-            CatchUp = "Noch nichts aufgeschrieben. Die ersten Notizen kommen nach etwa zweieinhalb Minuten.";
+            CatchUp = L.T("Noch nichts aufgeschrieben. Die ersten Notizen kommen nach etwa zweieinhalb Minuten.");
             Changed?.Invoke(this, EventArgs.Empty);
             return Task.CompletedTask;
         }
@@ -222,7 +222,7 @@ public sealed class LiveNotes
         }
         catch (Exception e)
         {
-            CatchUp = $"Gerade nicht möglich: {e.Message}";
+            CatchUp = L.F("Gerade nicht möglich: {0}", e.Message);
         }
         finally
         {

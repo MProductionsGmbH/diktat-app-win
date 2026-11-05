@@ -67,7 +67,7 @@ Every shortcut can be changed in the settings, also to "press once to start, aga
 - **History:** recent results, encrypted for your Windows user (DPAPI) and stored only on your PC.
 - **Updates:** Diktat tells you when a new version is on GitHub (can be turned off).
 
-The app is in German for now.
+- **German and English:** the app follows the Windows language, or you pick one under Einstellungen › Allgemein › Sprache. See [docs/localization.md](docs/localization.md).
 
 ## Privacy
 

@@ -8,7 +8,7 @@ using UserControl = System.Windows.Controls.UserControl;
 
 namespace Diktat.Windows.Views.SettingsSections;
 
-/// "Allgemein": start, shortcuts, recording and pasting, history, updates, about.
+/// "Allgemein": app language, start, shortcuts, recording and pasting, history, updates, about.
 public partial class GeneralSection : UserControl, IMainPage
 {
     public const string GitHubUrl = "https://github.com/MProductionsGmbH/diktat-app-win";
@@ -70,13 +70,14 @@ public partial class GeneralSection : UserControl, IMainPage
     private void OnFeedback(object sender, RoutedEventArgs e) => Ui.Open(_model.FeedbackUrl());
     private void OnLogs(object sender, RoutedEventArgs e) => Ui.OpenFolder(AppPaths.LogsDirectory);
     private void OnSetup(object sender, RoutedEventArgs e) => _app.ShowSetupAssistant();
+    private void OnRestart(object sender, RoutedEventArgs e) => _model.Restart();
 
     private async void OnImport(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Einstellungen vom Mac übernehmen",
-            Filter = "Diktat-Export (*.json)|*.json|Alle Dateien|*.*",
+            Title = L.T("Einstellungen vom Mac übernehmen"),
+            Filter = L.T("Diktat-Export (*.json)|*.json|Alle Dateien|*.*"),
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
@@ -86,14 +87,14 @@ public partial class GeneralSection : UserControl, IMainPage
             var info = new FileInfo(dialog.FileName);
             if (info.Length > 5_000_000)
             {
-                _model.ShowImportError("Die Datei ist zu groß für einen Einstellungs-Export.");
+                _model.ShowImportError(L.T("Die Datei ist zu groß für einen Einstellungs-Export."));
                 return;
             }
             json = await File.ReadAllTextAsync(dialog.FileName);
         }
         catch (Exception ex)
         {
-            _model.ShowImportError($"Die Datei konnte nicht gelesen werden: {ex.Message}");
+            _model.ShowImportError(L.F("Die Datei konnte nicht gelesen werden: {0}", ex.Message));
             return;
         }
         _model.Import(json);

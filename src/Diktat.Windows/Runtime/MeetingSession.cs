@@ -121,7 +121,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         {
             recorder.Dispose();
             Log.Warn("Meeting recording could not start", ex);
-            ErrorMessage = ex is AudioCaptureException ? ex.Message : "Die Aufnahme ließ sich nicht starten: " + ex.Message;
+            ErrorMessage = ex is AudioCaptureException ? ex.Message : L.F("Die Aufnahme ließ sich nicht starten: {0}", ex.Message);
             return;
         }
 
@@ -140,7 +140,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
             await Task.Run(recorder.Dispose);
             MeetingAudio.Delete(_id);
             Log.Warn("Meeting audio files could not be created", ex);
-            ErrorMessage = "Die Aufnahme ließ sich nicht speichern: " + ex.Message;
+            ErrorMessage = L.F("Die Aufnahme ließ sich nicht speichern: {0}", ex.Message);
             return;
         }
 
@@ -148,7 +148,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         IsOnline = online && systemError is null;
         if (online && systemError is not null)
         {
-            StatusMessage = $"Der Ton des PCs lässt sich nicht aufnehmen, es läuft nur das Mikrofon. ({systemError.Message})";
+            StatusMessage = L.F("Der Ton des PCs lässt sich nicht aufnehmen, es läuft nur das Mikrofon. ({0})", systemError.Message);
         }
         recorder.Microphone.Interrupted += OnMicrophoneInterrupted;
         recorder.SystemAudio.OutputChanged += OnOutputChanged;
@@ -167,7 +167,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         Log.Info($"Meeting recording starts ({(IsOnline ? "online" : "in the room")})");
     }
 
-    private const string OutputLostNotice = "Das Ausgabegerät ist weg, der Ton des PCs lässt sich gerade nicht aufnehmen. Diktat versucht es weiter, das Mikrofon läuft.";
+    private static string OutputLostNotice => L.T("Das Ausgabegerät ist weg, der Ton des PCs lässt sich gerade nicht aufnehmen. Diktat versucht es weiter, das Mikrofon läuft.");
 
     private void OnOutputChanged(object? sender, Exception? error)
     {
@@ -179,7 +179,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     {
         if (Phase != MeetingPhase.Recording) return;
         Log.Warn("Meeting microphone interrupted", error);
-        StatusMessage = "Die Aufnahme wurde unterbrochen, zum Beispiel weil das Mikrofon getrennt wurde. Ausgewertet wird, was bis dahin aufgenommen wurde.";
+        StatusMessage = L.T("Die Aufnahme wurde unterbrochen, zum Beispiel weil das Mikrofon getrennt wurde. Ausgewertet wird, was bis dahin aufgenommen wurde.");
         Stop();
     }
 
@@ -232,7 +232,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         await CloseWritersAsync();
         if (FinishStorage(result))
         {
-            notice = Join(notice, "Vom Ton des PCs kam nichts an. Ausgewertet wird nur das Mikrofon.");
+            notice = Join(notice, L.T("Vom Ton des PCs kam nichts an. Ausgewertet wird nur das Mikrofon."));
         }
         await ProcessAsync(_id, notice);
     }
@@ -449,7 +449,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     {
         if (_services.Meetings.Meeting(meetingId) is not { } record)
         {
-            ErrorMessage = "Das Meeting gibt es nicht mehr.";
+            ErrorMessage = L.T("Das Meeting gibt es nicht mehr.");
             Phase = MeetingPhase.Idle;
             return;
         }
@@ -467,7 +467,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         {
             var micPath = MeetingAudio.MicrophonePath(meetingId);
             var systemPath = MeetingAudio.SystemAudioPath(meetingId);
-            if (!File.Exists(micPath)) throw new MeetingTranscriptionException("Die Aufnahme dieses Meetings ist nicht mehr da.");
+            if (!File.Exists(micPath)) throw new MeetingTranscriptionException(L.T("Die Aufnahme dieses Meetings ist nicht mehr da."));
             var (mic, system) = await Task.Run(() =>
             {
                 var micTrack = MeetingAudio.Read(micPath);
@@ -492,14 +492,14 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
                 .Select(s => new MeetingTurn(s.Speaker, s.Start, TranscriptionQualityService.CleanedTranscript(post.Process(s.Text))))
                 .Where(t => t.Text.Length > 0)
                 .ToList();
-            if (turns.Count == 0) throw new MeetingTranscriptionException("In der Aufnahme wurde keine Sprache erkannt.");
+            if (turns.Count == 0) throw new MeetingTranscriptionException(L.T("In der Aufnahme wurde keine Sprache erkannt."));
             record.Turns = turns;
 
             if (settings.App.SummarizesMeetings)
             {
                 // The live notes may still hold the model; only one copy fits comfortably.
                 await _liveNotesShutdown;
-                StatusMessage = "Wird zusammengefasst ...";
+                StatusMessage = L.T("Wird zusammengefasst ...");
                 var summary = await _services.MeetingSummaries.SummarizeAsync(record, OwnName, null,
                     prefersServerOnThisPC: settings.App.RewriteEngine == RewriteEngine.Provider, cancel.Token);
                 record.Summary = summary.Summary;
@@ -514,7 +514,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
             }
             else
             {
-                notice = Join(notice, "Das Meeting ließ sich nicht sichern, zum Beispiel weil der Speicher voll ist. Die Aufnahme bleibt erhalten.");
+                notice = Join(notice, L.T("Das Meeting ließ sich nicht sichern, zum Beispiel weil der Speicher voll ist. Die Aufnahme bleibt erhalten."));
             }
             MeetingId = record.Id;
             StatusMessage = notice;
@@ -532,7 +532,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         catch (Exception ex)
         {
             Log.Warn("Meeting evaluation failed", ex);
-            ErrorMessage = ex is MeetingTranscriptionException or TranscriptionException ? ex.Message : "Die Auswertung ist fehlgeschlagen: " + ex.Message;
+            ErrorMessage = ex is MeetingTranscriptionException or TranscriptionException ? ex.Message : L.F("Die Auswertung ist fehlgeschlagen: {0}", ex.Message);
             StatusMessage = notice;
             MeetingId = meetingId; // pending, with its audio: it can be evaluated again
             Phase = MeetingPhase.Idle;

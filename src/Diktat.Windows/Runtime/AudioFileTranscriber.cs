@@ -29,7 +29,7 @@ public sealed class AudioFileTranscriber
         var settings = _services.Settings;
         var language = settings.Transcription.Language;
 
-        status?.Report("Wird umgewandelt ...");
+        status?.Report(L.T("Wird umgewandelt ..."));
         var samples = await _decoder.DecodeToMono16kAsync(path, cancellationToken);
         if (samples.Length == 0) throw AudioDecodeException.Empty();
         Log.Info($"Audio file decoded: {samples.Length / 16_000.0:F0} s");
@@ -48,7 +48,7 @@ public sealed class AudioFileTranscriber
         if (paragraphs) processed = TranscriptParagraphService.Format(processed, language);
         if (processed.Length == 0)
         {
-            throw new TranscriptionException(TranscriptionError.NoText, "In der Datei wurde keine Sprache erkannt.");
+            throw new TranscriptionException(TranscriptionError.NoText, L.T("In der Datei wurde keine Sprache erkannt."));
         }
         _services.History.Add(processed, WorkflowType.TapTalk);
         return processed;

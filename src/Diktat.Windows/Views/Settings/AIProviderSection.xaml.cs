@@ -30,13 +30,13 @@ public partial class AIProviderSection : UserControl, IMainPage
         _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
         _saveTimer.Tick += (_, _) => SaveModelAndAddress();
 
-        var providers = new List<Option<AIProvider?>> { new(null, "Keiner") };
+        var providers = new List<Option<AIProvider?>> { new(null, L.T("Keiner")) };
         providers.AddRange(AIProviderInfo.All.Select(p => new Option<AIProvider?>(p, p.DisplayName())));
         Providers.ItemsSource = providers;
         Engines.ItemsSource = new List<Option<RewriteEngine>>
         {
-            new(RewriteEngine.Automatic, "Modell auf dem PC zuerst"),
-            new(RewriteEngine.Provider, "Immer Modell-Anbieter"),
+            new(RewriteEngine.Automatic, L.T("Modell auf dem PC zuerst")),
+            new(RewriteEngine.Provider, L.T("Immer Modell-Anbieter")),
         };
         Engines.SelectedValuePath = "Value";
         Load();
@@ -115,23 +115,23 @@ public partial class AIProviderSection : UserControl, IMainPage
             try { masked = Store.MaskedKey(provider); }
             catch (Exception ex) { Log.Warn("Reading the key failed", ex); }
             SavedKeyRow.Visibility = masked is null ? Visibility.Collapsed : Visibility.Visible;
-            SavedKeyText.Text = masked is null ? "" : $"API-Key gespeichert: {masked}";
+            SavedKeyText.Text = masked is null ? "" : L.F("API-Key gespeichert: {0}", masked);
             KeyBox.Password = "";
             SaveKeyButton.IsEnabled = false;
-            KeyPlaceholder.Text = masked is not null ? "Neuen API-Key einfügen, um ihn zu ersetzen"
-                : provider.RequiresApiKey() ? "API-Key einfügen" : "API-Key (optional)";
+            KeyPlaceholder.Text = masked is not null ? L.T("Neuen API-Key einfügen, um ihn zu ersetzen")
+                : provider.RequiresApiKey() ? L.T("API-Key einfügen") : L.T("API-Key (optional)");
             KeyPlaceholder.Visibility = Visibility.Visible;
 
             var help = provider.KeyHelpUrl();
             KeyHelpLink.Visibility = help is null ? Visibility.Collapsed : Visibility.Visible;
-            KeyHelpLink.Content = $"Schlüssel holen bei {provider.DisplayName()}";
+            KeyHelpLink.Content = L.F("Schlüssel holen bei {0}", provider.DisplayName());
             KeyHelpLink.Tag = help;
 
             PrivacyNote.Text = config.IsOnThisPC
-                ? "Die Texte der KI-Modi gehen an das Modell auf diesem PC. Sie verlassen den PC nicht. Das Programm muss dazu laufen."
+                ? L.T("Die Texte der KI-Modi gehen an das Modell auf diesem PC. Sie verlassen den PC nicht. Das Programm muss dazu laufen.")
                 : config.IsLocalServer
-                    ? "Die Texte der KI-Modi gehen an den Server in deinem Netz. Sie verlassen dein Netz nicht. Der Server muss dazu laufen."
-                    : $"Ab jetzt gehen die Texte der KI-Modi an {provider.DisplayName()}. Die Sprache selbst bleibt auf diesem PC. Es gelten die Bedingungen und Kosten des Anbieters. Der Key liegt verschlüsselt für dein Windows-Konto auf diesem PC.";
+                    ? L.T("Die Texte der KI-Modi gehen an den Server in deinem Netz. Sie verlassen dein Netz nicht. Der Server muss dazu laufen.")
+                    : L.F("Ab jetzt gehen die Texte der KI-Modi an {0}. Die Sprache selbst bleibt auf diesem PC. Es gelten die Bedingungen und Kosten des Anbieters. Der Key liegt verschlüsselt für dein Windows-Konto auf diesem PC.", provider.DisplayName());
         }
         finally
         {
@@ -143,9 +143,9 @@ public partial class AIProviderSection : UserControl, IMainPage
     {
         var engine = _app.Services.Settings.App.RewriteEngine;
         EngineNote.Text = engine == RewriteEngine.Automatic
-            ? "Ist oben ein Modell auf diesem PC eingetragen (Ollama, LM Studio), laufen die KI-Modi dort. Sonst über den Modell-Anbieter."
-            : "Die KI-Modi laufen immer über den eingetragenen Modell-Anbieter.";
-        if (config is null) EngineNote.Text += " Gerade ist keiner eingetragen: Diktat schreibt dann wortgenau.";
+            ? L.T("Ist oben ein Modell auf diesem PC eingetragen (Ollama, LM Studio), laufen die KI-Modi dort. Sonst über den Modell-Anbieter.")
+            : L.T("Die KI-Modi laufen immer über den eingetragenen Modell-Anbieter.");
+        if (config is null) EngineNote.Text += " " + L.T("Gerade ist keiner eingetragen: Diktat schreibt dann wortgenau.");
     }
 
     private void Write(Action action)
@@ -225,7 +225,7 @@ public partial class AIProviderSection : UserControl, IMainPage
     private void OnDeleteKey(object sender, RoutedEventArgs e)
     {
         if (SafeConfig() is not { } config) return;
-        if (!Ui.Confirm(this, $"Den API-Key für {config.Provider.DisplayName()} von diesem PC löschen?", "API-Key entfernen")) return;
+        if (!Ui.Confirm(this, L.F("Den API-Key für {0} von diesem PC löschen?", config.Provider.DisplayName()), L.T("API-Key entfernen"))) return;
         Write(() => Store.DeleteKey(config.Provider));
         UpdateDetails(SafeConfig());
     }
@@ -241,26 +241,26 @@ public partial class AIProviderSection : UserControl, IMainPage
         var key = KeyBox.Password.Length > 0 ? KeyBox.Password.Trim() : Store.Key(config.Provider);
         if (config.Provider.RequiresApiKey() && string.IsNullOrEmpty(key))
         {
-            ShowTest("Bitte zuerst einen API-Key eintragen.", ok: false);
+            ShowTest(L.T("Bitte zuerst einen API-Key eintragen."), ok: false);
             return;
         }
         _testCts?.Cancel();
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(40));
         _testCts = cts;
         TestButton.IsEnabled = false;
-        ShowTest("Teste …", ok: null);
+        ShowTest(L.T("Teste …"), ok: null);
         try
         {
             await _app.Services.AIClient.TestConnectionAsync(config, key, cts.Token);
-            ShowTest($"Funktioniert, mit {config.Model}.", ok: true);
+            ShowTest(L.F("Funktioniert, mit {0}.", config.Model), ok: true);
         }
         catch (OperationCanceledException)
         {
-            if (_shown) ShowTest("Keine Antwort. Ist die Adresse richtig und der Server erreichbar?", ok: false);
+            if (_shown) ShowTest(L.T("Keine Antwort. Ist die Adresse richtig und der Server erreichbar?"), ok: false);
         }
         catch (Exception ex)
         {
-            ShowTest(string.IsNullOrWhiteSpace(ex.Message) ? "Die Verbindung hat nicht geklappt." : ex.Message, ok: false);
+            ShowTest(string.IsNullOrWhiteSpace(ex.Message) ? L.T("Die Verbindung hat nicht geklappt.") : ex.Message, ok: false);
         }
         finally
         {
@@ -295,8 +295,8 @@ public partial class AIProviderSection : UserControl, IMainPage
             var withModels = servers.Where(s => s.Models.Count > 0).ToList();
             Servers.ItemsSource = withModels;
             var lines = servers.Where(s => s.Models.Count == 0)
-                .Select(s => $"{s.Name} läuft, hat aber noch kein Modell. In {s.Name} ein Modell laden und erneut suchen.").ToList();
-            if (servers.Count == 0) lines.Add("Kein Ollama und kein LM Studio gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com.");
+                .Select(s => L.F("{0} läuft, hat aber noch kein Modell. In {0} ein Modell laden und erneut suchen.", s.Name)).ToList();
+            if (servers.Count == 0) lines.Add(L.T("Kein Ollama und kein LM Studio gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com."));
             SearchResult.Text = string.Join("\n", lines);
             SearchResult.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -306,7 +306,7 @@ public partial class AIProviderSection : UserControl, IMainPage
         catch (Exception ex)
         {
             Log.Warn("Local server discovery failed", ex);
-            SearchResult.Text = "Die Suche hat nicht geklappt.";
+            SearchResult.Text = L.T("Die Suche hat nicht geklappt.");
             SearchResult.Visibility = Visibility.Visible;
         }
         finally
@@ -326,7 +326,7 @@ public partial class AIProviderSection : UserControl, IMainPage
         var config = new AIProviderConfig(AIProvider.Custom, model, server.BaseUrl);
         Write(() => Store.Config = config);
         Load();
-        ShowTest($"{server.Name} mit {model} ist eingetragen.", ok: true);
+        ShowTest(L.F("{0} mit {1} ist eingetragen.", server.Name, model), ok: true);
     }
 
     // --- Engine -------------------------------------------------------------------------

@@ -11,19 +11,21 @@ public sealed record SettingsTab(string Key, string Title);
 /// "Einstellungen" with its sections as tabs.
 public partial class SettingsPage : UserControl, IMainPage
 {
-    public static readonly IReadOnlyList<SettingsTab> AllTabs =
+    /// The tabs with their titles in the current language (built anew on each call).
+    public static IReadOnlyList<SettingsTab> AllTabs =>
     [
-        new("general", "Allgemein"),
-        new("models", "Modelle"),
-        new("microphone", "Mikrofon"),
-        new("dictionary", "Wörterbuch"),
-        new("apps", "Modus je App"),
-        new("ai", "KI-Anbieter"),
-        new("meetings", "Meetings"),
-        new("privacy", "Datenschutz"),
+        new("general", L.T("Allgemein")),
+        new("models", L.T("Modelle")),
+        new("microphone", L.T("Mikrofon")),
+        new("dictionary", L.T("Wörterbuch")),
+        new("apps", L.T("Modus je App")),
+        new("ai", L.T("KI-Anbieter")),
+        new("meetings", L.T("Meetings")),
+        new("privacy", L.T("Datenschutz")),
     ];
 
     private readonly IDiktatApp _app;
+    private readonly IReadOnlyList<SettingsTab> _tabs = AllTabs;
     private readonly Dictionary<string, FrameworkElement> _sections = new();
     private IMainPage? _current;
     private bool _shown;
@@ -32,7 +34,7 @@ public partial class SettingsPage : UserControl, IMainPage
     {
         _app = app;
         InitializeComponent();
-        Tabs.ItemsSource = AllTabs;
+        Tabs.ItemsSource = _tabs;
         Tabs.SelectedIndex = 0;
     }
 
@@ -51,7 +53,7 @@ public partial class SettingsPage : UserControl, IMainPage
             "datenschutz" => "privacy",
             var other => other,
         };
-        var tab = AllTabs.FirstOrDefault(t => t.Key == key) ?? AllTabs[0];
+        var tab = _tabs.FirstOrDefault(t => t.Key == key) ?? _tabs[0];
         Tabs.SelectedItem = tab;
     }
 

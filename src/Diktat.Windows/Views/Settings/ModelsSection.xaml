@@ -1,6 +1,7 @@
 <UserControl x:Class="Diktat.Windows.Views.SettingsSections.ModelsSection"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Diktat.Windows.Views"
              xmlns:v="clr-namespace:Diktat.Windows.Views">
     <UserControl.Resources>
         <DataTemplate x:Key="ModelTemplate">
@@ -44,17 +45,17 @@
                                Visibility="{Binding Error, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
 
                     <WrapPanel>
-                        <Button Content="Laden" Style="{DynamicResource Diktat.PrimaryButton}" Padding="14,6" Margin="0,0,8,0" Click="OnDownload"
+                        <Button Content="{l:T 'Laden'}" Style="{DynamicResource Diktat.PrimaryButton}" Padding="14,6" Margin="0,0,8,0" Click="OnDownload"
                                 Visibility="{Binding CanDownload, Converter={StaticResource Diktat.BoolToVisibility}}"
-                                AutomationProperties.Name="{Binding Name, StringFormat='{}{0} laden'}"/>
-                        <Button Content="Abbrechen" Padding="14,6" Margin="0,0,8,0" Click="OnCancel"
+                                AutomationProperties.Name="{Binding Name, StringFormat={l:T '\{0\} laden'}}"/>
+                        <Button Content="{l:T 'Abbrechen'}" Padding="14,6" Margin="0,0,8,0" Click="OnCancel"
                                 Visibility="{Binding IsDownloading, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                        <Button Content="Verwenden" Padding="14,6" Margin="0,0,8,0" Click="OnSelect"
+                        <Button Content="{l:T 'Verwenden'}" Padding="14,6" Margin="0,0,8,0" Click="OnSelect"
                                 Visibility="{Binding CanSelect, Converter={StaticResource Diktat.BoolToVisibility}}"
-                                AutomationProperties.Name="{Binding Name, StringFormat='{}{0} verwenden'}"/>
-                        <Button Content="Löschen" Style="{DynamicResource Diktat.DangerButton}" Padding="10,6" Click="OnDelete"
+                                AutomationProperties.Name="{Binding Name, StringFormat={l:T '\{0\} verwenden'}}"/>
+                        <Button Content="{l:T 'Löschen'}" Style="{DynamicResource Diktat.DangerButton}" Padding="10,6" Click="OnDelete"
                                 Visibility="{Binding CanDelete, Converter={StaticResource Diktat.BoolToVisibility}}"
-                                AutomationProperties.Name="{Binding Name, StringFormat='{}{0} löschen'}"/>
+                                AutomationProperties.Name="{Binding Name, StringFormat={l:T '\{0\} löschen'}}"/>
                     </WrapPanel>
                     <TextBlock Text="{Binding Attribution}" Style="{DynamicResource Diktat.SmallText}" FontSize="11"
                                Visibility="{Binding Attribution, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
@@ -64,33 +65,33 @@
     </UserControl.Resources>
 
     <v:Stack Spacing="22">
-        <HeaderedContentControl Header="Spracherkennung" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Spracherkennung'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
-                <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="Diktat transkribiert immer auf diesem PC. Das Audio verlässt das Gerät nicht. Ein Modell wird einmalig von Hugging Face geladen."/>
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Diktat transkribiert immer auf diesem PC. Das Audio verlässt das Gerät nicht. Ein Modell wird einmalig von Hugging Face geladen.'}"/>
                 <TextBlock Text="{Binding InstalledSummary}" FontWeight="SemiBold" FontSize="13"/>
                 <ItemsControl ItemsSource="{Binding TranscriptionModels}" ItemTemplate="{StaticResource ModelTemplate}" Focusable="False"/>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Sprache" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Sprache'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="220"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Diktiersprache" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:T 'Diktiersprache'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" ItemsSource="{Binding Languages}" DisplayMemberPath="Label" SelectedValuePath="Value"
-                              SelectedValue="{Binding Language}" AutomationProperties.Name="Diktiersprache"/>
+                              SelectedValue="{Binding Language}" AutomationProperties.Name="{l:T 'Diktiersprache'}"/>
                 </Grid>
                 <TextBlock Text="{Binding LanguageNote}" Style="{DynamicResource Diktat.CaptionText}"/>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Meetings" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Meetings'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="10">
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="Optional: Das Paket „Sprecher-Erkennung“ unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...). Ohne das Paket steht im Transkript alles bei einer Person."/>
+                           Text="{l:T 'Optional: Das Paket „Sprecher-Erkennung“ unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...). Ohne das Paket steht im Transkript alles bei einer Person.'}"/>
                 <ContentControl Content="{Binding SpeakerModel}" ContentTemplate="{StaticResource ModelTemplate}" Focusable="False"/>
             </v:Stack>
         </HeaderedContentControl>

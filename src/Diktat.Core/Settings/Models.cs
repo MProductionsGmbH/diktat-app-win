@@ -25,8 +25,8 @@ public static class WorkflowTypeInfo
     public static string DisplayName(this WorkflowType type) => type switch
     {
         WorkflowType.TapTalk => "Diktat",
-        WorkflowType.LocalTapTalk => "Diktat Lokal",
-        WorkflowType.TextImprover => "Diktat KI-Schreibstil",
+        WorkflowType.LocalTapTalk => L.T("Diktat Lokal"),
+        WorkflowType.TextImprover => L.T("Diktat KI-Schreibstil"),
         WorkflowType.DampfAblassen => "Diktat WTF",
         WorkflowType.EmojiText => "Diktat :-)",
         _ => type.ToString(),
@@ -34,10 +34,10 @@ public static class WorkflowTypeInfo
 
     public static string Subtitle(this WorkflowType type) => type switch
     {
-        WorkflowType.TapTalk or WorkflowType.LocalTapTalk => "Sprache rein. Text raus.",
-        WorkflowType.TextImprover => "Gesprochen rein. Geschrieben raus.",
-        WorkflowType.DampfAblassen => "Frust rein. Entspannt raus.",
-        WorkflowType.EmojiText => "Text rein. Emojis dazu.",
+        WorkflowType.TapTalk or WorkflowType.LocalTapTalk => L.T("Sprache rein. Text raus."),
+        WorkflowType.TextImprover => L.T("Gesprochen rein. Geschrieben raus."),
+        WorkflowType.DampfAblassen => L.T("Frust rein. Entspannt raus."),
+        WorkflowType.EmojiText => L.T("Text rein. Emojis dazu."),
         _ => "",
     };
 
@@ -150,14 +150,14 @@ public sealed record KeyCombo
 
     public int ModifierCount => (Ctrl ? 1 : 0) + (Alt ? 1 : 0) + (Shift ? 1 : 0) + (Win ? 1 : 0);
 
-    /// "Strg + Win + Alt" style label, in German like the rest of the app.
+    /// "Strg + Win + Alt" style label, in the language of the app ("Ctrl + Win + Alt" in English).
     public string Label(Func<int, string>? keyName = null)
     {
         var parts = new List<string>();
-        if (Ctrl) parts.Add("Strg");
+        if (Ctrl) parts.Add(L.T("Strg"));
         if (Win) parts.Add("Win");
         if (Alt) parts.Add("Alt");
-        if (Shift) parts.Add("Umschalt");
+        if (Shift) parts.Add(L.T("Umschalt"));
         if (Key is int key) parts.Add(keyName?.Invoke(key) ?? $"0x{key:X2}");
         return string.Join(" + ", parts);
     }
@@ -239,6 +239,8 @@ public sealed class AppSettings
     [JsonPropertyName("summarizesMeetings")] public bool SummarizesMeetings { get; set; } = true;
     [JsonPropertyName("launchAtLogin")] public bool LaunchAtLogin { get; set; } = true;
     [JsonPropertyName("checksForUpdates")] public bool ChecksForUpdates { get; set; } = true;
+    /// The language of the interface; applies after a restart.
+    [JsonPropertyName("windowsAppLanguage")] public Localization.AppLanguage AppLanguage { get; set; } = Localization.AppLanguage.System;
 
     public KeyCombo? HotkeyFor(WorkflowType type) =>
         Hotkeys.TryGetValue(JsonNaming.CamelCase(type.ToString()), out var combo) ? combo : KeyCombo.DefaultFor(type);

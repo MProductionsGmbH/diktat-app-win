@@ -7,4 +7,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Diktat.Core.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- English texts, keyed by the German text in the code. -->
+    <EmbeddedResource Include="Localization\en.json" LogicalName="Diktat.Core.Localization.en.json" />
+    <Using Include="Diktat.Core.Localization" />
+  </ItemGroup>
 </Project>

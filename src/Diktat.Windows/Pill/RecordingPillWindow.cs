@@ -29,7 +29,7 @@ public sealed class RecordingPillWindow : Window
 
     public RecordingPillWindow()
     {
-        Title = "Diktat Aufnahme";
+        Title = L.T("Diktat Aufnahme");
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         AllowsTransparency = true;
@@ -86,8 +86,8 @@ public sealed class RecordingPillWindow : Window
         }
         _visual.ToolTip = state switch
         {
-            PillState.Recording => "Klicken stoppt die Aufnahme",
-            PillState.Meeting => "Meeting läuft. Klicken öffnet die Meeting-Seite.",
+            PillState.Recording => L.T("Klicken stoppt die Aufnahme"),
+            PillState.Meeting => L.T("Meeting läuft. Klicken öffnet die Meeting-Seite."),
             _ => null,
         };
         _visual.InvalidateVisual();

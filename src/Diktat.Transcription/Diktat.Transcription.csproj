@@ -25,4 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Diktat.Core.Localization" />
+  </ItemGroup>
 </Project>

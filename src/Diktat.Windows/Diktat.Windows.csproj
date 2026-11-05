@@ -37,4 +37,7 @@
     <!-- The start sound is read from next to the exe (Platform/Audio/RecordingSound). -->
     <Content Include="Assets\start.wav" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Diktat.Core.Localization" />
+  </ItemGroup>
 </Project>

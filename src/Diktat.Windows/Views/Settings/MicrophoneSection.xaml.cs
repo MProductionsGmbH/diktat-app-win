@@ -79,7 +79,7 @@ public partial class MicrophoneSection : UserControl, IMainPage
             {
                 Log.Warn("Listing the microphones failed", ex);
                 devices = [];
-                ListError.Text = "Die Mikrofone konnten nicht abgefragt werden.";
+                ListError.Text = L.T("Die Mikrofone konnten nicht abgefragt werden.");
                 ListError.Visibility = Visibility.Visible;
             }
 
@@ -87,11 +87,11 @@ public partial class MicrophoneSection : UserControl, IMainPage
             var defaultDevice = devices.FirstOrDefault(d => d.IsDefault);
             var options = new List<Option<string>>
             {
-                new(DefaultValue, defaultDevice is null ? "Systemstandard" : $"Systemstandard ({defaultDevice.Name})"),
+                new(DefaultValue, defaultDevice is null ? L.T("Systemstandard") : L.F("Systemstandard ({0})", defaultDevice.Name)),
             };
             options.AddRange(devices.Select(d => new Option<string>(d.Id, d.Name)));
             var missing = !string.IsNullOrEmpty(selected) && devices.All(d => !string.Equals(d.Id, selected, StringComparison.OrdinalIgnoreCase));
-            if (missing) options.Add(new Option<string>(selected!, "Nicht angeschlossen"));
+            if (missing) options.Add(new Option<string>(selected!, L.T("Nicht angeschlossen")));
 
             Devices.ItemsSource = options;
             Devices.SelectedValue = string.IsNullOrEmpty(selected)
@@ -113,7 +113,7 @@ public partial class MicrophoneSection : UserControl, IMainPage
         catch { /* unknown */ }
         if (volume is { } v && v < 0.25f)
         {
-            VolumeTitle.Text = $"Mikrofon sehr leise eingestellt ({Math.Round(v * 100)} %)";
+            VolumeTitle.Text = L.F("Mikrofon sehr leise eingestellt ({0} %)", Math.Round(v * 100));
             VolumeNotice.Visibility = Visibility.Visible;
         }
         else
@@ -147,7 +147,7 @@ public partial class MicrophoneSection : UserControl, IMainPage
         }
         if (_app.Phase == DictationPhase.Recording || _app.Meeting is { Phase: MeetingPhase.Recording })
         {
-            ShowResult("Gerade läuft eine Aufnahme. Bitte danach testen.");
+            ShowResult(L.T("Gerade läuft eine Aufnahme. Bitte danach testen."));
             return;
         }
         try
@@ -165,14 +165,14 @@ public partial class MicrophoneSection : UserControl, IMainPage
         {
             Log.Warn("Microphone test failed", ex);
             DisposeRecorder();
-            ShowResult("Das Mikrofon konnte nicht geöffnet werden.");
+            ShowResult(L.T("Das Mikrofon konnte nicht geöffnet werden."));
             return;
         }
         _testPeak = 0;
         _testEnd = DateTime.UtcNow.AddSeconds(6);
-        TestButton.Content = "Test beenden";
+        TestButton.Content = L.T("Test beenden");
         TestBars.IsActive = true;
-        ShowResult("Sprich etwas …");
+        ShowResult(L.T("Sprich etwas …"));
         _testTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _testTimer.Tick += (_, _) =>
         {
@@ -198,14 +198,14 @@ public partial class MicrophoneSection : UserControl, IMainPage
         var hadRecorder = _testRecorder is not null;
         DisposeRecorder();
         TestBars.IsActive = false;
-        TestButton.Content = "Mikrofon testen";
+        TestButton.Content = L.T("Mikrofon testen");
         if (!showResult || !hadRecorder) return;
         if (noSignal || _testPeak < 0.02f)
-            ShowResult("Kaum etwas zu hören. Ist das Mikrofon stummgeschaltet, sehr leise eingestellt oder das falsche gewählt?");
+            ShowResult(L.T("Kaum etwas zu hören. Ist das Mikrofon stummgeschaltet, sehr leise eingestellt oder das falsche gewählt?"));
         else if (_testPeak < 0.12f)
-            ShowResult("Das Mikrofon ist recht leise. Näher sprechen oder in den Sound-Einstellungen lauter stellen.");
+            ShowResult(L.T("Das Mikrofon ist recht leise. Näher sprechen oder in den Sound-Einstellungen lauter stellen."));
         else
-            ShowResult("Das Mikrofon funktioniert.");
+            ShowResult(L.T("Das Mikrofon funktioniert."));
     }
 
     private void DisposeRecorder()

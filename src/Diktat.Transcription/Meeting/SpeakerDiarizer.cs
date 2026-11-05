@@ -92,7 +92,7 @@ public sealed class SherpaSpeakerDiarizer : ISpeakerDiarizer, IDisposable
         if (_engine is not null && _engineSpeakerCount == speakerCount) return _engine;
         foreach (var file in new[] { _segmentationModel, _embeddingModel })
         {
-            if (!File.Exists(file)) throw new FileNotFoundException("Das Modell für die Sprecher-Erkennung fehlt.", file);
+            if (!File.Exists(file)) throw new FileNotFoundException(L.T("Das Modell für die Sprecher-Erkennung fehlt."), file);
         }
         var config = new OfflineSpeakerDiarizationConfig();
         config.Segmentation.Pyannote.Model = _segmentationModel;

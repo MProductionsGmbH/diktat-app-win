@@ -1,15 +1,16 @@
 <UserControl x:Class="Diktat.Windows.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Diktat.Windows.Views">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Margin="32,26,32,10" MaxWidth="760">
-            <TextBlock Text="Einstellungen" Style="{DynamicResource Diktat.TitleText}" Margin="0,0,0,14"/>
+            <TextBlock Text="{l:T 'Einstellungen'}" Style="{DynamicResource Diktat.TitleText}" Margin="0,0,0,14"/>
             <ListBox x:Name="Tabs" Style="{DynamicResource Diktat.TabStrip}" DisplayMemberPath="Title" SelectionChanged="OnTabChanged"
-                     AutomationProperties.Name="Bereiche der Einstellungen"/>
+                     AutomationProperties.Name="{l:T 'Bereiche der Einstellungen'}"/>
         </StackPanel>
         <ScrollViewer x:Name="Scroller" Grid.Row="1" Style="{DynamicResource Diktat.PageScroller}">
             <ContentControl x:Name="SectionHost" Margin="32,6,32,32" MaxWidth="760" Focusable="False"/>

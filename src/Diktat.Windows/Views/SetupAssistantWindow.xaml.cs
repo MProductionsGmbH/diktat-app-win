@@ -21,7 +21,7 @@ public sealed class SetupStep : ObservableObject
     public string Title { get; }
     public bool IsDone { get => _isDone; set { if (Set(ref _isDone, value)) OnPropertyChanged(nameof(AutomationName)); } }
     public bool IsCurrent { get => _isCurrent; set { if (Set(ref _isCurrent, value)) OnPropertyChanged(nameof(AutomationName)); } }
-    public string AutomationName => Title + (IsCurrent ? ", aktueller Schritt" : IsDone ? ", erledigt" : "");
+    public string AutomationName => IsCurrent ? L.F("{0}, aktueller Schritt", Title) : IsDone ? L.F("{0}, erledigt", Title) : Title;
 }
 
 /// The first-run assistant: Willkommen, Mikrofon, Sprachmodell, Kurzbefehl, KI-Anbieter, Fertig.
@@ -30,7 +30,7 @@ public partial class SetupAssistantWindow : Window
     private readonly IDiktatApp _app;
     private readonly List<SetupStep> _steps =
     [
-        new("Willkommen"), new("Mikrofon"), new("Sprachmodell"), new("Kurzbefehl"), new("KI-Anbieter"), new("Fertig"),
+        new(L.T("Willkommen")), new(L.T("Mikrofon")), new(L.T("Sprachmodell")), new(L.T("Kurzbefehl")), new(L.T("KI-Anbieter")), new(L.T("Fertig")),
     ];
     private readonly FrameworkElement[] _pages;
     private int _index;
@@ -78,10 +78,10 @@ public partial class SetupAssistantWindow : Window
         LaterButton.Visibility = _index == _pages.Length - 1 ? Visibility.Collapsed : Visibility.Visible;
         NextButton.Content = _index switch
         {
-            0 => "Los geht's",
-            4 => "Weiter",
-            5 => "Fertig",
-            _ => "Weiter",
+            0 => L.T("Los geht's"),
+            4 => L.T("Weiter"),
+            5 => L.T("Fertig"),
+            _ => L.T("Weiter"),
         };
         Scroller.ScrollToTop();
 
@@ -98,10 +98,10 @@ public partial class SetupAssistantWindow : Window
 
     private void UpdateNextLabel()
     {
-        if (_index == 2 && !ModelIsInstalled() && _download is null) NextButton.Content = "Überspringen";
-        else if (_index == 3 && !_trySucceeded) NextButton.Content = "Überspringen";
-        else if (_index == 4 && !_app.Services.AIProviders.IsConfigured) NextButton.Content = "Ohne KI weiter";
-        else NextButton.Content = _index switch { 0 => "Los geht's", 5 => "Fertig", _ => "Weiter" };
+        if (_index == 2 && !ModelIsInstalled() && _download is null) NextButton.Content = L.T("Überspringen");
+        else if (_index == 3 && !_trySucceeded) NextButton.Content = L.T("Überspringen");
+        else if (_index == 4 && !_app.Services.AIProviders.IsConfigured) NextButton.Content = L.T("Ohne KI weiter");
+        else NextButton.Content = _index switch { 0 => L.T("Los geht's"), 5 => L.T("Fertig"), _ => L.T("Weiter") };
     }
 
     private void OnNext(object sender, RoutedEventArgs e)
@@ -171,7 +171,7 @@ public partial class SetupAssistantWindow : Window
         try
         {
             var defaultDevice = devices.FirstOrDefault(d => d.IsDefault);
-            var options = new List<Option<string>> { new("", defaultDevice is null ? "Systemstandard" : $"Systemstandard ({defaultDevice.Name})") };
+            var options = new List<Option<string>> { new("", defaultDevice is null ? L.T("Systemstandard") : L.F("Systemstandard ({0})", defaultDevice.Name)) };
             options.AddRange(devices.Select(d => new Option<string>(d.Id, d.Name)));
             MicPicker.ItemsSource = options;
             var selected = A.MicrophoneId;
@@ -191,7 +191,7 @@ public partial class SetupAssistantWindow : Window
         catch { }
         if (volume is { } v && v < 0.25f)
         {
-            MicVolume.Text = $"Das Mikrofon ist sehr leise eingestellt ({Math.Round(v * 100)} %). In den Sound-Einstellungen unter Eingabe lauter stellen, sonst gehen Wörter verloren.";
+            MicVolume.Text = L.F("Das Mikrofon ist sehr leise eingestellt ({0} %). In den Sound-Einstellungen unter Eingabe lauter stellen, sonst gehen Wörter verloren.", Math.Round(v * 100));
             MicVolume.Visibility = Visibility.Visible;
         }
         else
@@ -233,14 +233,14 @@ public partial class SetupAssistantWindow : Window
         ModelSize.Text = model.SizeLabel;
         ModelDetail.Text = installed
             ? model.Description
-            : $"{name}, {model.SizeLabel}, einmalig. Danach erkennt Diktat Sprache ohne Internet. {model.Languages}";
+            : L.F("{0}, {1}, einmalig. Danach erkennt Diktat Sprache ohne Internet. {2}", name, model.SizeLabel, model.Languages);
         ModelInstalled.Visibility = installed ? Visibility.Visible : Visibility.Collapsed;
-        ModelInstalledText.Text = $"{name} ist installiert.";
+        ModelInstalledText.Text = L.F("{0} ist installiert.", name);
         var running = _download is { IsRunning: true };
         ModelProgressPanel.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
         ModelProgress.Value = _download?.Progress ?? 0;
         ModelProgressText.Text = _download?.StatusText ?? "";
-        ModelDownloadButton.Content = $"{name} laden";
+        ModelDownloadButton.Content = L.F("{0} laden", name);
         ModelDownloadButton.Visibility = !installed && !running ? Visibility.Visible : Visibility.Collapsed;
         ModelCancelButton.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
         UpdateNextLabel();
@@ -288,8 +288,8 @@ public partial class SetupAssistantWindow : Window
     {
         var hotkey = Ui.HotkeyLabel(_app.Services.Settings, WorkflowType.TapTalk);
         TryTitle.Text = A.HotkeyMode == HotkeyMode.Hold
-            ? $"{hotkey} halten und sprechen"
-            : $"{hotkey} drücken, sprechen, nochmal drücken";
+            ? L.F("{0} halten und sprechen", hotkey)
+            : L.F("{0} drücken, sprechen, nochmal drücken", hotkey);
         TryModelMissing.Visibility = ModelIsInstalled() || _download is { IsRunning: true } ? Visibility.Collapsed : Visibility.Visible;
         _textBeforeTry ??= _app.LastText;
         TrySuccess.Visibility = _trySucceeded ? Visibility.Visible : Visibility.Collapsed;
@@ -317,10 +317,10 @@ public partial class SetupAssistantWindow : Window
     {
         string? text = _app.Phase switch
         {
-            DictationPhase.Recording => _app.NoSignal ? "Aufnahme läuft, aber das Mikrofon liefert nur Stille." : "Aufnahme läuft …",
-            DictationPhase.Processing => _app.StatusMessage ?? "Wird transkribiert …",
-            DictationPhase.Error => _app.StatusMessage ?? "Das hat nicht geklappt. Bitte nochmal versuchen.",
-            DictationPhase.Done when _app.LastTextWasOnlyCopied => "Der Text liegt in der Zwischenablage. Klick vorher in das Feld.",
+            DictationPhase.Recording => _app.NoSignal ? L.T("Aufnahme läuft, aber das Mikrofon liefert nur Stille.") : L.T("Aufnahme läuft …"),
+            DictationPhase.Processing => _app.StatusMessage ?? L.T("Wird transkribiert …"),
+            DictationPhase.Error => _app.StatusMessage ?? L.T("Das hat nicht geklappt. Bitte nochmal versuchen."),
+            DictationPhase.Done when _app.LastTextWasOnlyCopied => L.T("Der Text liegt in der Zwischenablage. Klick vorher in das Feld."),
             _ => null,
         };
         TryStatus.Visibility = text is null ? Visibility.Collapsed : Visibility.Visible;

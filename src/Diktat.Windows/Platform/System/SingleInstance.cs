@@ -47,15 +47,19 @@ public sealed class SingleInstance : IDisposable
         }
     }
 
-    /// Becomes the first instance, or returns null when one is running already.
-    public static SingleInstance? TryAcquire(SynchronizationContext? eventContext = null)
+    /// The argument of a restart: the new instance waits for the old one to end.
+    public const string RestartArgument = "--restarted";
+
+    /// Becomes the first instance, or returns null when one is running already (after waiting
+    /// up to <paramref name="wait"/> for it to end).
+    public static SingleInstance? TryAcquire(SynchronizationContext? eventContext = null, TimeSpan wait = default)
     {
         var name = BaseName;
         var mutex = new Mutex(initiallyOwned: false, @"Local\" + name);
         bool owned;
         try
         {
-            owned = mutex.WaitOne(0);
+            owned = mutex.WaitOne(wait);
         }
         catch (AbandonedMutexException)
         {

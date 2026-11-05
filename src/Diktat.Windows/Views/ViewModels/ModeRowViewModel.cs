@@ -36,8 +36,8 @@ public sealed class ModeRowViewModel : ObservableObject
     public string Hotkey { get => _hotkey; private set => Set(ref _hotkey, value); }
     public bool IsAvailable { get => _isAvailable; private set => Set(ref _isAvailable, value); }
 
-    public string ToolTip => IsAvailable ? $"Startet {Name}" : _app.ModeUnavailableReason(Mode) ?? Subtitle;
-    public string AutomationName => $"{Name}, {Subtitle}" + (Hotkey.Length > 0 ? $", Kürzel {Hotkey}" : "");
+    public string ToolTip => IsAvailable ? L.F("Startet {0}", Name) : _app.ModeUnavailableReason(Mode) ?? Subtitle;
+    public string AutomationName => Hotkey.Length > 0 ? L.F("{0}, {1}, Kürzel {2}", Name, Subtitle, Hotkey) : $"{Name}, {Subtitle}";
 
     public void Refresh()
     {
@@ -79,7 +79,7 @@ public sealed class HistoryEntryViewModel : ObservableObject
     public string Text => Entry.Text;
     public string ModeName { get; }
     public WorkflowType Mode => Entry.Workflow;
-    public string Time => Entry.CreatedAt.ToLocalTime().ToString("HH:mm", Ui.German);
+    public string Time => Entry.CreatedAt.ToLocalTime().ToString(L.Current == UiLanguage.English ? "h:mm tt" : "HH:mm", L.Culture);
     public string Meta => $"{ModeName}, {Ui.RelativeTime(Entry.CreatedAt)}";
     public string AutomationName => $"{ModeName}, {Time}: {Text}";
 

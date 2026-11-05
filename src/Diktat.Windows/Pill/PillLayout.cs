@@ -107,10 +107,10 @@ public static class PillLayout
         {
             case PillState.Recording:
                 var name = microphone ?? "";
-                if (noSignal) return name.Length == 0 ? "Kein Ton" : $"Kein Ton ({name})";
-                return showsMicrophone && name.Length > 0 ? $"Mikrofon: {name}" : null;
+                if (noSignal) return name.Length == 0 ? L.T("Kein Ton") : L.F("Kein Ton ({0})", name);
+                return showsMicrophone && name.Length > 0 ? L.F("Mikrofon: {0}", name) : null;
             case PillState.Copied:
-                return "Nicht eingefügt, der Text liegt in der Zwischenablage";
+                return L.T("Nicht eingefügt, der Text liegt in der Zwischenablage");
             default:
                 return null;
         }

@@ -81,18 +81,18 @@ public partial class AppRulesSection : UserControl, IMainPage
         try
         {
             var hotkey = Ui.HotkeyLabel(_app.Services.Settings, WorkflowType.TapTalk);
-            Intro.Text = $"Das Diktat-Kürzel ({hotkey}) kann je App oder Website automatisch einen anderen Modus nutzen, zum Beispiel Diktat KI-Schreibstil in Outlook. Überall sonst bleibt es wortgenau, und die übrigen Kürzel bleiben, wie sie sind.";
+            Intro.Text = L.F("Das Diktat-Kürzel ({0}) kann je App oder Website automatisch einen anderen Modus nutzen, zum Beispiel Diktat KI-Schreibstil in Outlook. Überall sonst bleibt es wortgenau, und die übrigen Kürzel bleiben, wie sie sind.", hotkey);
             var modes = ModeOptions();
             var items = new List<RuleItem>();
             items.AddRange(A.WebsiteModeRules.Select(r => new RuleItem
             {
-                IsWebsite = true, Key = r.Host, Title = PresetName(r.Host) ?? r.Host, Detail = $"Website: {r.Host}", Mode = r.Mode, Modes = modes,
+                IsWebsite = true, Key = r.Host, Title = PresetName(r.Host) ?? r.Host, Detail = L.F("Website: {0}", r.Host), Mode = r.Mode, Modes = modes,
             }));
             items.AddRange(A.AppModeRules.Select(r => new RuleItem
             {
                 IsWebsite = false, Key = r.ProcessName,
                 Title = string.IsNullOrWhiteSpace(r.AppName) ? r.ProcessName : r.AppName,
-                Detail = $"Programm: {r.ProcessName}", Mode = r.Mode, Modes = modes,
+                Detail = L.F("Programm: {0}", r.ProcessName), Mode = r.Mode, Modes = modes,
             }));
             Rules.ItemsSource = items;
             EmptyText.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -217,7 +217,7 @@ public partial class AppRulesSection : UserControl, IMainPage
         var exe = ProcessNames.Normalize(ExeName.Text);
         if (exe.Length <= 4 || exe.Contains(' '))
         {
-            ShowError("Bitte den Namen der .exe-Datei eintragen, zum Beispiel outlook.exe.", app: true);
+            ShowError(L.T("Bitte den Namen der .exe-Datei eintragen, zum Beispiel outlook.exe."), app: true);
             return;
         }
         AddApp(exe, "");
@@ -229,7 +229,7 @@ public partial class AppRulesSection : UserControl, IMainPage
         var normalized = ProcessNames.Normalize(exe);
         if (A.AppModeRules.Any(r => ProcessNames.Normalize(r.ProcessName) == normalized))
         {
-            ShowError("Für dieses Programm gibt es schon eine Regel.", app: true);
+            ShowError(L.T("Für dieses Programm gibt es schon eine Regel."), app: true);
             return;
         }
         A.AppModeRules.Add(new AppModeRule { ProcessName = normalized, AppName = name, Mode = WorkflowType.TextImprover });
@@ -255,7 +255,7 @@ public partial class AppRulesSection : UserControl, IMainPage
     {
         if (WebsiteHost.Normalized(Host.Text) is not { } host)
         {
-            ShowError("Das ist keine Adresse einer Website. Zum Beispiel: mail.google.com");
+            ShowError(L.T("Das ist keine Adresse einer Website. Zum Beispiel: mail.google.com"));
             return;
         }
         AddWebsite(host);
@@ -266,7 +266,7 @@ public partial class AppRulesSection : UserControl, IMainPage
     {
         if (A.WebsiteModeRules.Any(r => r.Host == host))
         {
-            ShowError("Für diese Website gibt es schon eine Regel.");
+            ShowError(L.T("Für diese Website gibt es schon eine Regel."));
             return;
         }
         A.WebsiteModeRules.Add(new WebsiteModeRule { Host = host, Mode = WorkflowType.TextImprover });

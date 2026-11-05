@@ -168,7 +168,7 @@ public sealed record MeetingSummaryResult(string? Summary, string? Note);
 /// provider on the internet, whatever the engine setting.
 public sealed class MeetingSummaryService
 {
-    public const string NoModelNote = "Für die Zusammenfassung braucht Diktat ein Modell auf diesem PC, etwa Ollama oder LM Studio. Meetings gehen nie an einen Modell-Anbieter im Internet.";
+    public static string NoModelNote => L.T("Für die Zusammenfassung braucht Diktat ein Modell auf diesem PC, etwa Ollama oder LM Studio. Meetings gehen nie an einen Modell-Anbieter im Internet.");
 
     private readonly ITextRewriter _rewriter;
 
@@ -230,8 +230,8 @@ public sealed class MeetingSummaryService
         catch (Exception e)
         {
             return (null, isServer
-                ? $"{backend.Name} auf diesem PC konnte nicht zusammenfassen ({e.Message}). Läuft Ollama oder LM Studio?"
-                : $"{backend.Name} konnte nicht zusammenfassen ({e.Message}).");
+                ? L.F("{0} auf diesem PC konnte nicht zusammenfassen ({1}). Läuft Ollama oder LM Studio?", backend.Name, e.Message)
+                : L.F("{0} konnte nicht zusammenfassen ({1}).", backend.Name, e.Message));
         }
     }
 

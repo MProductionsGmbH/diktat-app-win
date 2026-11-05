@@ -66,7 +66,7 @@ public sealed class MeetingTranscriber
         ArgumentNullException.ThrowIfNull(microphone);
         string? notice = null;
 
-        status?.Report("Mikrofon wird transkribiert ...");
+        status?.Report(L.T("Mikrofon wird transkribiert ..."));
         var transcriber = await _transcriber(ct).ConfigureAwait(false);
         var words = (await transcriber.TranscribeAsync(microphone, language, ct).ConfigureAwait(false)).Words;
         ct.ThrowIfCancellationRequested();
@@ -75,7 +75,7 @@ public sealed class MeetingTranscriber
         IReadOnlyList<TimedWord>? systemWords = null;
         if (systemAudio is { Length: > 0 })
         {
-            status?.Report("Ton des PCs wird transkribiert ...");
+            status?.Report(L.T("Ton des PCs wird transkribiert ..."));
             try
             {
                 var result = await transcriber.TranscribeAsync(systemAudio, language, ct).ConfigureAwait(false);
@@ -84,7 +84,7 @@ public sealed class MeetingTranscriber
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
-                notice = $"Der Ton des PCs ließ sich nicht auswerten, ausgewertet wird nur das Mikrofon. ({error.Message})";
+                notice = L.F("Der Ton des PCs ließ sich nicht auswerten, ausgewertet wird nur das Mikrofon. ({0})", error.Message);
             }
             ct.ThrowIfCancellationRequested();
         }
@@ -93,18 +93,18 @@ public sealed class MeetingTranscriber
         var diarizer = _diarizer();
         if (diarizer is null)
         {
-            notice = Join(notice, "Ohne Sprecher-Erkennung sind die Stimmen nicht getrennt. Sie lässt sich in den Einstellungen unter Modelle laden.");
+            notice = Join(notice, L.T("Ohne Sprecher-Erkennung sind die Stimmen nicht getrennt. Sie lässt sich in den Einstellungen unter Modelle laden."));
         }
         else
         {
-            status?.Report("Stimmen werden erkannt ...");
+            status?.Report(L.T("Stimmen werden erkannt ..."));
             try
             {
                 turns = await diarizer.DiarizeAsync(systemWords is not null ? systemAudio! : microphone, ct: ct).ConfigureAwait(false);
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
-                throw new MeetingTranscriptionException($"Die Stimmen ließen sich nicht erkennen. ({error.Message})", error);
+                throw new MeetingTranscriptionException(L.F("Die Stimmen ließen sich nicht erkennen. ({0})", error.Message), error);
             }
             ct.ThrowIfCancellationRequested();
         }
@@ -116,7 +116,7 @@ public sealed class MeetingTranscriber
             .ToList();
         if (segments.Count == 0)
         {
-            throw new MeetingTranscriptionException("In der Aufnahme wurde keine Sprache erkannt.");
+            throw new MeetingTranscriptionException(L.T("In der Aufnahme wurde keine Sprache erkannt."));
         }
         return new MeetingTranscript(segments, notice);
     }

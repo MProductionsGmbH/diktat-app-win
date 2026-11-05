@@ -22,10 +22,10 @@ public sealed class ModesPageViewModel : ObservableObject
         CleanupOptions = SpeechCleanupLevelInfo.AllCases.Select(level =>
         {
             var (before, after) = CleanupExample(level);
-            return new ChoiceOption<SpeechCleanupLevel>(level, level.DisplayName(), level.Detail(), "Gesprochen", before, "Geschrieben", after);
+            return new ChoiceOption<SpeechCleanupLevel>(level, level.DisplayName(), level.Detail(), L.T("Gesprochen"), before, L.T("Geschrieben"), after);
         }).ToList();
         ToneOptions = StyleToneInfo.AllCases.Select(tone => new ChoiceOption<StyleTone>(
-            tone, tone.DisplayName(), tone.Detail(), "Mit Glättung", tone.ExampleCleaned(), "Mit KI-Schreibstil", tone.ExampleRewritten())).ToList();
+            tone, tone.DisplayName(), tone.Detail(), L.T("Mit Glättung"), tone.ExampleCleaned(), L.T("Mit KI-Schreibstil"), tone.ExampleRewritten())).ToList();
     }
 
     private SettingsContainer S => _app.Services.Settings;
@@ -60,23 +60,23 @@ public sealed class ModesPageViewModel : ObservableObject
             if (store.IsConfigured && store.Config is { } config)
             {
                 return config.IsLocalServer
-                    ? $"Läuft über dein lokales Modell {config.Model} ({config.BaseUrl}). Der Text verlässt dein Netz nicht, das Modell muss dafür laufen."
-                    : "Das Transkript geht dafür an deinen Modell-Anbieter. Ohne Anbieter bleibt es bei „Leicht“.";
+                    ? L.F("Läuft über dein lokales Modell {0} ({1}). Der Text verlässt dein Netz nicht, das Modell muss dafür laufen.", config.Model, config.BaseUrl)
+                    : L.T("Das Transkript geht dafür an deinen Modell-Anbieter. Ohne Anbieter bleibt es bei „Leicht“.");
             }
-            return "Braucht einen Modell-Anbieter (Einstellungen, KI-Anbieter). Bis dahin gilt „Leicht“.";
+            return L.T("Braucht einen Modell-Anbieter (Einstellungen, KI-Anbieter). Bis dahin gilt „Leicht“.");
         }
     }
 
     private static (string Before, string After) CleanupExample(SpeechCleanupLevel level) => level switch
     {
-        SpeechCleanupLevel.Light => ("Ich ähm wollte wollte noch sagen, dass das Meeting morgen morgen beginnt.",
-            "Ich wollte noch sagen, dass das Meeting morgen beginnt."),
-        SpeechCleanupLevel.Medium => ("Wir treffen uns am Mittwoch, nein, Donnerstag um zehn.",
-            "Wir treffen uns am Donnerstag um zehn."),
-        SpeechCleanupLevel.Strong => ("wir hat gestern ein Treffen gehabt und die Kunde sind zufrieden",
-            "Wir hatten gestern ein Treffen, und die Kunden sind zufrieden."),
-        _ => ("ich wollte fragen ob wir den Termin am Donnerstag äh ich meine Freitag verschieben können",
-            "Ich möchte fragen, ob wir den Termin auf Freitag verschieben können."),
+        SpeechCleanupLevel.Light => (L.T("Ich ähm wollte wollte noch sagen, dass das Meeting morgen morgen beginnt."),
+            L.T("Ich wollte noch sagen, dass das Meeting morgen beginnt.")),
+        SpeechCleanupLevel.Medium => (L.T("Wir treffen uns am Mittwoch, nein, Donnerstag um zehn."),
+            L.T("Wir treffen uns am Donnerstag um zehn.")),
+        SpeechCleanupLevel.Strong => (L.T("wir hat gestern ein Treffen gehabt und die Kunde sind zufrieden"),
+            L.T("Wir hatten gestern ein Treffen, und die Kunden sind zufrieden.")),
+        _ => (L.T("ich wollte fragen ob wir den Termin am Donnerstag äh ich meine Freitag verschieben können"),
+            L.T("Ich möchte fragen, ob wir den Termin auf Freitag verschieben können.")),
     };
 
     // --- Stil je Kontext ------------------------------------------------------------------
@@ -136,12 +136,12 @@ public sealed class ModesPageViewModel : ObservableObject
         }
     }
 
-    public string ImproverPromptHeader => string.IsNullOrWhiteSpace(S.TextImprovement.SystemPrompt) ? "Eigene Anweisung" : "Eigene Anweisung (aktiv)";
+    public string ImproverPromptHeader => string.IsNullOrWhiteSpace(S.TextImprovement.SystemPrompt) ? L.T("Eigene Anweisung") : L.T("Eigene Anweisung (aktiv)");
 
     // --- WTF ----------------------------------------------------------------------------
 
     public string WtfTitle => Ui.DisplayName(S, WorkflowType.DampfAblassen);
-    public string WtfSummary => $"{WorkflowType.DampfAblassen.Subtitle()} Kürzel: {Ui.HotkeyLabel(S, WorkflowType.DampfAblassen)}";
+    public string WtfSummary => L.F("{0} Kürzel: {1}", WorkflowType.DampfAblassen.Subtitle(), Ui.HotkeyLabel(S, WorkflowType.DampfAblassen));
 
     public string WtfName
     {
@@ -166,7 +166,7 @@ public sealed class ModesPageViewModel : ObservableObject
     }
 
     public bool WtfPromptIsCustom => S.DampfAblassen.SystemPrompt != DampfAblassenSettings.DefaultPrompt;
-    public string WtfPromptHeader => WtfPromptIsCustom ? "Anweisung (angepasst)" : "Anweisung (Standard)";
+    public string WtfPromptHeader => WtfPromptIsCustom ? L.T("Anweisung (angepasst)") : L.T("Anweisung (Standard)");
 
     public void RestoreWtfPrompt()
     {
@@ -180,7 +180,7 @@ public sealed class ModesPageViewModel : ObservableObject
     // --- :-) ----------------------------------------------------------------------------
 
     public string EmojiTitle => Ui.DisplayName(S, WorkflowType.EmojiText);
-    public string EmojiSummary => $"{WorkflowType.EmojiText.Subtitle()} Kürzel: {Ui.HotkeyLabel(S, WorkflowType.EmojiText)}";
+    public string EmojiSummary => L.F("{0} Kürzel: {1}", WorkflowType.EmojiText.Subtitle(), Ui.HotkeyLabel(S, WorkflowType.EmojiText));
 
     public string EmojiName
     {
@@ -194,7 +194,7 @@ public sealed class ModesPageViewModel : ObservableObject
     }
 
     public IReadOnlyList<Option<EmojiDensity>> Densities { get; } =
-        [new(EmojiDensity.Wenig, "Wenig"), new(EmojiDensity.Mittel, "Mittel"), new(EmojiDensity.Viel, "Viel")];
+        [new(EmojiDensity.Wenig, L.T("Wenig")), new(EmojiDensity.Mittel, L.T("Mittel")), new(EmojiDensity.Viel, L.T("Viel"))];
 
     public EmojiDensity Density
     {

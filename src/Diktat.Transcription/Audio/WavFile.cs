@@ -22,9 +22,9 @@ public enum WavSampleFormat
 /// The audio file could not be read, with a German message for the UI.
 public sealed class AudioDecodeException(string message, Exception? inner = null) : Exception(message, inner)
 {
-    public static AudioDecodeException Unreadable(Exception? inner = null) => new("Diese Audiodatei kann Diktat nicht öffnen.", inner);
+    public static AudioDecodeException Unreadable(Exception? inner = null) => new(L.T("Diese Audiodatei kann Diktat nicht öffnen."), inner);
 
-    public static AudioDecodeException Empty() => new("Die Audiodatei ist leer.");
+    public static AudioDecodeException Empty() => new(L.T("Die Audiodatei ist leer."));
 }
 
 /// RIFF/WAVE reading and writing: PCM 8/16/24/32 bit, IEEE float 32/64 bit, WAVE_FORMAT_EXTENSIBLE.

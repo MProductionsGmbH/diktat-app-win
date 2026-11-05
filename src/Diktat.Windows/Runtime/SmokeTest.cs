@@ -1,5 +1,7 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Diktat.Core.Settings;
 using Diktat.Windows.Pill;
@@ -13,11 +15,12 @@ namespace Diktat.Windows.Runtime;
 /// builds the services, constructs and shows every window off screen (so XAML errors surface),
 /// creates the tray icon and the pill, installs and removes the keyboard hook, and exits with 0,
 /// or 1 and the error on the console and in smoke-test.log next to the exe. Never blocks; a
-/// watchdog ends it after 20 seconds.
+/// watchdog ends it after 45 seconds. The windows are shown twice, in German and in English;
+/// in English, a German text on screen that has an English version fails the test.
 internal static class SmokeTest
 {
     public const string Argument = "--smoke-test";
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(45);
 
     public static bool IsRequested(string[] args) => args.Any(a => string.Equals(a, Argument, StringComparison.OrdinalIgnoreCase));
 
@@ -84,36 +87,46 @@ internal static class SmokeTest
                 return Task.FromResult(true);
             });
 
-            await Step(report, "MainWindow", async () =>
+            foreach (var language in new[] { UiLanguage.German, UiLanguage.English })
             {
-                var window = OffScreen(new MainWindow(diktat));
-                window.Show();
-                foreach (var page in new[] { "history", "modes", "meetings", "audio", "settings", "settings/general", "settings/models", "settings/microphone", "settings/dictionary", "settings/apps", "settings/ai", "settings/meetings", "settings/privacy" })
+                L.Use(language);
+                if (language == UiLanguage.English && L.T("Verlauf") != "History")
+                    throw new InvalidOperationException("The English texts were not loaded.");
+                await Step(report, $"MainWindow ({language})", async () =>
                 {
-                    window.ShowPage(page);
+                    var window = OffScreen(new MainWindow(diktat));
+                    window.Show();
+                    foreach (var page in new[] { "history", "modes", "meetings", "audio", "settings", "settings/general", "settings/models", "settings/microphone", "settings/dictionary", "settings/apps", "settings/ai", "settings/meetings", "settings/privacy" })
+                    {
+                        window.ShowPage(page);
+                        await Settle();
+                        CheckLanguage(window, page);
+                    }
+                    window.Close();
+                    return true;
+                });
+
+                await Step(report, $"SetupAssistantWindow ({language})", async () =>
+                {
+                    var window = OffScreen(new SetupAssistantWindow(diktat));
+                    window.Show();
                     await Settle();
-                }
-                window.Close();
-                return true;
-            });
+                    CheckLanguage(window, "setup");
+                    window.Close();
+                    return true;
+                });
 
-            await Step(report, "SetupAssistantWindow", async () =>
-            {
-                var window = OffScreen(new SetupAssistantWindow(diktat));
-                window.Show();
-                await Settle();
-                window.Close();
-                return true;
-            });
-
-            await Step(report, "TrayPanelWindow", async () =>
-            {
-                var window = OffScreen(new TrayPanelWindow(diktat));
-                window.ShowNear(new System.Windows.Point(-20_000, -20_000));
-                await Settle();
-                window.Close();
-                return true;
-            });
+                await Step(report, $"TrayPanelWindow ({language})", async () =>
+                {
+                    var window = OffScreen(new TrayPanelWindow(diktat));
+                    window.ShowNear(new System.Windows.Point(-20_000, -20_000));
+                    await Settle();
+                    CheckLanguage(window, "tray panel");
+                    window.Close();
+                    return true;
+                });
+            }
+            L.Use(UiLanguage.German);
 
             await Step(report, "RecordingPillWindow", async () =>
             {
@@ -148,6 +161,31 @@ internal static class SmokeTest
                 return Task.FromResult(true);
             });
         }
+    }
+
+    /// In English, every text on screen that is a German text with an English version is a miss.
+    private static void CheckLanguage(DependencyObject root, string where)
+    {
+        if (L.Current != UiLanguage.English) return;
+        var missed = new SortedSet<string>(StringComparer.Ordinal);
+        Visit(root, missed);
+        if (missed.Count > 0)
+            throw new InvalidOperationException($"German texts in English ({where}): " + string.Join(" | ", missed));
+    }
+
+    private static void Visit(DependencyObject node, SortedSet<string> missed)
+    {
+        string? text = node switch
+        {
+            TextBlock block => block.Text,
+            ContentControl { Content: string content } => content,
+            HeaderedContentControl { Header: string header } => header,
+            _ => null,
+        };
+        if (!string.IsNullOrWhiteSpace(text) && L.English.TryGetValue(text, out var english) && english != text) missed.Add(text);
+        if (node is FrameworkElement { ToolTip: string tip } && L.English.TryGetValue(tip, out var tipEnglish) && tipEnglish != tip) missed.Add(tip);
+        var count = node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(node) : 0;
+        for (var i = 0; i < count; i++) Visit(VisualTreeHelper.GetChild(node, i), missed);
     }
 
     private static async Task<T> Step<T>(Report report, string name, Func<Task<T>> action)

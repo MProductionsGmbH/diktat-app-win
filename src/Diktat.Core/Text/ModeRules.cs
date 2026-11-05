@@ -89,10 +89,10 @@ public static class ModeRules
     }
 
     /// Website presets the settings offer when adding a website rule.
-    public static readonly IReadOnlyList<(string Name, string Host)> WebsitePresets =
+    public static IReadOnlyList<(string Name, string Host)> WebsitePresets =>
     [
         ("Gmail", "mail.google.com"),
-        ("Outlook im Web", "outlook.office.com"),
+        (L.T("Outlook im Web"), "outlook.office.com"),
         ("Google Docs", "docs.google.com"),
         ("Notion", "notion.so"),
         ("Slack", "app.slack.com"),

@@ -120,7 +120,7 @@ public partial class MeetingsPage : UserControl, IMainPage
         catch (Exception ex)
         {
             Log.Warn("Starting the meeting failed", ex);
-            Ui.Inform(this, ex.Message, "Meeting", warning: true);
+            Ui.Inform(this, ex.Message, L.T("Meeting"), warning: true);
         }
         WatchSession();
         _model.OnSessionChanged();
@@ -146,7 +146,7 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnDiscard(object sender, RoutedEventArgs e)
     {
-        if (Ui.Confirm(this, "Die Aufnahme verwerfen? Sie wird gelöscht und nicht ausgewertet.", "Meeting verwerfen")) _app.CancelMeeting();
+        if (Ui.Confirm(this, L.T("Die Aufnahme verwerfen? Sie wird gelöscht und nicht ausgewertet."), L.T("Meeting verwerfen"))) _app.CancelMeeting();
     }
 
     // --- Detail -----------------------------------------------------------------------
@@ -173,7 +173,7 @@ public partial class MeetingsPage : UserControl, IMainPage
         catch (Exception ex)
         {
             Log.Warn("Retrying the meeting failed", ex);
-            Ui.Inform(this, ex.Message, "Meeting", warning: true);
+            Ui.Inform(this, ex.Message, L.T("Meeting"), warning: true);
         }
         WatchSession();
         UpdateTimer();
@@ -182,7 +182,7 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnDelete(object sender, RoutedEventArgs e)
     {
-        if (Ui.Confirm(this, "Dieses Meeting mit Transkript und Zusammenfassung löschen?", "Meeting löschen"))
+        if (Ui.Confirm(this, L.T("Dieses Meeting mit Transkript und Zusammenfassung löschen?"), L.T("Meeting löschen")))
         {
             HideRename();
             _model.Delete();
@@ -199,9 +199,9 @@ public partial class MeetingsPage : UserControl, IMainPage
         var name = string.Join("_", record.Title.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries)).Trim();
         var dialog = new SaveFileDialog
         {
-            Title = "Meeting als Textdatei speichern",
+            Title = L.T("Meeting als Textdatei speichern"),
             FileName = (name.Length > 0 ? name : "Meeting") + ".txt",
-            Filter = "Textdatei (*.txt)|*.txt",
+            Filter = L.T("Textdatei (*.txt)") + "|*.txt",
             AddExtension = true,
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
@@ -211,7 +211,7 @@ public partial class MeetingsPage : UserControl, IMainPage
         }
         catch (Exception ex)
         {
-            Ui.Inform(this, $"Die Datei konnte nicht gespeichert werden: {ex.Message}", "Speichern", warning: true);
+            Ui.Inform(this, L.F("Die Datei konnte nicht gespeichert werden: {0}", ex.Message), L.T("Speichern"), warning: true);
         }
     }
 
@@ -222,8 +222,9 @@ public partial class MeetingsPage : UserControl, IMainPage
     {
         if ((sender as FrameworkElement)?.DataContext is not SpeakerItem speaker || _model.Record is not { } record) return;
         _renaming = speaker.Speaker;
+        // The default name as MeetingRecord.NameFor shows it in the transcript.
         var defaultName = speaker.Speaker == 0 ? "Ich" : $"Person {speaker.Speaker}";
-        RenameHint.Text = $"Der Name ersetzt „{defaultName}“ im Transkript. Leer lassen für „{defaultName}“.";
+        RenameHint.Text = L.F("Der Name ersetzt „{0}“ im Transkript. Leer lassen für „{0}“.", defaultName);
         RenameBox.Text = record.SpeakerNames.TryGetValue(speaker.Speaker, out var custom) ? custom : "";
         RenamePanel.Visibility = Visibility.Visible;
         RenameBox.Focus();

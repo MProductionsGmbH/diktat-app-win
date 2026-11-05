@@ -1,9 +1,10 @@
 <Window x:Class="Diktat.Windows.Views.SetupAssistantWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:Diktat.Windows.Views"
         xmlns:v="clr-namespace:Diktat.Windows.Views"
         xmlns:c="clr-namespace:Diktat.Windows.Views.Controls"
-        Title="Diktat einrichten"
+        Title="{l:T 'Diktat einrichten'}"
         Width="700" Height="640" MinWidth="600" MinHeight="520"
         WindowStartupLocation="CenterScreen" ResizeMode="CanResize"
         Icon="pack://application:,,,/Assets/Diktat.ico"
@@ -21,7 +22,7 @@
 
         <!-- Steps -->
         <Border Padding="28,20,28,14">
-            <ItemsControl x:Name="StepList" Focusable="False" AutomationProperties.Name="Schritte">
+            <ItemsControl x:Name="StepList" Focusable="False" AutomationProperties.Name="{l:T 'Schritte'}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Rows="1"/>
@@ -58,54 +59,54 @@
                     <Image Source="pack://application:,,,/Assets/icon-256.png" Width="88" Height="88" HorizontalAlignment="Left"
                            RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Diktat"/>
                     <StackPanel>
-                        <TextBlock Text="Willkommen" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
-                        <TextBlock Text="bei Diktat" Style="{DynamicResource Diktat.TitleText}" FontSize="30" Foreground="{DynamicResource Diktat.Accent}"/>
+                        <TextBlock Text="{l:T 'Willkommen'}" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
+                        <TextBlock Text="{l:T 'bei Diktat'}" Style="{DynamicResource Diktat.TitleText}" FontSize="30" Foreground="{DynamicResource Diktat.Accent}"/>
                     </StackPanel>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}" FontSize="14.5"
-                               Text="Kürzel halten, sprechen, loslassen: Diktat schreibt den Text dort, wo dein Cursor steht. Die Sprache wird direkt auf diesem PC erkannt, ohne Konto und ohne Cloud."/>
+                               Text="{l:T 'Kürzel halten, sprechen, loslassen: Diktat schreibt den Text dort, wo dein Cursor steht. Die Sprache wird direkt auf diesem PC erkannt, ohne Konto und ohne Cloud.'}"/>
                     <Border Style="{DynamicResource Diktat.CardStyle}">
                         <v:Stack Spacing="10">
-                            <TextBlock Text="In ein paar Minuten eingerichtet:" FontWeight="SemiBold"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="1. Mikrofon prüfen"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="2. Sprachmodell laden, einmalig"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="3. Kurzbefehl ausprobieren"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="4. Optional: KI-Anbieter für KI-Schreibstil, WTF und :-)"/>
+                            <TextBlock Text="{l:T 'In ein paar Minuten eingerichtet:'}" FontWeight="SemiBold"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '1. Mikrofon prüfen'}"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '2. Sprachmodell laden, einmalig'}"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '3. Kurzbefehl ausprobieren'}"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '4. Optional: KI-Anbieter für KI-Schreibstil, WTF und :-)'}"/>
                         </v:Stack>
                     </Border>
                 </v:Stack>
 
                 <!-- 2 Mikrofon -->
                 <v:Stack x:Name="MicrophoneStep" Spacing="16" Visibility="Collapsed">
-                    <TextBlock Text="Mikrofon" Style="{DynamicResource Diktat.TitleText}"/>
-                    <TextBlock Style="{DynamicResource Diktat.BodyText}" Text="Damit Diktat hört, was du sagst. Die Aufnahme bleibt auf diesem PC und wird nach dem Diktat gelöscht."/>
+                    <TextBlock Text="{l:T 'Mikrofon'}" Style="{DynamicResource Diktat.TitleText}"/>
+                    <TextBlock Style="{DynamicResource Diktat.BodyText}" Text="{l:T 'Damit Diktat hört, was du sagst. Die Aufnahme bleibt auf diesem PC und wird nach dem Diktat gelöscht.'}"/>
                     <Border x:Name="MicDenied" Style="{DynamicResource Diktat.ErrorNotice}" Visibility="Collapsed">
                         <v:Stack Spacing="10">
                             <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap"
-                                       Text="Windows erlaubt Desktop-Apps gerade nicht, das Mikrofon zu nutzen."/>
+                                       Text="{l:T 'Windows erlaubt Desktop-Apps gerade nicht, das Mikrofon zu nutzen.'}"/>
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                                       Text="In den Einstellungen unter Datenschutz und Sicherheit, Mikrofon, „Zugriff auf das Mikrofon“ und „Desktop-Apps den Zugriff auf Ihr Mikrofon erlauben“ einschalten. Danach hier „Erneut prüfen“."/>
+                                       Text="{l:T 'In den Einstellungen unter Datenschutz und Sicherheit, Mikrofon, „Zugriff auf das Mikrofon“ und „Desktop-Apps den Zugriff auf Ihr Mikrofon erlauben“ einschalten. Danach hier „Erneut prüfen“.'}"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Mikrofon-Datenschutz öffnen" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnOpenMicPrivacy" Margin="0,0,8,0"/>
-                                <Button Content="Erneut prüfen" Click="OnRecheckMic"/>
+                                <Button Content="{l:T 'Mikrofon-Datenschutz öffnen'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnOpenMicPrivacy" Margin="0,0,8,0"/>
+                                <Button Content="{l:T 'Erneut prüfen'}" Click="OnRecheckMic"/>
                             </StackPanel>
                         </v:Stack>
                     </Border>
                     <Border x:Name="MicNone" Style="{DynamicResource Diktat.ErrorNotice}" Visibility="Collapsed">
                         <v:Stack Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" Text="Kein Mikrofon gefunden." TextWrapping="Wrap"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="Schließ ein Headset oder ein Mikrofon an. Am Laptop hilft oft schon, den Deckel aufzuklappen."/>
-                            <Button Content="Erneut prüfen" HorizontalAlignment="Left" Click="OnRecheckMic"/>
+                            <TextBlock FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" Text="{l:T 'Kein Mikrofon gefunden.'}" TextWrapping="Wrap"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Schließ ein Headset oder ein Mikrofon an. Am Laptop hilft oft schon, den Deckel aufzuklappen.'}"/>
+                            <Button Content="{l:T 'Erneut prüfen'}" HorizontalAlignment="Left" Click="OnRecheckMic"/>
                         </v:Stack>
                     </Border>
                     <Border x:Name="MicOk" Style="{DynamicResource Diktat.CardStyle}" Visibility="Collapsed">
                         <v:Stack Spacing="10">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
-                                <TextBlock Text="Diktat darf das Mikrofon nutzen." FontWeight="SemiBold"/>
+                                <TextBlock Text="{l:T 'Diktat darf das Mikrofon nutzen.'}" FontWeight="SemiBold"/>
                             </StackPanel>
-                            <TextBlock Text="Mikrofon" Style="{DynamicResource Diktat.CaptionText}"/>
+                            <TextBlock Text="{l:T 'Mikrofon'}" Style="{DynamicResource Diktat.CaptionText}"/>
                             <ComboBox x:Name="MicPicker" DisplayMemberPath="Label" SelectedValuePath="Value" SelectionChanged="OnMicPicked"
-                                      AutomationProperties.Name="Mikrofon"/>
+                                      AutomationProperties.Name="{l:T 'Mikrofon'}"/>
                             <TextBlock x:Name="MicVolume" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
                         </v:Stack>
                     </Border>
@@ -113,9 +114,9 @@
 
                 <!-- 3 Sprachmodell -->
                 <v:Stack x:Name="ModelStep" Spacing="16" Visibility="Collapsed">
-                    <TextBlock Text="Sprachmodell laden" Style="{DynamicResource Diktat.TitleText}"/>
+                    <TextBlock Text="{l:T 'Sprachmodell laden'}" Style="{DynamicResource Diktat.TitleText}"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
-                               Text="Das Sprachmodell erkennt deine Sprache direkt auf diesem PC. Es wird einmalig geladen, danach geht es ohne Internet."/>
+                               Text="{l:T 'Das Sprachmodell erkennt deine Sprache direkt auf diesem PC. Es wird einmalig geladen, danach geht es ohne Internet.'}"/>
                     <Border Style="{DynamicResource Diktat.CardStyle}">
                         <v:Stack Spacing="10">
                             <StackPanel Orientation="Horizontal">
@@ -124,7 +125,7 @@
                             </StackPanel>
                             <TextBlock x:Name="ModelDetail" Style="{DynamicResource Diktat.CaptionText}"/>
                             <StackPanel x:Name="ModelProgressPanel" Visibility="Collapsed">
-                                <ProgressBar x:Name="ModelProgress" AutomationProperties.Name="Sprachmodell wird geladen"/>
+                                <ProgressBar x:Name="ModelProgress" AutomationProperties.Name="{l:T 'Sprachmodell wird geladen'}"/>
                                 <TextBlock x:Name="ModelProgressText" Style="{DynamicResource Diktat.CaptionText}" Margin="0,4,0,0"/>
                             </StackPanel>
                             <TextBlock x:Name="ModelError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
@@ -134,55 +135,55 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="ModelDownloadButton" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnDownloadModel" Margin="0,0,8,0"/>
-                                <Button x:Name="ModelCancelButton" Content="Abbrechen" Click="OnCancelModel" Visibility="Collapsed"/>
+                                <Button x:Name="ModelCancelButton" Content="{l:T 'Abbrechen'}" Click="OnCancelModel" Visibility="Collapsed"/>
                             </StackPanel>
                         </v:Stack>
                     </Border>
                     <TextBlock Style="{DynamicResource Diktat.SmallText}"
-                               Text="Andere Modelle wie Whisper für rund 100 Sprachen findest du später unter Einstellungen, Modelle."/>
+                               Text="{l:T 'Andere Modelle wie Whisper für rund 100 Sprachen findest du später unter Einstellungen, Modelle.'}"/>
                 </v:Stack>
 
                 <!-- 4 Kurzbefehl -->
                 <v:Stack x:Name="TryStep" Spacing="16" Visibility="Collapsed">
-                    <TextBlock Text="Kurzbefehl ausprobieren" Style="{DynamicResource Diktat.TitleText}"/>
+                    <TextBlock Text="{l:T 'Kurzbefehl ausprobieren'}" Style="{DynamicResource Diktat.TitleText}"/>
                     <TextBlock x:Name="TryTitle" Style="{DynamicResource Diktat.HeadingText}"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
-                               Text="Klick in das Feld unten, halte das Kürzel, sag einen Satz und lass los. Der Text landet dort, wo dein Cursor steht, in jeder App."/>
-                    <TextBox x:Name="TryBox" Style="{DynamicResource Diktat.MultilineTextBox}" Height="110" v:Hint.Text="Hier hinein diktieren …"
-                             AutomationProperties.Name="Probefeld zum Diktieren"/>
+                               Text="{l:T 'Klick in das Feld unten, halte das Kürzel, sag einen Satz und lass los. Der Text landet dort, wo dein Cursor steht, in jeder App.'}"/>
+                    <TextBox x:Name="TryBox" Style="{DynamicResource Diktat.MultilineTextBox}" Height="110" v:Hint.Text="{l:T 'Hier hinein diktieren …'}"
+                             AutomationProperties.Name="{l:T 'Probefeld zum Diktieren'}"/>
                     <Border x:Name="TryStatus" Style="{DynamicResource Diktat.Notice}" Visibility="Collapsed">
                         <TextBlock x:Name="TryStatusText" TextWrapping="Wrap"/>
                     </Border>
                     <Border x:Name="TrySuccess" Style="{DynamicResource Diktat.SuccessNotice}" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
-                            <TextBlock Text="Geklappt! So geht es überall." FontWeight="SemiBold" Foreground="{DynamicResource Diktat.SuccessText}"/>
+                            <TextBlock Text="{l:T 'Geklappt! So geht es überall.'}" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.SuccessText}"/>
                         </StackPanel>
                     </Border>
                     <TextBlock x:Name="TryModelMissing" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"
-                               Text="Ohne Sprachmodell kann Diktat nicht transkribieren. Geh einen Schritt zurück und lade das Modell."/>
+                               Text="{l:T 'Ohne Sprachmodell kann Diktat nicht transkribieren. Geh einen Schritt zurück und lade das Modell.'}"/>
                     <TextBlock Style="{DynamicResource Diktat.SmallText}"
-                               Text="Das Kürzel kannst du später unter Einstellungen, Allgemein ändern, auch auf „Umschalten“: einmal drücken zum Starten, nochmal zum Beenden."/>
+                               Text="{l:T 'Das Kürzel kannst du später unter Einstellungen, Allgemein ändern, auch auf „Umschalten“: einmal drücken zum Starten, nochmal zum Beenden.'}"/>
                 </v:Stack>
 
                 <!-- 5 KI-Anbieter -->
                 <v:Stack x:Name="AIStep" Spacing="16" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="KI-Anbieter" Style="{DynamicResource Diktat.TitleText}"/>
+                        <TextBlock Text="{l:T 'KI-Anbieter'}" Style="{DynamicResource Diktat.TitleText}"/>
                         <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="10,4,0,0" ToolTip="{x:Null}">
-                            <TextBlock Text="Optional" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
+                            <TextBlock Text="{l:T 'Optional'}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
                         </Border>
                     </StackPanel>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
-                               Text="Wortgenaues Diktieren läuft ohne. KI-Schreibstil, WTF und :-) brauchen ein Sprachmodell: deinen eigenen API-Key oder Ollama bzw. LM Studio auf diesem PC. Das geht auch später unter Einstellungen, KI-Anbieter."/>
+                               Text="{l:T 'Wortgenaues Diktieren läuft ohne. KI-Schreibstil, WTF und :-) brauchen ein Sprachmodell: deinen eigenen API-Key oder Ollama bzw. LM Studio auf diesem PC. Das geht auch später unter Einstellungen, KI-Anbieter.'}"/>
                     <ContentControl x:Name="AIHost" Focusable="False"/>
                 </v:Stack>
 
                 <!-- 6 Fertig -->
                 <v:Stack x:Name="DoneStep" Spacing="16" Visibility="Collapsed">
-                    <TextBlock Text="Fertig" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
+                    <TextBlock Text="{l:T 'Fertig'}" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
-                               Text="Diktat wartet unsichtbar im Infobereich der Taskleiste. Ein Klick auf das Symbol zeigt die Modi, den letzten Text und den Verlauf."/>
+                               Text="{l:T 'Diktat wartet unsichtbar im Infobereich der Taskleiste. Ein Klick auf das Symbol zeigt die Modi, den letzten Text und den Verlauf.'}"/>
                     <Border Style="{DynamicResource Diktat.CardStyle}">
                         <ItemsControl x:Name="DoneModes" Focusable="False">
                             <ItemsControl.ItemTemplate>
@@ -204,7 +205,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Border>
-                    <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="Verlauf, Modi, Meetings und Einstellungen findest du im Diktat-Fenster."/>
+                    <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="{l:T 'Verlauf, Modi, Meetings und Einstellungen findest du im Diktat-Fenster.'}"/>
                 </v:Stack>
             </Grid>
         </ScrollViewer>
@@ -218,10 +219,10 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button x:Name="LaterButton" Content="Später" Style="{DynamicResource Diktat.SubtleButton}" Click="OnLater"
-                        Foreground="{DynamicResource Diktat.TextSecondary}" ToolTip="Den Assistenten schließen. Er bleibt im Infobereich erreichbar."/>
-                <Button x:Name="BackButton" Grid.Column="2" Content="Zurück" Click="OnBack" Margin="0,0,8,0"/>
-                <Button x:Name="NextButton" Grid.Column="3" Content="Weiter" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnNext" MinWidth="120"/>
+                <Button x:Name="LaterButton" Content="{l:T 'Später'}" Style="{DynamicResource Diktat.SubtleButton}" Click="OnLater"
+                        Foreground="{DynamicResource Diktat.TextSecondary}" ToolTip="{l:T 'Den Assistenten schließen. Er bleibt im Infobereich erreichbar.'}"/>
+                <Button x:Name="BackButton" Grid.Column="2" Content="{l:T 'Zurück'}" Click="OnBack" Margin="0,0,8,0"/>
+                <Button x:Name="NextButton" Grid.Column="3" Content="{l:T 'Weiter'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnNext" MinWidth="120"/>
             </Grid>
         </Border>
     </Grid>

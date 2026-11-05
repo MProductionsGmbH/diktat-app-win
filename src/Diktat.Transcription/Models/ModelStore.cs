@@ -77,7 +77,7 @@ public sealed class ModelStore
         var gate = Gate(model);
         if (!gate.Wait(0))
         {
-            throw new ModelDownloadException("Das Modell wird gerade geladen. Bitte zuerst den Download abbrechen.");
+            throw new ModelDownloadException(L.T("Das Modell wird gerade geladen. Bitte zuerst den Download abbrechen."));
         }
         try
         {
@@ -155,7 +155,7 @@ public sealed class ModelStore
             }
             catch (Exception error) when (IsTransient(error, ct))
             {
-                throw new ModelDownloadException("Das Modell ließ sich nicht laden. Bitte die Internetverbindung prüfen und erneut versuchen.", error);
+                throw new ModelDownloadException(L.T("Das Modell ließ sich nicht laden. Bitte die Internetverbindung prüfen und erneut versuchen."), error);
             }
         }
 
@@ -163,7 +163,7 @@ public sealed class ModelStore
         if (length != file.SizeBytes)
         {
             File.Delete(partPath);
-            throw new ModelDownloadException($"Die geladene Datei {file.FileName} hat die falsche Größe ({length} statt {file.SizeBytes} Bytes). Bitte erneut laden.");
+            throw new ModelDownloadException(L.F("Die geladene Datei {0} hat die falsche Größe ({1} statt {2} Bytes). Bitte erneut laden.", file.FileName, length, file.SizeBytes));
         }
         if (VerifyChecksums && file.Sha256 is { } expected)
         {
@@ -171,7 +171,7 @@ public sealed class ModelStore
             if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
             {
                 File.Delete(partPath);
-                throw new ModelDownloadException($"Die geladene Datei {file.FileName} ist beschädigt. Bitte erneut laden.");
+                throw new ModelDownloadException(L.F("Die geladene Datei {0} ist beschädigt. Bitte erneut laden.", file.FileName));
             }
         }
         File.Move(partPath, path, overwrite: true);
@@ -205,7 +205,7 @@ public sealed class ModelStore
         {
             var status = (int)response.StatusCode;
             if (status is >= 500 or 408 or 429) throw new HttpRequestException($"HTTP {status}", null, response.StatusCode);
-            throw new ModelDownloadException($"Das Modell ist nicht verfügbar (HTTP {status}). Bitte später erneut versuchen.");
+            throw new ModelDownloadException(L.F("Das Modell ist nicht verfügbar (HTTP {0}). Bitte später erneut versuchen.", status));
         }
 
         var resumed = existing > 0 && response.StatusCode == HttpStatusCode.PartialContent
@@ -234,7 +234,7 @@ public sealed class ModelStore
             if (read == 0) break;
             if (written + read > file.SizeBytes)
             {
-                throw new ModelDownloadException($"Die geladene Datei {file.FileName} ist größer als erwartet. Bitte erneut laden.");
+                throw new ModelDownloadException(L.F("Die geladene Datei {0} ist größer als erwartet. Bitte erneut laden.", file.FileName));
             }
             await target.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
             written += read;
@@ -281,7 +281,7 @@ public sealed class ModelStore
         if (available < neededBytes + 200_000_000)
         {
             var neededMB = Math.Max(1, (neededBytes + 200_000_000) / 1_000_000);
-            throw new ModelDownloadException($"Nicht genug freier Speicher. Das Modell braucht rund {neededMB} MB.");
+            throw new ModelDownloadException(L.F("Nicht genug freier Speicher. Das Modell braucht rund {0} MB.", neededMB));
         }
     }
 

@@ -22,8 +22,8 @@ public sealed class ModelDownload
     public event EventHandler? Changed;
 
     public string StatusText => IsRunning
-        ? $"Wird geladen … {Math.Round(Progress * 100)} % von {Model.SizeLabel}"
-        : Error ?? (WasCancelled ? "Abgebrochen." : "Installiert.");
+        ? L.F("Wird geladen … {0} % von {1}", Math.Round(Progress * 100), Model.SizeLabel)
+        : Error ?? (WasCancelled ? L.T("Abgebrochen.") : L.T("Installiert."));
 
     public void Cancel() => _cts.Cancel();
 
@@ -77,7 +77,7 @@ public static class ModelDownloads
             Log.Warn($"Model download {download.Model.Id} failed", ex);
             download.Error = ex is ModelDownloadException && !string.IsNullOrWhiteSpace(ex.Message)
                 ? ex.Message
-                : "Der Download hat nicht geklappt. Bitte die Internetverbindung prüfen und erneut versuchen.";
+                : L.T("Der Download hat nicht geklappt. Bitte die Internetverbindung prüfen und erneut versuchen.");
         }
         finally
         {

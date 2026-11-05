@@ -37,7 +37,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         _updates = new UpdateScheduler(services);
         _updates.AvailableUpdateChanged += (_, _) => OnPropertyChanged(nameof(AvailableUpdate));
         _updates.UpdateFound += (_, update) => _tray?.ShowBalloon(
-            "Update verfügbar", $"Diktat {update.Version} ist da. Klicken öffnet die Einstellungen.", () => ShowMainWindow("settings"));
+            L.T("Update verfügbar"), L.F("Diktat {0} ist da. Klicken öffnet die Einstellungen.", update.Version), () => ShowMainWindow("settings"));
 
         Dictation = new DictationController(services, _hotkeys, _paste, _foreground, Windows.IsContentWindow,
             () => _meeting?.RecordsSystemAudio == true);
@@ -73,8 +73,8 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         WarmUp();
         if (!_hotkeysRunning)
         {
-            _tray.ShowBalloon("Tastenkürzel nicht verfügbar",
-                "Windows hat die Tastenkürzel nicht zugelassen. Diktat lässt sich über das Symbol in der Taskleiste starten.", null);
+            _tray.ShowBalloon(L.T("Tastenkürzel nicht verfügbar"),
+                L.T("Windows hat die Tastenkürzel nicht zugelassen. Diktat lässt sich über das Symbol in der Taskleiste starten."), null);
         }
     }
 
@@ -202,12 +202,12 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         {
             if (record is not null)
             {
-                _tray?.ShowBalloon("Meeting ausgewertet",
+                _tray?.ShowBalloon(L.T("Meeting ausgewertet"),
                     DictationRules.MeetingFinishedText(record.Duration, record.Speakers.Count), () => ShowMainWindow("meetings"));
             }
             else
             {
-                _tray?.ShowBalloon("Meeting-Auswertung fehlgeschlagen", session.ErrorMessage ?? "", () => ShowMainWindow("meetings"));
+                _tray?.ShowBalloon(L.T("Meeting-Auswertung fehlgeschlagen"), session.ErrorMessage ?? "", () => ShowMainWindow("meetings"));
             }
         };
         _meeting = session;
@@ -236,24 +236,24 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         var patterns = string.Join(";", AudioFileTranscriber.Extensions.Select(e => "*" + e));
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Audiodatei transkribieren",
-            Filter = $"Audiodateien|{patterns}|Alle Dateien|*.*",
+            Title = L.T("Audiodatei transkribieren"),
+            Filter = L.T("Audiodateien") + "|" + patterns + "|" + L.T("Alle Dateien") + "|*.*",
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) is { Length: > 0 } home
                 ? System.IO.Path.Combine(home, "Downloads") : "",
         };
         if (dialog.ShowDialog() != true) return;
         var name = System.IO.Path.GetFileName(dialog.FileName);
-        _tray?.ShowBalloon("Audiodatei wird transkribiert", name, null);
+        _tray?.ShowBalloon(L.T("Audiodatei wird transkribiert"), name, null);
         try
         {
             var text = await TranscribeAudioFileAsync(dialog.FileName, Services.Settings.App.AutomaticParagraphs, null, CancellationToken.None);
             CopyToClipboard(text);
-            _tray?.ShowBalloon("Audiodatei transkribiert", "Der Text liegt in der Zwischenablage und im Verlauf.", () => ShowMainWindow("history"));
+            _tray?.ShowBalloon(L.T("Audiodatei transkribiert"), L.T("Der Text liegt in der Zwischenablage und im Verlauf."), () => ShowMainWindow("history"));
         }
         catch (Exception ex)
         {
             Log.Warn("Audio file transcription failed", ex);
-            _tray?.ShowBalloon("Audiodatei nicht transkribiert", ex.Message, null);
+            _tray?.ShowBalloon(L.T("Audiodatei nicht transkribiert"), ex.Message, null);
         }
     }
 
@@ -286,6 +286,24 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         Log.Info("Diktat quits");
         Shutdown();
         WpfApplication.Current?.Shutdown();
+    }
+
+    /// Starts a new Diktat that waits until this one has ended, then quits this one.
+    public void Restart()
+    {
+        if (_quitting) return;
+        try
+        {
+            var exe = Environment.ProcessPath;
+            if (exe is null) return;
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, SingleInstance.RestartArgument) { UseShellExecute = false });
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Could not restart Diktat", ex);
+            return;
+        }
+        Quit();
     }
 
     /// Everything Quit does except ending the process (also used at logoff).

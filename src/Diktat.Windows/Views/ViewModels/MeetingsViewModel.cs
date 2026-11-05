@@ -19,7 +19,10 @@ public sealed record MeetingListItem(Guid Id, string Title, string Detail, bool 
     public string AutomationName => $"{Title}, {Detail}";
 }
 
-public sealed record SpeakerItem(int Speaker, string Name);
+public sealed record SpeakerItem(int Speaker, string Name)
+{
+    public string RenameAutomationName => L.F("{0} umbenennen", Name);
+}
 
 public sealed record TurnItem(string Name, string Time, string Text, int Speaker);
 
@@ -82,15 +85,15 @@ public sealed class MeetingsViewModel : ObservableObject
     }
 
     public string SummarizeDetail => SummarizesMeetings
-        ? "Diktat schreibt nach dem Meeting eine Zusammenfassung mit Entscheidungen und To-dos. Das dauert etwas länger."
-        : "Du bekommst nur das Transkript mit den Personen, das geht schneller. Die Zusammenfassung kannst du später starten.";
+        ? L.T("Diktat schreibt nach dem Meeting eine Zusammenfassung mit Entscheidungen und To-dos. Das dauert etwas länger.")
+        : L.T("Du bekommst nur das Transkript mit den Personen, das geht schneller. Die Zusammenfassung kannst du später starten.");
 
     public bool HasMeetings => Meetings.Count > 0;
 
     /// Asked in the call's chat before starting, so everyone can agree in writing.
-    public const string ChatNote = "Ich würde dieses Meeting gern mit Diktat aufnehmen und auf meinem PC transkribieren und zusammenfassen lassen. Ton und Text bleiben auf meinem PC, die Aufnahme wird nach der Auswertung gelöscht. Ist das für alle in Ordnung?";
+    public static string ChatNote => L.T("Ich würde dieses Meeting gern mit Diktat aufnehmen und auf meinem PC transkribieren und zusammenfassen lassen. Ton und Text bleiben auf meinem PC, die Aufnahme wird nach der Auswertung gelöscht. Ist das für alle in Ordnung?");
 
-    public string ChatNoteButton => _chatNoteCopied ? "Kopiert, im Chat einfügen" : "Frage für den Chat kopieren";
+    public string ChatNoteButton => _chatNoteCopied ? L.T("Kopiert, im Chat einfügen") : L.T("Frage für den Chat kopieren");
 
     public void CopyChatNote()
     {
@@ -101,11 +104,11 @@ public sealed class MeetingsViewModel : ObservableObject
 
     // --- Live ---------------------------------------------------------------------------
 
-    public string LiveTitle => _session?.IsOnline == true ? "Aufnahme läuft, mit Ton des PCs" : "Aufnahme läuft";
+    public string LiveTitle => _session?.IsOnline == true ? L.T("Aufnahme läuft, mit Ton des PCs") : L.T("Aufnahme läuft");
     public string Elapsed => Ui.Clock(_session?.Elapsed ?? TimeSpan.Zero);
     public bool IsOnline => _session?.IsOnline == true;
     public string LiveNotes => _session?.LiveNotes ?? "";
-    public string ProcessingText => _session?.StatusMessage ?? "Meeting wird ausgewertet …";
+    public string ProcessingText => _session?.StatusMessage ?? L.T("Meeting wird ausgewertet …");
     public string FailureText => _session?.ErrorMessage ?? "";
     public bool FailedMeetingIsPending => _session?.MeetingId is { } id && _app.Services.Meetings.Meeting(id)?.Status == MeetingStatus.Pending;
     public bool CanRetryFailed => _session?.MeetingId is { } id && FailedMeetingIsPending && SafeHasAudio(id);
@@ -114,10 +117,13 @@ public sealed class MeetingsViewModel : ObservableObject
 
     public MeetingRecord? Record => _record;
     public string DetailTitle => _record?.Title ?? "";
-    public string DetailLine => _record is null ? "" : $"{_record.CreatedAt.ToLocalTime().ToString("dddd, d. MMMM yyyy, HH:mm", Ui.German)} · {Ui.MeetingSummaryLine(_record)}";
+    public string DetailLine => _record is null ? "" : $"{_record.CreatedAt.ToLocalTime().ToString(DetailDatePattern, L.Culture)} · {Ui.MeetingSummaryLine(_record)}";
+
+    private static string DetailDatePattern =>
+        L.Current == UiLanguage.English ? "dddd, MMMM d, yyyy, h:mm tt" : "dddd, d. MMMM yyyy, HH:mm";
     public string? Summary => _record?.Summary;
     public bool HasSummary => !string.IsNullOrWhiteSpace(_record?.Summary);
-    public string SummaryNote => _record?.SummaryNote ?? "Noch keine Zusammenfassung.";
+    public string SummaryNote => _record?.SummaryNote ?? L.T("Noch keine Zusammenfassung.");
     public bool IsPending => _record?.Status == MeetingStatus.Pending;
     public bool CanRetry => _record is { Status: MeetingStatus.Pending } record && SafeHasAudio(record.Id);
 
@@ -146,9 +152,9 @@ public sealed class MeetingsViewModel : ObservableObject
     public string? SummaryError => _summaryError;
     public bool HasTurns => Turns.Count > 0;
 
-    public string CopyTranscriptLabel => _copiedTarget == "transcript" ? "Kopiert" : "Transkript kopieren";
-    public string CopyAllLabel => _copiedTarget == "all" ? "Kopiert" : "Alles kopieren";
-    public string CopySummaryLabel => _copiedTarget == "summary" ? "Kopiert" : "Kopieren";
+    public string CopyTranscriptLabel => _copiedTarget == "transcript" ? L.T("Kopiert") : L.T("Transkript kopieren");
+    public string CopyAllLabel => _copiedTarget == "all" ? L.T("Kopiert") : L.T("Alles kopieren");
+    public string CopySummaryLabel => _copiedTarget == "summary" ? L.T("Kopiert") : L.T("Kopieren");
 
     public async void Copy(string target)
     {
@@ -295,7 +301,7 @@ public sealed class MeetingsViewModel : ObservableObject
             if (record.Id == recordingId) continue;
             var detail = record.Status == MeetingStatus.Done
                 ? Ui.MeetingSummaryLine(record)
-                : "Noch nicht ausgewertet";
+                : L.T("Noch nicht ausgewertet");
             Meetings.Add(new MeetingListItem(record.Id, record.Title, detail, record.Status == MeetingStatus.Pending));
         }
         if (_selectedId is not null) LoadRecord();

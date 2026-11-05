@@ -256,7 +256,7 @@ public sealed class AudioRecorder : IDisposable
         bool recording = IsRecording;
         if (!recording) return; // a pre-warmed stream that broke is simply reopened by Start
         var failure = error as AudioCaptureException
-            ?? new AudioCaptureException(AudioCaptureFailure.DeviceLost, "Das Mikrofon wurde während der Aufnahme getrennt.", error);
+            ?? new AudioCaptureException(AudioCaptureFailure.DeviceLost, L.T("Das Mikrofon wurde während der Aufnahme getrennt."), error);
         _events.Post(() => Interrupted?.Invoke(this, failure));
     }
 

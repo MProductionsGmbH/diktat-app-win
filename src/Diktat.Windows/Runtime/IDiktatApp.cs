@@ -120,4 +120,6 @@ public interface IDiktatApp : INotifyPropertyChanged
     void ShowSetupAssistant();
     void ShowTrayPanel();
     void Quit();
+    /// Quits and starts Diktat again (a new app language applies then).
+    void Restart();
 }

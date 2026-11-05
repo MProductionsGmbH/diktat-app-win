@@ -8,4 +8,7 @@
     <ProjectReference Include="..\Diktat.Core\Diktat.Core.csproj" />
     <InternalsVisibleTo Include="Diktat.AI.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Diktat.Core.Localization" />
+  </ItemGroup>
 </Project>

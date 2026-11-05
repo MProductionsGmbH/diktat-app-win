@@ -10,19 +10,19 @@ public static class StyleContextInfo
 
     public static string DisplayName(this StyleContext context) => context switch
     {
-        StyleContext.Personal => "Persönlich",
-        StyleContext.Work => "Arbeit",
-        StyleContext.Email => "E-Mail",
-        _ => "Andere",
+        StyleContext.Personal => L.T("Persönlich"),
+        StyleContext.Work => L.T("Arbeit"),
+        StyleContext.Email => L.T("E-Mail"),
+        _ => L.T("Andere"),
     };
 
     /// Shown under the tabs, so it is clear where the style applies.
     public static string AppsNote(this StyleContext context) => context switch
     {
-        StyleContext.Personal => "Gilt in WhatsApp, Telegram, Signal und Discord.",
-        StyleContext.Work => "Gilt in Slack, Teams und Zoom, auch im Browser.",
-        StyleContext.Email => "Gilt in Outlook, Thunderbird, Spark und anderen Mail-Programmen, auch Gmail im Browser.",
-        _ => "Gilt in allen anderen Programmen.",
+        StyleContext.Personal => L.T("Gilt in WhatsApp, Telegram, Signal und Discord."),
+        StyleContext.Work => L.T("Gilt in Slack, Teams und Zoom, auch im Browser."),
+        StyleContext.Email => L.T("Gilt in Outlook, Thunderbird, Spark und anderen Mail-Programmen, auch Gmail im Browser."),
+        _ => L.T("Gilt in allen anderen Programmen."),
     };
 
     public static StyleTone DefaultTone(this StyleContext context) => StyleSettings.DefaultTone(context);
@@ -87,33 +87,33 @@ public static class StyleToneInfo
 
     public static string DisplayName(this StyleTone tone) => tone switch
     {
-        StyleTone.Formal => "Formell",
-        StyleTone.Neutral => "Normal",
-        _ => "Locker",
+        StyleTone.Formal => L.T("Formell"),
+        StyleTone.Neutral => L.T("Normal"),
+        _ => L.T("Locker"),
     };
 
     public static string Detail(this StyleTone tone) => tone switch
     {
-        StyleTone.Formal => "Mit KI-Schreibstil: sachlich und höflich formuliert",
-        StyleTone.Neutral => "Mit KI-Schreibstil: klar und neutral formuliert",
-        _ => "Ohne Punkt am Ende, mit KI-Schreibstil ungezwungen formuliert",
+        StyleTone.Formal => L.T("Mit KI-Schreibstil: sachlich und höflich formuliert"),
+        StyleTone.Neutral => L.T("Mit KI-Schreibstil: klar und neutral formuliert"),
+        _ => L.T("Ohne Punkt am Ende, mit KI-Schreibstil ungezwungen formuliert"),
     };
 
     /// The same dictated sentence for every tone, so the settings show what each tone changes.
-    public const string ExampleSpoken = "hey alex war echt schön heute mit dir zu reden ich melde mich nächste woche wegen dem termin";
+    public static string ExampleSpoken => L.T("hey alex war echt schön heute mit dir zu reden ich melde mich nächste woche wegen dem termin");
 
     /// The sentence after the cleanup levels Leicht to Stark: punctuation set, and only the
     /// period at the end follows the tone.
     public static string ExampleCleaned(this StyleTone tone) =>
-        tone.Apply("Hey Alex, war echt schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen dem Termin.");
+        tone.Apply(L.T("Hey Alex, war echt schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen dem Termin."));
 
     /// What the model of KI-Schreibstil made of it in this tone (a model words it a little
     /// differently each time).
     public static string ExampleRewritten(this StyleTone tone) => tone switch
     {
-        StyleTone.Formal => tone.Apply("Hallo Alex, es war wirklich schön, heute mit dir zu sprechen. Ich melde mich nächste Woche bezüglich des Termins."),
-        StyleTone.Neutral => tone.Apply("Hey Alex, es war wirklich schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen des Termins."),
-        _ => tone.Apply("Hey Alex, war echt schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen des Termins."),
+        StyleTone.Formal => tone.Apply(L.T("Hallo Alex, es war wirklich schön, heute mit dir zu sprechen. Ich melde mich nächste Woche bezüglich des Termins.")),
+        StyleTone.Neutral => tone.Apply(L.T("Hey Alex, es war wirklich schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen des Termins.")),
+        _ => tone.Apply(L.T("Hey Alex, war echt schön, heute mit dir zu reden. Ich melde mich nächste Woche wegen des Termins.")),
     };
 
     /// The tone for the model of the AI written-style level.

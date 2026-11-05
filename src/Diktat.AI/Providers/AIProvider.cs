@@ -44,7 +44,7 @@ public static class AIProviderInfo
         AIProvider.Gemini => "Google Gemini",
         AIProvider.Mistral => "Mistral",
         AIProvider.OpenRouter => "OpenRouter",
-        _ => "Eigene Adresse",
+        _ => L.T("Eigene Adresse"),
     };
 
     public static AIApiStyle ApiStyle(this AIProvider provider) =>

@@ -25,7 +25,7 @@ public sealed class TrayIcon : IDisposable
         _icon = new NotifyIcon
         {
             Icon = _images.Idle,
-            Text = "Diktat – bereit",
+            Text = L.T("Diktat – bereit"),
             ContextMenuStrip = _menu,
             Visible = true,
         };
@@ -98,12 +98,12 @@ public sealed class TrayIcon : IDisposable
         var meeting = _app.CurrentMeeting;
         var (icon, text) = _app.Phase switch
         {
-            DictationPhase.Recording => (_images.Recording, "Diktat – Aufnahme läuft"),
-            DictationPhase.Processing => (_images.Processing, "Diktat – " + (_app.StatusMessage ?? "wird verarbeitet ...")),
-            DictationPhase.Error => (_images.Idle, "Diktat – " + (_app.StatusMessage ?? "Fehler")),
-            _ when meeting?.Phase == MeetingPhase.Recording => (_images.Recording, "Diktat – Meeting wird aufgenommen"),
-            _ when meeting?.Phase == MeetingPhase.Processing => (_images.Processing, "Diktat – Meeting wird ausgewertet"),
-            _ => (_images.Idle, "Diktat – bereit"),
+            DictationPhase.Recording => (_images.Recording, L.T("Diktat – Aufnahme läuft")),
+            DictationPhase.Processing => (_images.Processing, "Diktat – " + (_app.StatusMessage ?? L.T("wird verarbeitet ..."))),
+            DictationPhase.Error => (_images.Idle, "Diktat – " + (_app.StatusMessage ?? L.T("Fehler"))),
+            _ when meeting?.Phase == MeetingPhase.Recording => (_images.Recording, L.T("Diktat – Meeting wird aufgenommen")),
+            _ when meeting?.Phase == MeetingPhase.Processing => (_images.Processing, L.T("Diktat – Meeting wird ausgewertet")),
+            _ => (_images.Idle, L.T("Diktat – bereit")),
         };
         if (_icon.Icon != icon) _icon.Icon = icon;
         // The tooltip takes at most 127 characters; the meeting refreshes often, so only on change.
@@ -115,13 +115,13 @@ public sealed class TrayIcon : IDisposable
     {
         _menu.Items.Clear();
         var settings = _app.Services.Settings;
-        _menu.Items.Add(Item("Diktat öffnen", () => _app.ShowMainWindow(), bold: true));
+        _menu.Items.Add(Item(L.T("Diktat öffnen"), () => _app.ShowMainWindow(), bold: true));
         _menu.Items.Add(new ToolStripSeparator());
 
         if (_app.Phase == DictationPhase.Recording)
         {
-            _menu.Items.Add(Item("Aufnahme beenden", _app.StopDictation));
-            _menu.Items.Add(Item("Aufnahme verwerfen", _app.CancelDictation));
+            _menu.Items.Add(Item(L.T("Aufnahme beenden"), _app.StopDictation));
+            _menu.Items.Add(Item(L.T("Aufnahme verwerfen"), _app.CancelDictation));
         }
         else
         {
@@ -129,7 +129,7 @@ public sealed class TrayIcon : IDisposable
             foreach (var mode in WorkflowTypeInfo.MainMenuCases)
             {
                 var combo = settings.App.HotkeyFor(mode);
-                var label = $"{DictationRules.DisplayName(settings, mode)} starten";
+                var label = L.F("{0} starten", DictationRules.DisplayName(settings, mode));
                 if (combo is not null) label += $" ({combo.Label(GlobalHotkeyService.KeyName)})";
                 var item = Item(label, () => _app.StartDictation(mode));
                 item.Enabled = !busy && _app.IsModeAvailable(mode);
@@ -142,21 +142,21 @@ public sealed class TrayIcon : IDisposable
         var meeting = _app.CurrentMeeting;
         if (meeting?.Phase == MeetingPhase.Recording)
         {
-            _menu.Items.Add(Item("Meeting beenden", _app.StopMeeting));
+            _menu.Items.Add(Item(L.T("Meeting beenden"), _app.StopMeeting));
         }
         else
         {
-            var meetingMenu = new ToolStripMenuItem("Meeting aufnehmen") { Enabled = meeting?.Phase != MeetingPhase.Processing };
-            meetingMenu.DropDownItems.Add(Item("Online-Meeting (Teams, Zoom, Meet)", () => StartMeeting(online: true)));
-            meetingMenu.DropDownItems.Add(Item("Meeting im Raum", () => StartMeeting(online: false)));
+            var meetingMenu = new ToolStripMenuItem(L.T("Meeting aufnehmen")) { Enabled = meeting?.Phase != MeetingPhase.Processing };
+            meetingMenu.DropDownItems.Add(Item(L.T("Online-Meeting (Teams, Zoom, Meet)"), () => StartMeeting(online: true)));
+            meetingMenu.DropDownItems.Add(Item(L.T("Meeting im Raum"), () => StartMeeting(online: false)));
             _menu.Items.Add(meetingMenu);
         }
-        _menu.Items.Add(Item("Audiodatei transkribieren …", _app.ChooseAndTranscribeAudioFile));
+        _menu.Items.Add(Item(L.T("Audiodatei transkribieren …"), _app.ChooseAndTranscribeAudioFile));
         _menu.Items.Add(new ToolStripSeparator());
-        _menu.Items.Add(Item("Einstellungen", () => _app.ShowMainWindow("settings")));
-        _menu.Items.Add(Item("Nach Updates suchen", CheckForUpdates));
+        _menu.Items.Add(Item(L.T("Einstellungen"), () => _app.ShowMainWindow("settings")));
+        _menu.Items.Add(Item(L.T("Nach Updates suchen"), CheckForUpdates));
         _menu.Items.Add(new ToolStripSeparator());
-        _menu.Items.Add(Item("Beenden", _app.Quit));
+        _menu.Items.Add(Item(L.T("Beenden"), _app.Quit));
     }
 
     private void StartMeeting(bool online)
@@ -172,17 +172,17 @@ public sealed class TrayIcon : IDisposable
             var update = await _app.CheckForUpdatesAsync(CancellationToken.None);
             if (update is null)
             {
-                ShowBalloon("Diktat ist aktuell", $"Version {AppServices.Version} ist die neueste.", null);
+                ShowBalloon(L.T("Diktat ist aktuell"), L.F("Version {0} ist die neueste.", AppServices.Version), null);
             }
             else
             {
                 var url = update.DownloadUrl;
-                ShowBalloon("Update verfügbar", $"Diktat {update.Version} ist da. Klicken lädt es herunter.", () => OpenUrl(url));
+                ShowBalloon(L.T("Update verfügbar"), L.F("Diktat {0} ist da. Klicken lädt es herunter.", update.Version), () => OpenUrl(url));
             }
         }
         catch (Exception ex)
         {
-            ShowBalloon("Update-Suche fehlgeschlagen", ex.Message, null);
+            ShowBalloon(L.T("Update-Suche fehlgeschlagen"), ex.Message, null);
         }
     }
 

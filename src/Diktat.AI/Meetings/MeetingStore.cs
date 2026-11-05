@@ -51,9 +51,11 @@ public sealed class MeetingRecord
     private static readonly string[] GermanMonths =
         ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."];
 
-    /// "Meeting am 17. Okt. 2026, 11:58".
-    public static string TitleFor(DateTimeOffset startedAt) =>
-        $"Meeting am {startedAt.Day}. {GermanMonths[startedAt.Month - 1]} {startedAt.Year}, " + startedAt.ToString("HH:mm", CultureInfo.InvariantCulture);
+    /// "Meeting am 17. Okt. 2026, 11:58", in English "Meeting on Oct 17, 2026, 11:58 AM". The title
+    /// is made once, in the UI language at the time, and then belongs to the meeting.
+    public static string TitleFor(DateTimeOffset startedAt) => L.F("Meeting am {0}", L.Current == UiLanguage.English
+        ? startedAt.ToString("MMM d, yyyy, h:mm tt", L.CultureFor(UiLanguage.English))
+        : $"{startedAt.Day}. {GermanMonths[startedAt.Month - 1]} {startedAt.Year}, " + startedAt.ToString("HH:mm", CultureInfo.InvariantCulture));
 
     /// Speaker 0 is the microphone in an online meeting, the person at this PC.
     public string NameFor(int speaker)
@@ -90,7 +92,7 @@ public sealed class MeetingRecord
         {
             var parts = new List<string> { Title };
             if (Summary is not null) parts.Add(Summary);
-            parts.Add("Transkript\n\n" + TranscriptPlainText);
+            parts.Add(L.T("Transkript") + "\n\n" + TranscriptPlainText);
             return string.Join("\n\n", parts);
         }
     }

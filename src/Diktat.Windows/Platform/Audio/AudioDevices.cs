@@ -47,15 +47,15 @@ public sealed class AudioCaptureException : Exception
         return (uint)hr switch
         {
             0x80070005 => new AudioCaptureException(AudioCaptureFailure.AccessDenied,
-                "Windows erlaubt Diktat den Zugriff auf das Mikrofon nicht. Bitte unter Einstellungen › Datenschutz › Mikrofon den Zugriff für Desktop-Apps erlauben.", ex),
+                L.T("Windows erlaubt Diktat den Zugriff auf das Mikrofon nicht. Bitte unter Einstellungen › Datenschutz › Mikrofon den Zugriff für Desktop-Apps erlauben."), ex),
             0x80070490 => new AudioCaptureException(AudioCaptureFailure.NoDevice,
-                "Kein Mikrofon gefunden.", ex),
+                L.T("Kein Mikrofon gefunden."), ex),
             0x88890004 => new AudioCaptureException(AudioCaptureFailure.DeviceLost,
-                "Das Mikrofon wurde getrennt.", ex),
+                L.T("Das Mikrofon wurde getrennt."), ex),
             0x8889000A => new AudioCaptureException(AudioCaptureFailure.DeviceInUse,
-                "Das Mikrofon wird gerade exklusiv von einer anderen App verwendet.", ex),
+                L.T("Das Mikrofon wird gerade exklusiv von einer anderen App verwendet."), ex),
             _ => new AudioCaptureException(AudioCaptureFailure.Other,
-                $"Die Aufnahme konnte nicht gestartet werden ({ex.Message}).", ex),
+                L.F("Die Aufnahme konnte nicht gestartet werden ({0}).", ex.Message), ex),
         };
     }
 }
@@ -114,14 +114,14 @@ public static class AudioDevices
             usedFallback = true;
         }
         if (!enumerator.HasDefaultAudioEndpoint(DataFlow.Capture, Role.Console))
-            throw new AudioCaptureException(AudioCaptureFailure.NoDevice, "Kein Mikrofon gefunden.");
+            throw new AudioCaptureException(AudioCaptureFailure.NoDevice, L.T("Kein Mikrofon gefunden."));
         return enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Console);
     }
 
     internal static MMDevice OpenDefaultRender(MMDeviceEnumerator enumerator)
     {
         if (!enumerator.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia))
-            throw new AudioCaptureException(AudioCaptureFailure.NoDevice, "Kein Wiedergabegerät gefunden.");
+            throw new AudioCaptureException(AudioCaptureFailure.NoDevice, L.T("Kein Wiedergabegerät gefunden."));
         return enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
     }
 

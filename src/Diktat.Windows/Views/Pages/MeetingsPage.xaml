@@ -1,36 +1,37 @@
 <UserControl x:Class="Diktat.Windows.Views.Pages.MeetingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Diktat.Windows.Views"
              xmlns:v="clr-namespace:Diktat.Windows.Views"
              xmlns:c="clr-namespace:Diktat.Windows.Views.Controls">
     <ScrollViewer x:Name="Scroller" Style="{DynamicResource Diktat.PageScroller}">
         <v:Stack Spacing="18" Margin="32,26,32,32" MaxWidth="760">
-            <TextBlock Text="Meetings" Style="{DynamicResource Diktat.TitleText}"/>
+            <TextBlock Text="{l:T 'Meetings'}" Style="{DynamicResource Diktat.TitleText}"/>
 
             <!-- ============ Start ============ -->
             <v:Stack Spacing="14" Visibility="{Binding IsStart, Converter={StaticResource Diktat.BoolToVisibility}}">
                 <Border Style="{DynamicResource Diktat.CardStyle}">
                     <v:Stack Spacing="8">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE716;" FontSize="16" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
-                            <TextBlock Text="Meeting aufnehmen" Style="{DynamicResource Diktat.HeadingText}" Foreground="{DynamicResource Diktat.Accent}"/>
+                            <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59158;" FontSize="16" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
+                            <TextBlock Text="{l:T 'Meeting aufnehmen'}" Style="{DynamicResource Diktat.HeadingText}" Foreground="{DynamicResource Diktat.Accent}"/>
                         </StackPanel>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" FontSize="13"
-                                   Text="Diktat nimmt das Gespräch über das Mikrofon auf, erkennt, wer spricht, und schreibt auf Wunsch eine Zusammenfassung mit To-dos. Alles läuft auf diesem PC, die Aufnahme wird nach der Auswertung gelöscht."/>
+                                   Text="{l:T 'Diktat nimmt das Gespräch über das Mikrofon auf, erkennt, wer spricht, und schreibt auf Wunsch eine Zusammenfassung mit To-dos. Alles läuft auf diesem PC, die Aufnahme wird nach der Auswertung gelöscht.'}"/>
                     </v:Stack>
                 </Border>
 
                 <Border Style="{DynamicResource Diktat.ErrorNotice}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE7BA;" Foreground="{DynamicResource Diktat.ErrorText}" Margin="0,0,10,0"/>
-                        <TextBlock Text="Bitte frag alle, bevor du aufnimmst." FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap"/>
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59322;" Foreground="{DynamicResource Diktat.ErrorText}" Margin="0,0,10,0"/>
+                        <TextBlock Text="{l:T 'Bitte frag alle, bevor du aufnimmst.'}" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{DynamicResource Diktat.CardStyle}">
                     <CheckBox IsChecked="{Binding SummarizesMeetings}">
                         <StackPanel>
-                            <TextBlock Text="Nach dem Meeting zusammenfassen" FontWeight="SemiBold"/>
+                            <TextBlock Text="{l:T 'Nach dem Meeting zusammenfassen'}" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding SummarizeDetail}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
                         </StackPanel>
                     </CheckBox>
@@ -38,22 +39,22 @@
 
                 <UniformGrid Rows="1">
                     <Button Style="{DynamicResource Diktat.PrimaryButton}" Margin="0,0,6,0" Padding="16,12" Click="OnStartRoom"
-                            AutomationProperties.Name="Meeting im Raum aufnehmen. Alle sind einverstanden, starten">
+                            AutomationProperties.Name="{l:T 'Meeting im Raum aufnehmen. Alle sind einverstanden, starten'}">
                         <StackPanel>
-                            <TextBlock Text="Im Raum" FontSize="14.5" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Nur das Mikrofon" FontSize="12" FontWeight="Normal" Opacity="0.85" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{l:T 'Im Raum'}" FontSize="14.5" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{l:T 'Nur das Mikrofon'}" FontSize="12" FontWeight="Normal" Opacity="0.85" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button Margin="6,0,0,0" Padding="16,12" Click="OnStartOnline"
-                            AutomationProperties.Name="Online-Meeting aufnehmen, Beta. Alle sind einverstanden, starten">
+                            AutomationProperties.Name="{l:T 'Online-Meeting aufnehmen, Beta. Alle sind einverstanden, starten'}">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="Online-Meeting" FontSize="14.5"/>
+                                <TextBlock Text="{l:T 'Online-Meeting'}" FontSize="14.5"/>
                                 <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="6,0,0,0">
-                                    <TextBlock Text="Beta" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
+                                    <TextBlock Text="{l:T 'Beta'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Mikrofon und Ton des PCs" FontSize="12" FontWeight="Normal" Foreground="{DynamicResource Diktat.TextSecondary}"
+                            <TextBlock Text="{l:T 'Mikrofon und Ton des PCs'}" FontSize="12" FontWeight="Normal" Foreground="{DynamicResource Diktat.TextSecondary}"
                                        HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -61,14 +62,14 @@
 
                 <v:Stack Spacing="6">
                     <TextBlock Style="{DynamicResource Diktat.SmallText}"
-                               Text="Im Raum nimmt Diktat nur das Mikrofon auf. Ein Online-Meeting nimmt dein Mikrofon (Ich) und den Ton des PCs (die anderen) auf, zum Beispiel aus Teams, Zoom oder Meet. Mit Kopfhörern wird das Transkript am saubersten."/>
+                               Text="{l:T 'Im Raum nimmt Diktat nur das Mikrofon auf. Ein Online-Meeting nimmt dein Mikrofon (Ich) und den Ton des PCs (die anderen) auf, zum Beispiel aus Teams, Zoom oder Meet. Mit Kopfhörern wird das Transkript am saubersten.'}"/>
                     <Button Content="{Binding ChatNoteButton}" Style="{DynamicResource Diktat.LinkButton}" Click="OnCopyChatNote"
-                            ToolTip="Eine Frage um Einverständnis für den Chat eines Online-Meetings"/>
+                            ToolTip="{l:T 'Eine Frage um Einverständnis für den Chat eines Online-Meetings'}"/>
                 </v:Stack>
 
                 <!-- Saved meetings -->
                 <StackPanel Visibility="{Binding HasMeetings, Converter={StaticResource Diktat.BoolToVisibility}}" Margin="0,8,0,0">
-                    <TextBlock Text="Gespeicherte Meetings" Style="{DynamicResource Diktat.SectionHeaderText}" Margin="2,0,0,8"/>
+                    <TextBlock Text="{l:T 'Gespeicherte Meetings'}" Style="{DynamicResource Diktat.SectionHeaderText}" Margin="2,0,0,8"/>
                     <Border Style="{DynamicResource Diktat.CardStyle}" Padding="4">
                         <ItemsControl ItemsSource="{Binding Meetings}" Focusable="False">
                             <ItemsControl.ItemTemplate>
@@ -81,14 +82,14 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource Diktat.AccentSoft}">
-                                                <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE716;" HorizontalAlignment="Center"
+                                                <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59158;" HorizontalAlignment="Center"
                                                            Foreground="{DynamicResource Diktat.Accent}"/>
                                             </Border>
                                             <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource Diktat.TextSecondary}"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="2" Style="{DynamicResource Diktat.IconText}" Text="&#xE76C;" FontSize="11"
+                                            <TextBlock Grid.Column="2" Style="{DynamicResource Diktat.IconText}" Text="&#59244;" FontSize="11"
                                                        Foreground="{DynamicResource Diktat.TextTertiary}"/>
                                         </Grid>
                                     </Button>
@@ -109,14 +110,14 @@
                                 <TextBlock Text="{Binding LiveTitle}" FontWeight="SemiBold" FontSize="14"/>
                             </StackPanel>
                             <TextBlock Text="{Binding Elapsed}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="14"
-                                       Foreground="{DynamicResource Diktat.TextSecondary}" AutomationProperties.Name="Dauer"/>
+                                       Foreground="{DynamicResource Diktat.TextSecondary}" AutomationProperties.Name="{l:T 'Dauer'}"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Mikrofon" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
+                            <TextBlock Text="{l:T 'Mikrofon'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
                             <c:LevelBars x:Name="MicBars" Grid.Column="1" Height="32" BarCount="48" IsActive="{Binding IsLive}"/>
                         </Grid>
                         <Grid Visibility="{Binding IsOnline, Converter={StaticResource Diktat.BoolToVisibility}}">
@@ -124,7 +125,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Ton des PCs" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
+                            <TextBlock Text="{l:T 'Ton des PCs'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
                             <c:LevelBars x:Name="SystemBars" Grid.Column="1" Height="32" BarCount="48" IsActive="{Binding IsLive}"
                                          Fill="{DynamicResource Diktat.Mode.Night}"/>
                         </Grid>
@@ -134,30 +135,30 @@
                 <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding LiveNotes, Converter={StaticResource Diktat.EmptyToCollapsed}}">
                     <v:Stack Spacing="8">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE8FD;" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
-                            <TextBlock Text="Live-Notizen" FontWeight="SemiBold"/>
+                            <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59645;" Foreground="{DynamicResource Diktat.Accent}" Margin="0,0,8,0"/>
+                            <TextBlock Text="{l:T 'Live-Notizen'}" FontWeight="SemiBold"/>
                             <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="8,0,0,0">
-                                <TextBlock Text="Beta" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
+                                <TextBlock Text="{l:T 'Beta'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
                             </Border>
                         </StackPanel>
                         <TextBox Text="{Binding LiveNotes, Mode=OneWay}" Style="{DynamicResource Diktat.ReadOnlyText}" FontSize="13"
-                                 AutomationProperties.Name="Live-Notizen"/>
+                                 AutomationProperties.Name="{l:T 'Live-Notizen'}"/>
                     </v:Stack>
                 </Border>
 
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="Du kannst dieses Fenster schließen, die Aufnahme läuft weiter. Das Symbol im Infobereich der Taskleiste zeigt sie an. Den PC bitte nicht in den Ruhezustand schicken."/>
-                <Button Content="Beenden und auswerten" Style="{DynamicResource Diktat.PrimaryButton}" Padding="16,10" Click="OnStop"/>
-                <Button Content="Verwerfen" Style="{DynamicResource Diktat.DangerButton}" HorizontalAlignment="Center" Click="OnDiscard"/>
+                           Text="{l:T 'Du kannst dieses Fenster schließen, die Aufnahme läuft weiter. Das Symbol im Infobereich der Taskleiste zeigt sie an. Den PC bitte nicht in den Ruhezustand schicken.'}"/>
+                <Button Content="{l:T 'Beenden und auswerten'}" Style="{DynamicResource Diktat.PrimaryButton}" Padding="16,10" Click="OnStop"/>
+                <Button Content="{l:T 'Verwerfen'}" Style="{DynamicResource Diktat.DangerButton}" HorizontalAlignment="Center" Click="OnDiscard"/>
             </v:Stack>
 
             <!-- ============ Processing ============ -->
             <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding IsProcessing, Converter={StaticResource Diktat.BoolToVisibility}}">
                 <v:Stack Spacing="10">
                     <TextBlock Text="{Binding ProcessingText}" FontWeight="SemiBold"/>
-                    <ProgressBar IsIndeterminate="True" AutomationProperties.Name="Meeting wird ausgewertet"/>
+                    <ProgressBar IsIndeterminate="True" AutomationProperties.Name="{l:T 'Meeting wird ausgewertet'}"/>
                     <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                               Text="Bei langen Meetings dauert das ein paar Minuten, alles läuft auf diesem PC. Du kannst das Fenster schließen."/>
+                               Text="{l:T 'Bei langen Meetings dauert das ein paar Minuten, alles läuft auf diesem PC. Du kannst das Fenster schließen.'}"/>
                 </v:Stack>
             </Border>
 
@@ -165,16 +166,16 @@
             <v:Stack Spacing="12" Visibility="{Binding IsFailed, Converter={StaticResource Diktat.BoolToVisibility}}">
                 <Border Style="{DynamicResource Diktat.ErrorNotice}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE7BA;" Foreground="{DynamicResource Diktat.ErrorText}" Margin="0,0,10,0"
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59322;" Foreground="{DynamicResource Diktat.ErrorText}" Margin="0,0,10,0"
                                    VerticalAlignment="Top"/>
                         <TextBlock Text="{Binding FailureText}" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap" MaxWidth="640"/>
                     </StackPanel>
                 </Border>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Erneut auswerten" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnRetryFailed" Margin="0,0,8,0"
+                    <Button Content="{l:T 'Erneut auswerten'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnRetryFailed" Margin="0,0,8,0"
                             Visibility="{Binding CanRetryFailed, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                    <Button Content="Zurück" Click="OnBack" Margin="0,0,8,0"/>
-                    <Button Content="Löschen" Style="{DynamicResource Diktat.DangerButton}" Click="OnDeleteFailed"
+                    <Button Content="{l:T 'Zurück'}" Click="OnBack" Margin="0,0,8,0"/>
+                    <Button Content="{l:T 'Löschen'}" Style="{DynamicResource Diktat.DangerButton}" Click="OnDeleteFailed"
                             Visibility="{Binding FailedMeetingIsPending, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                 </StackPanel>
             </v:Stack>
@@ -182,10 +183,10 @@
             <!-- ============ Detail ============ -->
             <v:Stack Spacing="16" Visibility="{Binding IsDetail, Converter={StaticResource Diktat.BoolToVisibility}}">
                 <Button Style="{DynamicResource Diktat.SubtleButton}" HorizontalAlignment="Left" Click="OnBack" Margin="-10,0,0,0"
-                        AutomationProperties.Name="Zurück zu den Meetings">
+                        AutomationProperties.Name="{l:T 'Zurück zu den Meetings'}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE72B;" FontSize="12" Margin="0,0,8,0"/>
-                        <TextBlock Text="Alle Meetings"/>
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59179;" FontSize="12" Margin="0,0,8,0"/>
+                        <TextBlock Text="{l:T 'Alle Meetings'}"/>
                     </StackPanel>
                 </Button>
                 <StackPanel>
@@ -197,8 +198,8 @@
                     <Button Content="{Binding CopyTranscriptLabel}" Click="OnCopyTranscript" Margin="0,0,8,8"/>
                     <Button Content="{Binding CopyAllLabel}" Click="OnCopyAll" Margin="0,0,8,8"
                             Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                    <Button Content="Als Textdatei speichern …" Click="OnSaveText" Margin="0,0,8,8"/>
-                    <Button Content="Löschen" Style="{DynamicResource Diktat.DangerButton}" Click="OnDelete" Margin="0,0,0,8"/>
+                    <Button Content="{l:T 'Als Textdatei speichern …'}" Click="OnSaveText" Margin="0,0,8,8"/>
+                    <Button Content="{l:T 'Löschen'}" Style="{DynamicResource Diktat.DangerButton}" Click="OnDelete" Margin="0,0,0,8"/>
                 </WrapPanel>
 
                 <!-- Not yet processed (interrupted) -->
@@ -209,27 +210,27 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"
-                                   Text="Dieses Meeting wurde noch nicht fertig ausgewertet."/>
-                        <Button Grid.Column="1" Content="Erneut auswerten" Style="{DynamicResource Diktat.PrimaryButton}" Margin="10,0,0,0" Click="OnRetry"
+                                   Text="{l:T 'Dieses Meeting wurde noch nicht fertig ausgewertet.'}"/>
+                        <Button Grid.Column="1" Content="{l:T 'Erneut auswerten'}" Style="{DynamicResource Diktat.PrimaryButton}" Margin="10,0,0,0" Click="OnRetry"
                                 Visibility="{Binding CanRetry, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                     </Grid>
                 </Border>
 
                 <!-- Summary -->
-                <HeaderedContentControl Header="Zusammenfassung" Style="{DynamicResource Diktat.Section}">
+                <HeaderedContentControl Header="{l:T 'Zusammenfassung'}" Style="{DynamicResource Diktat.Section}">
                     <v:Stack Spacing="10">
                         <TextBox Text="{Binding Summary, Mode=OneWay}" Style="{DynamicResource Diktat.ReadOnlyText}"
-                                 Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}" AutomationProperties.Name="Zusammenfassung"/>
-                        <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="Automatisch erstellt. Bitte vor allem die Zuständigkeiten bei den To-dos kurz prüfen."
+                                 Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}" AutomationProperties.Name="{l:T 'Zusammenfassung'}"/>
+                        <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="{l:T 'Automatisch erstellt. Bitte vor allem die Zuständigkeiten bei den To-dos kurz prüfen.'}"
                                    Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                         <TextBlock Text="{Binding SummaryNote}" Style="{DynamicResource Diktat.CaptionText}"
                                    Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}, ConverterParameter=invert}"/>
                         <TextBlock Text="{Binding SummaryError}" Style="{DynamicResource Diktat.ErrorTextStyle}"
                                    Visibility="{Binding SummaryError, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
                         <StackPanel Orientation="Horizontal" Visibility="{Binding IsSummarizing, Converter={StaticResource Diktat.BoolToVisibility}}">
-                            <ProgressBar IsIndeterminate="True" Width="160" Margin="0,0,10,0" VerticalAlignment="Center" AutomationProperties.Name="Zusammenfassung wird erstellt"/>
-                            <TextBlock Text="Zusammenfassung wird erstellt …" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <Button Content="Abbrechen" Style="{DynamicResource Diktat.SubtleButton}" Click="OnCancelSummary"/>
+                            <ProgressBar IsIndeterminate="True" Width="160" Margin="0,0,10,0" VerticalAlignment="Center" AutomationProperties.Name="{l:T 'Zusammenfassung wird erstellt'}"/>
+                            <TextBlock Text="{l:T 'Zusammenfassung wird erstellt …'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Button Content="{l:T 'Abbrechen'}" Style="{DynamicResource Diktat.SubtleButton}" Click="OnCancelSummary"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Button Content="{Binding CopySummaryLabel}" Click="OnCopySummary" Margin="0,0,8,0"
@@ -237,10 +238,10 @@
                             <Button x:Name="SummarizeButton" Click="OnSummarize" IsEnabled="{Binding CanSummarize}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource Diktat.PrimaryButton}">
-                                        <Setter Property="Content" Value="Zusammenfassung erstellen"/>
+                                        <Setter Property="Content" Value="{l:T 'Zusammenfassung erstellen'}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasSummary}" Value="True">
-                                                <Setter Property="Content" Value="Neu erstellen"/>
+                                                <Setter Property="Content" Value="{l:T 'Neu erstellen'}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -251,7 +252,7 @@
                 </HeaderedContentControl>
 
                 <!-- People -->
-                <HeaderedContentControl Header="Personen: Klicken zum Umbenennen" Style="{DynamicResource Diktat.Section}"
+                <HeaderedContentControl Header="{l:T 'Personen: Klicken zum Umbenennen'}" Style="{DynamicResource Diktat.Section}"
                                         Visibility="{Binding HasTurns, Converter={StaticResource Diktat.BoolToVisibility}}">
                     <v:Stack Spacing="10">
                         <ItemsControl ItemsSource="{Binding Speakers}" Focusable="False">
@@ -263,7 +264,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Content="{Binding Name}" Click="OnRenameSpeaker" Margin="0,0,8,8" Padding="12,5"
-                                            AutomationProperties.Name="{Binding Name, StringFormat='{}{0} umbenennen'}"/>
+                                            AutomationProperties.Name="{Binding RenameAutomationName}"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -276,9 +277,9 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="RenameBox" v:Hint.Text="Name" KeyDown="OnRenameKey" AutomationProperties.Name="Neuer Name"/>
-                                    <Button Grid.Column="1" Content="Sichern" Style="{DynamicResource Diktat.PrimaryButton}" Margin="8,0,0,0" Click="OnRenameSave"/>
-                                    <Button Grid.Column="2" Content="Abbrechen" Style="{DynamicResource Diktat.SubtleButton}" Margin="4,0,0,0" Click="OnRenameCancel"/>
+                                    <TextBox x:Name="RenameBox" v:Hint.Text="{l:T 'Name'}" KeyDown="OnRenameKey" AutomationProperties.Name="{l:T 'Neuer Name'}"/>
+                                    <Button Grid.Column="1" Content="{l:T 'Sichern'}" Style="{DynamicResource Diktat.PrimaryButton}" Margin="8,0,0,0" Click="OnRenameSave"/>
+                                    <Button Grid.Column="2" Content="{l:T 'Abbrechen'}" Style="{DynamicResource Diktat.SubtleButton}" Margin="4,0,0,0" Click="OnRenameCancel"/>
                                 </Grid>
                             </v:Stack>
                         </Border>
@@ -286,9 +287,9 @@
                 </HeaderedContentControl>
 
                 <!-- Transcript -->
-                <HeaderedContentControl Header="Transkript" Style="{DynamicResource Diktat.Section}">
+                <HeaderedContentControl Header="{l:T 'Transkript'}" Style="{DynamicResource Diktat.Section}">
                     <Grid>
-                        <TextBlock Text="Kein Text erkannt." Style="{DynamicResource Diktat.CaptionText}"
+                        <TextBlock Text="{l:T 'Kein Text erkannt.'}" Style="{DynamicResource Diktat.CaptionText}"
                                    Visibility="{Binding HasTurns, Converter={StaticResource Diktat.BoolToVisibility}, ConverterParameter=invert}"/>
                         <ItemsControl ItemsSource="{Binding Turns}" Focusable="False">
                             <ItemsControl.ItemTemplate>

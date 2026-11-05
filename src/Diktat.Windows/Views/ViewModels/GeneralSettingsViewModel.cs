@@ -23,8 +23,8 @@ public sealed class HotkeyRowViewModel : ObservableObject
     public bool IsNotCapturing => !_isCapturing;
     public bool IsDefault { get => _isDefault; set { if (Set(ref _isDefault, value)) OnPropertyChanged(nameof(CanReset)); } }
     public bool CanReset => !_isDefault;
-    public string ChangeAutomationName => $"Kürzel für {Name} ändern";
-    public string ResetAutomationName => $"Kürzel für {Name} auf Standard zurücksetzen";
+    public string ChangeAutomationName => L.F("Kürzel für {0} ändern", Name);
+    public string ResetAutomationName => L.F("Kürzel für {0} auf Standard zurücksetzen", Name);
 }
 
 public sealed class GeneralSettingsViewModel : ObservableObject
@@ -56,6 +56,34 @@ public sealed class GeneralSettingsViewModel : ObservableObject
         OnPropertyChanged(name);
     }
 
+    // --- Language of the app ---------------------------------------------------------
+
+    /// Language names are always shown in their own language.
+    public IReadOnlyList<Option<AppLanguage>> AppLanguages { get; } =
+        [new(AppLanguage.System, L.T("Automatisch")), new(AppLanguage.German, "Deutsch"), new(AppLanguage.English, "English")];
+
+    public AppLanguage AppLanguage
+    {
+        get => A.AppLanguage;
+        set
+        {
+            if (A.AppLanguage == value) return;
+            A.AppLanguage = value;
+            _saver.SaveNow();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(AppLanguageNeedsRestart));
+        }
+    }
+
+    /// The chosen language differs from the one the texts are shown in: it applies after a restart.
+    public bool AppLanguageNeedsRestart => L.Resolve(A.AppLanguage) != L.Current;
+
+    public void Restart()
+    {
+        _saver.Flush();
+        _app.Restart();
+    }
+
     // --- Start ------------------------------------------------------------------------
 
     public bool LaunchAtLogin
@@ -67,7 +95,7 @@ public sealed class GeneralSettingsViewModel : ObservableObject
     // --- Shortcuts --------------------------------------------------------------------
 
     public IReadOnlyList<Option<HotkeyMode>> HotkeyModes { get; } =
-        [new(HotkeyMode.Hold, "Halten"), new(HotkeyMode.Toggle, "Umschalten")];
+        [new(HotkeyMode.Hold, L.T("Halten")), new(HotkeyMode.Toggle, L.T("Umschalten"))];
 
     public HotkeyMode HotkeyMode
     {
@@ -84,8 +112,8 @@ public sealed class GeneralSettingsViewModel : ObservableObject
     }
 
     public string HotkeyModeDetail => A.HotkeyMode == HotkeyMode.Hold
-        ? "Halten: Kürzel gedrückt halten, sprechen, loslassen. Der Text erscheint am Cursor."
-        : "Umschalten: Kürzel einmal drücken, sprechen, nochmal drücken. Escape bricht ab.";
+        ? L.T("Halten: Kürzel gedrückt halten, sprechen, loslassen. Der Text erscheint am Cursor.")
+        : L.T("Umschalten: Kürzel einmal drücken, sprechen, nochmal drücken. Escape bricht ab.");
 
     public ObservableCollection<HotkeyRowViewModel> Hotkeys { get; }
 
@@ -110,8 +138,8 @@ public sealed class GeneralSettingsViewModel : ObservableObject
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         _captureCts = cts;
         row.IsCapturing = true;
-        row.Label = "Kürzel drücken …";
-        HotkeyMessage = "Drücke das neue Kürzel, zum Beispiel Strg + Alt + D oder F9. Escape bricht ab.";
+        row.Label = L.T("Kürzel drücken …");
+        HotkeyMessage = L.T("Drücke das neue Kürzel, zum Beispiel Strg + Alt + D oder F9. Escape bricht ab.");
         try
         {
             var combo = await _app.CaptureShortcutAsync(cts.Token);
@@ -122,13 +150,13 @@ public sealed class GeneralSettingsViewModel : ObservableObject
             }
             if (combo.IsModifierOnly && combo.ModifierCount < 2)
             {
-                HotkeyMessage = "Ein Kürzel nur aus Sondertasten braucht mindestens zwei, zum Beispiel Strg + Win.";
+                HotkeyMessage = L.T("Ein Kürzel nur aus Sondertasten braucht mindestens zwei, zum Beispiel Strg + Win.");
                 return;
             }
             var clash = Hotkeys.FirstOrDefault(r => r.Mode != row.Mode && A.HotkeyFor(r.Mode) == combo);
             if (clash is not null)
             {
-                HotkeyMessage = $"{combo.Label(GlobalHotkeyService.KeyName)} nutzt schon {clash.Name}.";
+                HotkeyMessage = L.F("{0} nutzt schon {1}.", combo.Label(GlobalHotkeyService.KeyName), clash.Name);
                 return;
             }
             A.SetHotkey(row.Mode, combo == KeyCombo.DefaultFor(row.Mode) ? null : combo);
@@ -143,7 +171,7 @@ public sealed class GeneralSettingsViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Warn("Capturing a shortcut failed", ex);
-            HotkeyMessage = "Das Kürzel konnte nicht aufgenommen werden.";
+            HotkeyMessage = L.T("Das Kürzel konnte nicht aufgenommen werden.");
         }
         finally
         {
@@ -259,7 +287,7 @@ public sealed class GeneralSettingsViewModel : ObservableObject
     public async Task CheckUpdatesAsync()
     {
         IsCheckingUpdates = true;
-        UpdateMessage = "Suche nach Updates …";
+        UpdateMessage = L.T("Suche nach Updates …");
         UpdateUrl = null;
         OnPropertyChanged(nameof(HasUpdateUrl));
         try
@@ -268,21 +296,21 @@ public sealed class GeneralSettingsViewModel : ObservableObject
             var update = await _app.CheckForUpdatesAsync(cts.Token);
             if (update is { IsNewer: true })
             {
-                UpdateMessage = $"Diktat {update.Version} ist da.";
+                UpdateMessage = L.F("Diktat {0} ist da.", update.Version);
                 UpdateUrl = string.IsNullOrEmpty(update.ReleasePageUrl) ? update.DownloadUrl : update.ReleasePageUrl;
             }
             else
             {
-                UpdateMessage = $"Diktat ist aktuell (Version {AppServices.Version}).";
+                UpdateMessage = L.F("Diktat ist aktuell (Version {0}).", AppServices.Version);
             }
         }
         catch (OperationCanceledException)
         {
-            UpdateMessage = "Keine Antwort von GitHub. Bitte später nochmal versuchen.";
+            UpdateMessage = L.T("Keine Antwort von GitHub. Bitte später nochmal versuchen.");
         }
         catch (Exception ex)
         {
-            UpdateMessage = string.IsNullOrWhiteSpace(ex.Message) ? "Die Suche nach Updates hat nicht geklappt." : ex.Message;
+            UpdateMessage = string.IsNullOrWhiteSpace(ex.Message) ? L.T("Die Suche nach Updates hat nicht geklappt.") : ex.Message;
         }
         finally
         {
@@ -293,20 +321,20 @@ public sealed class GeneralSettingsViewModel : ObservableObject
 
     // --- About ------------------------------------------------------------------------
 
-    public string VersionText => $"Version {AppServices.Version}";
+    public string VersionText => L.F("Version {0}", AppServices.Version);
     public bool CanSendFeedback => Diktat.AI.FeedbackMail.IsAvailable;
 
     public string? FeedbackUrl()
     {
         var model = Diktat.Transcription.Models.ModelCatalog.TranscriptionModelOrDefault(A.TranscriptionModel);
         var provider = _app.Services.AIProviders.Config is { } c && _app.Services.AIProviders.IsConfigured
-            ? Diktat.AI.AIProviderInfo.DisplayName(c.Provider) : "keiner";
+            ? Diktat.AI.AIProviderInfo.DisplayName(c.Provider) : L.T("keiner");
         var build = typeof(AppServices).Assembly.GetName().Version?.Revision.ToString() ?? "0";
         return Diktat.AI.FeedbackMail.Url(AppServices.Version, build,
         [
-            $"Sprachmodell: {Ui.ShortModelName(model)}",
-            $"Kürzel: {(A.HotkeyMode == HotkeyMode.Hold ? "Halten" : "Umschalten")}",
-            $"KI-Anbieter: {provider}",
+            L.F("Sprachmodell: {0}", Ui.ShortModelName(model)),
+            L.F("Kürzel: {0}", A.HotkeyMode == HotkeyMode.Hold ? L.T("Halten") : L.T("Umschalten")),
+            L.F("KI-Anbieter: {0}", provider),
         ]);
     }
 
@@ -321,13 +349,13 @@ public sealed class GeneralSettingsViewModel : ObservableObject
             ReloadHotkeys();
             var s = _app.Services.Settings;
             ImportFailed = false;
-            ImportMessage = $"Übernommen: {s.TextImprovement.CustomTerms.Count} Eigennamen, {s.TextImprovement.Replacements.Count} Ersetzungen, Modi und Stil. Kürzel und Apps des Macs gelten auf Windows nicht.";
+            ImportMessage = L.F("Übernommen: {0} Eigennamen, {1} Ersetzungen, Modi und Stil. Kürzel und Apps des Macs gelten auf Windows nicht.", s.TextImprovement.CustomTerms.Count, s.TextImprovement.Replacements.Count);
         }
         catch (Exception ex)
         {
             Log.Warn("Importing the Mac settings failed", ex);
             ImportFailed = true;
-            ImportMessage = $"Die Datei konnte nicht übernommen werden: {ex.Message}";
+            ImportMessage = L.F("Die Datei konnte nicht übernommen werden: {0}", ex.Message);
         }
         Reload();
     }

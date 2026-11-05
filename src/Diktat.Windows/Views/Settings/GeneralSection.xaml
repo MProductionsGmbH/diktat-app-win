@@ -1,23 +1,43 @@
 <UserControl x:Class="Diktat.Windows.Views.SettingsSections.GeneralSection"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Diktat.Windows.Views"
              xmlns:v="clr-namespace:Diktat.Windows.Views"
              xmlns:c="clr-namespace:Diktat.Windows.Views.Controls">
     <v:Stack Spacing="22">
 
-        <HeaderedContentControl Header="Beim Anmelden" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Sprache'}" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="12">
+                <TextBlock Text="{l:T 'Sprache der App'}" Style="{DynamicResource Diktat.CaptionText}"/>
+                <ListBox Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding AppLanguages}" SelectedValue="{Binding AppLanguage}"
+                         HorizontalAlignment="Left" MinWidth="260" AutomationProperties.Name="{l:T 'Sprache der App'}"/>
+                <TextBlock Text="{l:T 'Automatisch: Die App folgt Windows.'}" Style="{DynamicResource Diktat.CaptionText}"/>
+                <Grid Visibility="{Binding AppLanguageNeedsRestart, Converter={StaticResource Diktat.BoolToVisibility}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{l:T 'Die Sprache der App ändert sich nach einem Neustart.'}" Style="{DynamicResource Diktat.CaptionText}"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="{l:T 'Jetzt neu starten'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnRestart"
+                            Margin="12,0,0,0" VerticalAlignment="Center"/>
+                </Grid>
+            </v:Stack>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="{l:T 'Beim Anmelden'}" Style="{DynamicResource Diktat.Section}">
             <CheckBox IsChecked="{Binding LaunchAtLogin}">
                 <StackPanel>
-                    <TextBlock Text="Diktat automatisch starten" FontWeight="SemiBold"/>
-                    <TextBlock Text="Diktat startet mit Windows unsichtbar im Infobereich der Taskleiste." Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                    <TextBlock Text="{l:T 'Diktat automatisch starten'}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{l:T 'Diktat startet mit Windows unsichtbar im Infobereich der Taskleiste.'}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
                 </StackPanel>
             </CheckBox>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Tastenkürzel" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Tastenkürzel'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <ListBox Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding HotkeyModes}" SelectedValue="{Binding HotkeyMode}"
-                         HorizontalAlignment="Left" MinWidth="260" AutomationProperties.Name="Kürzel halten oder umschalten"/>
+                         HorizontalAlignment="Left" MinWidth="260" AutomationProperties.Name="{l:T 'Kürzel halten oder umschalten'}"/>
                 <TextBlock Text="{Binding HotkeyModeDetail}" Style="{DynamicResource Diktat.CaptionText}"/>
                 <ItemsControl ItemsSource="{Binding Hotkeys}" Focusable="False">
                     <ItemsControl.ItemTemplate>
@@ -38,14 +58,14 @@
                                 <TextBlock Grid.Column="2" Text="{Binding Label}" Foreground="{DynamicResource Diktat.Accent}" FontWeight="SemiBold"
                                            VerticalAlignment="Center" Margin="0,0,12,0"
                                            Visibility="{Binding IsCapturing, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                                <Button Grid.Column="3" Content="Ändern" Click="OnChangeHotkey" Padding="12,5" Margin="0,0,4,0"
+                                <Button Grid.Column="3" Content="{l:T 'Ändern'}" Click="OnChangeHotkey" Padding="12,5" Margin="0,0,4,0"
                                         AutomationProperties.Name="{Binding ChangeAutomationName}"
                                         Visibility="{Binding IsNotCapturing, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                                <Button Grid.Column="3" Content="Abbrechen" Click="OnCancelCapture" Padding="12,5" Margin="0,0,4,0"
+                                <Button Grid.Column="3" Content="{l:T 'Abbrechen'}" Click="OnCancelCapture" Padding="12,5" Margin="0,0,4,0"
                                         Visibility="{Binding IsCapturing, Converter={StaticResource Diktat.BoolToVisibility}}"/>
-                                <Button Grid.Column="4" Content="Standard" Style="{DynamicResource Diktat.SubtleButton}" Click="OnResetHotkey" Padding="10,5"
+                                <Button Grid.Column="4" Content="{l:T 'Standard'}" Style="{DynamicResource Diktat.SubtleButton}" Click="OnResetHotkey" Padding="10,5"
                                         IsEnabled="{Binding CanReset}" AutomationProperties.Name="{Binding ResetAutomationName}"
-                                        ToolTip="Auf das Standardkürzel zurücksetzen"/>
+                                        ToolTip="{l:T 'Auf das Standardkürzel zurücksetzen'}"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -53,17 +73,17 @@
                 <TextBlock Text="{Binding HotkeyMessage}" Style="{DynamicResource Diktat.CaptionText}" Foreground="{DynamicResource Diktat.Accent}"
                            Visibility="{Binding HotkeyMessage, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
                 <TextBlock Style="{DynamicResource Diktat.SmallText}"
-                           Text="Standard: Diktat Strg + Win, WTF Strg + Win + Alt, :-) Strg + Win + Umschalt. Ein eigenes Kürzel kann eine Taste mit Strg, Alt, Umschalt oder Win sein, oder eine Funktionstaste wie F9."/>
+                           Text="{l:T 'Standard: Diktat Strg + Win, WTF Strg + Win + Alt, :-) Strg + Win + Umschalt. Ein eigenes Kürzel kann eine Taste mit Strg, Alt, Umschalt oder Win sein, oder eine Funktionstaste wie F9.'}"/>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Aufnahme &amp; Einfügen" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Aufnahme &amp; Einfügen'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="14">
                 <CheckBox IsChecked="{Binding ShowsRecordingIndicator}">
                     <StackPanel>
-                        <TextBlock Text="Aufnahme unten am Bildschirm zeigen" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Aufnahme unten am Bildschirm zeigen'}" FontWeight="SemiBold"/>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
-                                   Text="Eine kleine schwarze Anzeige zeigt deine Stimme als Striche, solange Diktat aufnimmt und schreibt. Ein Klick auf die Anzeige stoppt die Aufnahme."/>
+                                   Text="{l:T 'Eine kleine schwarze Anzeige zeigt deine Stimme als Striche, solange Diktat aufnimmt und schreibt. Ein Klick auf die Anzeige stoppt die Aufnahme.'}"/>
                     </StackPanel>
                 </CheckBox>
                 <Grid Visibility="{Binding ShowsRecordingIndicator, Converter={StaticResource Diktat.BoolToVisibility}}">
@@ -71,111 +91,111 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Position" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="{l:T 'Position'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <ListBox Grid.Column="1" Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding PillPositions}" SelectedValue="{Binding PillPosition}"
-                             HorizontalAlignment="Left" MinWidth="260" AutomationProperties.Name="Position der Anzeige"/>
+                             HorizontalAlignment="Left" MinWidth="260" AutomationProperties.Name="{l:T 'Position der Anzeige'}"/>
                 </Grid>
                 <Separator Style="{DynamicResource Diktat.Divider}"/>
-                <CheckBox IsChecked="{Binding PlaysStartSound}" Content="Kurzer Ton beim Start der Aufnahme"/>
+                <CheckBox IsChecked="{Binding PlaysStartSound}" Content="{l:T 'Kurzer Ton beim Start der Aufnahme'}"/>
                 <CheckBox IsChecked="{Binding MuteOutputWhileRecording}">
                     <StackPanel>
-                        <TextBlock Text="Ton aus während der Aufnahme" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Ton aus während der Aufnahme'}" FontWeight="SemiBold"/>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
-                                   Text="Podcast, Musik oder Video sind stumm, solange Diktat aufnimmt, und danach sofort wieder zu hören."/>
+                                   Text="{l:T 'Podcast, Musik oder Video sind stumm, solange Diktat aufnimmt, und danach sofort wieder zu hören.'}"/>
                     </StackPanel>
                 </CheckBox>
                 <CheckBox IsChecked="{Binding RestoreClipboard}">
                     <StackPanel>
-                        <TextBlock Text="Zwischenablage danach wiederherstellen" FontWeight="SemiBold"/>
-                        <TextBlock Text="Was du vorher kopiert hattest, ist nach dem Einfügen wieder da." Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                        <TextBlock Text="{l:T 'Zwischenablage danach wiederherstellen'}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Was du vorher kopiert hattest, ist nach dem Einfügen wieder da.'}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </CheckBox>
                 <CheckBox IsChecked="{Binding AutomaticParagraphs}">
                     <StackPanel>
-                        <TextBlock Text="Automatische Absätze" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Automatische Absätze'}" FontWeight="SemiBold"/>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
-                                   Text="Lange Diktate und Audiodateien bekommen nach etwa vier Sätzen einen Absatz. Wörter und Satzzeichen bleiben, wie sie sind."/>
+                                   Text="{l:T 'Lange Diktate und Audiodateien bekommen nach etwa vier Sätzen einen Absatz. Wörter und Satzzeichen bleiben, wie sie sind.'}"/>
                     </StackPanel>
                 </CheckBox>
                 <CheckBox IsChecked="{Binding FitToSurroundingText}">
                     <StackPanel>
-                        <TextBlock Text="An den Text am Cursor anpassen" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'An den Text am Cursor anpassen'}" FontWeight="SemiBold"/>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
-                                   Text="Setzt Leerzeichen und Groß- und Kleinschreibung passend zum Text davor und danach. Diktat liest dazu das Textfeld über die Windows-Bedienungshilfen (UI Automation), Passwortfelder nie."/>
+                                   Text="{l:T 'Setzt Leerzeichen und Groß- und Kleinschreibung passend zum Text davor und danach. Diktat liest dazu das Textfeld über die Windows-Bedienungshilfen (UI Automation), Passwortfelder nie.'}"/>
                     </StackPanel>
                 </CheckBox>
                 <CheckBox IsChecked="{Binding AiSeesFieldContext}">
                     <StackPanel>
-                        <TextBlock Text="KI-Modi sehen den Text am Cursor" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'KI-Modi sehen den Text am Cursor'}" FontWeight="SemiBold"/>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
-                                   Text="KI-Schreibstil, WTF und :-) bekommen den Text rund um den Cursor als Kontext, etwa die Mail, auf die du antwortest. Mit einem Modell-Anbieter geht dieser Text mit an den Anbieter."/>
+                                   Text="{l:T 'KI-Schreibstil, WTF und :-) bekommen den Text rund um den Cursor als Kontext, etwa die Mail, auf die du antwortest. Mit einem Modell-Anbieter geht dieser Text mit an den Anbieter.'}"/>
                     </StackPanel>
                 </CheckBox>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Verlauf" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Verlauf'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Verlauf aufbewahren" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:T 'Verlauf aufbewahren'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     <ListBox Grid.Column="1" Style="{DynamicResource Diktat.Segmented}" ItemsSource="{Binding Retentions}" SelectedValue="{Binding HistoryRetention}"
-                             MinWidth="260" AutomationProperties.Name="Verlauf aufbewahren"/>
+                             MinWidth="260" AutomationProperties.Name="{l:T 'Verlauf aufbewahren'}"/>
                 </Grid>
-                <TextBlock Text="Nur auf diesem PC und verschlüsselt. Aus löscht den Verlauf sofort." Style="{DynamicResource Diktat.CaptionText}"/>
+                <TextBlock Text="{l:T 'Nur auf diesem PC und verschlüsselt. Aus löscht den Verlauf sofort.'}" Style="{DynamicResource Diktat.CaptionText}"/>
                 <CheckBox IsChecked="{Binding ShowsHistoryStatistics}">
                     <StackPanel>
-                        <TextBlock Text="Statistik im Verlauf zeigen" FontWeight="SemiBold"/>
-                        <TextBlock Text="Wörter und Diktate aus dem Verlauf. Nur auf diesem PC berechnet." Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                        <TextBlock Text="{l:T 'Statistik im Verlauf zeigen'}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Wörter und Diktate aus dem Verlauf. Nur auf diesem PC berechnet.'}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </CheckBox>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Updates" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Updates'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <CheckBox IsChecked="{Binding ChecksForUpdates}">
                     <StackPanel>
-                        <TextBlock Text="Automatisch nach Updates suchen" FontWeight="SemiBold"/>
-                        <TextBlock Text="Fragt die Releases dieses Projekts auf GitHub ab. Dabei wird nichts über dich übertragen." Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                        <TextBlock Text="{l:T 'Automatisch nach Updates suchen'}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Fragt die Releases dieses Projekts auf GitHub ab. Dabei wird nichts über dich übertragen.'}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </CheckBox>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Nach Updates suchen" Click="OnCheckUpdates" IsEnabled="{Binding CanCheckUpdates}" Margin="0,0,12,0"/>
+                    <Button Content="{l:T 'Nach Updates suchen'}" Click="OnCheckUpdates" IsEnabled="{Binding CanCheckUpdates}" Margin="0,0,12,0"/>
                     <TextBlock Text="{Binding UpdateMessage}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" MaxWidth="380"/>
-                    <Button Content="Herunterladen" Style="{DynamicResource Diktat.LinkButton}" Click="OnOpenUpdate" Margin="10,0,0,0" VerticalAlignment="Center"
+                    <Button Content="{l:T 'Herunterladen'}" Style="{DynamicResource Diktat.LinkButton}" Click="OnOpenUpdate" Margin="10,0,0,0" VerticalAlignment="Center"
                             Visibility="{Binding HasUpdateUrl, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                 </StackPanel>
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Über Diktat" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Über Diktat'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="pack://application:,,,/Assets/icon-64.png" Width="36" Height="36" RenderOptions.BitmapScalingMode="HighQuality"
                            AutomationProperties.Name="Diktat"/>
                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="Diktat für Windows" FontWeight="SemiBold"/>
+                        <TextBlock Text="{l:T 'Diktat für Windows'}" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding VersionText}" Style="{DynamicResource Diktat.CaptionText}"/>
                     </StackPanel>
                 </StackPanel>
                 <WrapPanel>
-                    <Button Content="Auf GitHub ansehen" Click="OnGitHub" Margin="0,0,8,8"/>
-                    <Button Content="Feedback senden" Click="OnFeedback" Margin="0,0,8,8"
+                    <Button Content="{l:T 'Auf GitHub ansehen'}" Click="OnGitHub" Margin="0,0,8,8"/>
+                    <Button Content="{l:T 'Feedback senden'}" Click="OnFeedback" Margin="0,0,8,8"
                             Visibility="{Binding CanSendFeedback, Converter={StaticResource Diktat.BoolToVisibility}}"
-                            ToolTip="Öffnet eine vorbereitete Mail. Du siehst alles, bevor sie rausgeht."/>
-                    <Button Content="Logs-Ordner öffnen" Click="OnLogs" Margin="0,0,8,8"
-                            ToolTip="Die Protokolle helfen bei Fehlern. Sie bleiben auf diesem PC."/>
-                    <Button Content="Einrichtung erneut starten" Click="OnSetup" Margin="0,0,8,8"/>
+                            ToolTip="{l:T 'Öffnet eine vorbereitete Mail. Du siehst alles, bevor sie rausgeht.'}"/>
+                    <Button Content="{l:T 'Logs-Ordner öffnen'}" Click="OnLogs" Margin="0,0,8,8"
+                            ToolTip="{l:T 'Die Protokolle helfen bei Fehlern. Sie bleiben auf diesem PC.'}"/>
+                    <Button Content="{l:T 'Einrichtung erneut starten'}" Click="OnSetup" Margin="0,0,8,8"/>
                 </WrapPanel>
                 <Separator Style="{DynamicResource Diktat.Divider}"/>
-                <TextBlock Text="Einstellungen vom Mac übernehmen" FontWeight="SemiBold"/>
+                <TextBlock Text="{l:T 'Einstellungen vom Mac übernehmen'}" FontWeight="SemiBold"/>
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="Auf dem Mac unter Einstellungen „Einstellungen exportieren“ wählen und die Datei hier öffnen. Übernommen werden Eigennamen, Ersetzungen, Modi und Stil."/>
-                <Button Content="Exportdatei öffnen …" Click="OnImport" HorizontalAlignment="Left"/>
+                           Text="{l:T 'Auf dem Mac unter Einstellungen „Einstellungen exportieren“ wählen und die Datei hier öffnen. Übernommen werden Eigennamen, Ersetzungen, Modi und Stil.'}"/>
+                <Button Content="{l:T 'Exportdatei öffnen …'}" Click="OnImport" HorizontalAlignment="Left"/>
                 <TextBlock Text="{Binding ImportMessage}" Visibility="{Binding ImportMessage, Converter={StaticResource Diktat.EmptyToCollapsed}}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource Diktat.SuccessTextStyle}">

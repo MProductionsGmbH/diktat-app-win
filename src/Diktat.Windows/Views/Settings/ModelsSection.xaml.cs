@@ -58,8 +58,8 @@ public partial class ModelsSection : UserControl, IMainPage
     {
         if (ItemOf(sender) is not { } item) return;
         var question = item.IsSelected
-            ? $"{item.Name} ist das aktive Sprachmodell. Löschen? Bis du ein anderes lädst, kann Diktat nicht transkribieren."
-            : $"{item.Name} von diesem PC löschen? Du kannst es jederzeit wieder laden.";
-        if (Ui.Confirm(this, question, "Modell löschen")) _model.Delete(item);
+            ? L.F("{0} ist das aktive Sprachmodell. Löschen? Bis du ein anderes lädst, kann Diktat nicht transkribieren.", item.Name)
+            : L.F("{0} von diesem PC löschen? Du kannst es jederzeit wieder laden.", item.Name);
+        if (Ui.Confirm(this, question, L.T("Modell löschen"))) _model.Delete(item);
     }
 }

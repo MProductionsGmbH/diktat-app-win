@@ -8,7 +8,7 @@ namespace Diktat.AI.Updates;
 /// portable zip (Diktat-win-x64.zip); the release page when neither is attached.</param>
 public sealed record UpdateInfo(string Version, bool IsNewer, string DownloadUrl, string ReleasePageUrl, string? ReleaseNotes);
 
-/// The update check failed. <see cref="Exception.Message"/> is German text for the user.
+/// The update check failed. <see cref="Exception.Message"/> is text for the user, in the UI language.
 public sealed class UpdateCheckException : Exception
 {
     public UpdateCheckException(string message, Exception? inner = null) : base(message, inner) { }
@@ -22,7 +22,7 @@ public sealed class UpdateChecker
     public const string ReleasesPageUrl = "https://github.com/MProductionsGmbH/diktat-app-win/releases";
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
-    private const string FailedMessage = "Die Suche nach Updates ist fehlgeschlagen. Bitte später nochmal versuchen.";
+    private static string FailedMessage => L.T("Die Suche nach Updates ist fehlgeschlagen. Bitte später nochmal versuchen.");
 
     private static readonly Regex SetupAsset = new(@"^Diktat-Setup(-.+)?\.exe$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     private static readonly Regex ZipAsset = new(@"^Diktat-(.+-)?win-x64\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);

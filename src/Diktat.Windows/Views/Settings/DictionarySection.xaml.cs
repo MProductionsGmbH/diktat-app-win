@@ -112,12 +112,12 @@ public partial class DictionarySection : UserControl, IMainPage
         var written = NewWritten.Text.Trim();
         if (spoken.Length == 0 || written.Length == 0)
         {
-            ShowReplacementError("Bitte beides eintragen: was du sagst und wie es geschrieben wird.");
+            ShowReplacementError(L.T("Bitte beides eintragen: was du sagst und wie es geschrieben wird."));
             return;
         }
         if (string.Equals(spoken, written, StringComparison.Ordinal))
         {
-            ShowReplacementError("Gesprochen und geschrieben sind gleich. Dafür reicht ein Eigenname.");
+            ShowReplacementError(L.T("Gesprochen und geschrieben sind gleich. Dafür reicht ein Eigenname."));
             return;
         }
         var list = S.TextImprovement.Replacements;

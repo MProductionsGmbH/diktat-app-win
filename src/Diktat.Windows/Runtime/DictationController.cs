@@ -447,7 +447,7 @@ public sealed class DictationController : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error("Dictation failed unexpectedly", ex);
-            Fail(session, "Etwas ist schiefgelaufen: " + ex.Message);
+            Fail(session, L.F("Etwas ist schiefgelaufen: {0}", ex.Message));
         }
     }
 
@@ -550,7 +550,7 @@ public sealed class DictationController : ObservableObject, IDisposable
     }
 
     private static string RecordingFailure(Exception ex) =>
-        ex is AudioCaptureException ? ex.Message : "Die Aufnahme ließ sich nicht starten: " + ex.Message;
+        ex is AudioCaptureException ? ex.Message : L.F("Die Aufnahme ließ sich nicht starten: {0}", ex.Message);
 
     private Task OnRecorder(Action action) => OnRecorder(() =>
     {

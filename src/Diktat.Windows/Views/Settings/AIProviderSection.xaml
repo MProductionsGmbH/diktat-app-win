@@ -1,20 +1,21 @@
 <UserControl x:Class="Diktat.Windows.Views.SettingsSections.AIProviderSection"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Diktat.Windows.Views"
              xmlns:v="clr-namespace:Diktat.Windows.Views">
     <v:Stack Spacing="22">
-        <HeaderedContentControl Header="Modell-Anbieter" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Modell-Anbieter'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="Optional. KI-Schreibstil, WTF und :-) brauchen ein Sprachmodell: einen Anbieter mit deinem eigenen API-Key oder einen Modell-Server auf diesem PC wie Ollama oder LM Studio. Wortgenaues Diktieren geht auch ohne."/>
+                           Text="{l:T 'Optional. KI-Schreibstil, WTF und :-) brauchen ein Sprachmodell: einen Anbieter mit deinem eigenen API-Key oder einen Modell-Server auf diesem PC wie Ollama oder LM Studio. Wortgenaues Diktieren geht auch ohne.'}"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Anbieter" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:T 'Anbieter'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
                     <ComboBox x:Name="Providers" Grid.Column="1" DisplayMemberPath="Label" SelectionChanged="OnProviderChanged"
-                              AutomationProperties.Name="Modell-Anbieter"/>
+                              AutomationProperties.Name="{l:T 'Modell-Anbieter'}"/>
                 </Grid>
 
                 <v:Stack x:Name="ProviderDetails" Spacing="12">
@@ -23,20 +24,20 @@
                             <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Modell" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
-                        <TextBox x:Name="ModelBox" Grid.Column="1" TextChanged="OnModelChanged" AutomationProperties.Name="Modell"/>
+                        <TextBlock Text="{l:T 'Modell'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="ModelBox" Grid.Column="1" TextChanged="OnModelChanged" AutomationProperties.Name="{l:T 'Modell'}"/>
                     </Grid>
                     <Grid x:Name="AddressRow">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Adresse" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
-                        <TextBox x:Name="AddressBox" Grid.Column="1" TextChanged="OnAddressChanged" AutomationProperties.Name="Adresse des Servers"
+                        <TextBlock Text="{l:T 'Adresse'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="AddressBox" Grid.Column="1" TextChanged="OnAddressChanged" AutomationProperties.Name="{l:T 'Adresse des Servers'}"
                                  v:Hint.Text="http://localhost:11434/v1"/>
                     </Grid>
                     <TextBlock x:Name="AddressNote" Style="{DynamicResource Diktat.SmallText}" Margin="110,-6,0,0"
-                               Text="OpenAI-kompatible Adresse. Ollama läuft unter http://localhost:11434/v1, LM Studio unter http://localhost:1234/v1. Auch Azure oder ein Firmen-Proxy gehen."/>
+                               Text="{l:T 'OpenAI-kompatible Adresse. Ollama läuft unter http://localhost:11434/v1, LM Studio unter http://localhost:1234/v1. Auch Azure oder ein Firmen-Proxy gehen.'}"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -44,25 +45,25 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="API-Key" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l:T 'API-Key'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"/>
                         <Grid Grid.Column="1">
-                            <PasswordBox x:Name="KeyBox" PasswordChanged="OnKeyTyped" KeyDown="OnKeyBoxKey" AutomationProperties.Name="API-Key"/>
+                            <PasswordBox x:Name="KeyBox" PasswordChanged="OnKeyTyped" KeyDown="OnKeyBoxKey" AutomationProperties.Name="{l:T 'API-Key'}"/>
                             <TextBlock x:Name="KeyPlaceholder" IsHitTestVisible="False" Margin="12,0,0,0" VerticalAlignment="Center"
                                        Foreground="{DynamicResource Diktat.TextTertiary}" TextTrimming="CharacterEllipsis"/>
                         </Grid>
-                        <Button x:Name="SaveKeyButton" Grid.Column="2" Content="Sichern" Style="{DynamicResource Diktat.PrimaryButton}" Margin="8,0,0,0"
+                        <Button x:Name="SaveKeyButton" Grid.Column="2" Content="{l:T 'Sichern'}" Style="{DynamicResource Diktat.PrimaryButton}" Margin="8,0,0,0"
                                 Click="OnSaveKey" IsEnabled="False"/>
                     </Grid>
                     <StackPanel x:Name="SavedKeyRow" Orientation="Horizontal" Margin="110,-4,0,0">
                         <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" FontSize="12" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,6,0"/>
                         <TextBlock x:Name="SavedKeyText" Style="{DynamicResource Diktat.SuccessTextStyle}" VerticalAlignment="Center"/>
-                        <Button Content="Entfernen" Style="{DynamicResource Diktat.LinkButton}" Margin="12,0,0,0" Click="OnDeleteKey" VerticalAlignment="Center"
-                                AutomationProperties.Name="Gespeicherten API-Key entfernen"/>
+                        <Button Content="{l:T 'Entfernen'}" Style="{DynamicResource Diktat.LinkButton}" Margin="12,0,0,0" Click="OnDeleteKey" VerticalAlignment="Center"
+                                AutomationProperties.Name="{l:T 'Gespeicherten API-Key entfernen'}"/>
                     </StackPanel>
-                    <Button x:Name="KeyHelpLink" Content="Schlüssel holen" Style="{DynamicResource Diktat.LinkButton}" Margin="110,-4,0,0" Click="OnKeyHelp"/>
+                    <Button x:Name="KeyHelpLink" Content="{l:T 'Schlüssel holen'}" Style="{DynamicResource Diktat.LinkButton}" Margin="110,-4,0,0" Click="OnKeyHelp"/>
 
                     <StackPanel Orientation="Horizontal" Margin="110,0,0,0">
-                        <Button x:Name="TestButton" Content="Verbindung testen" Click="OnTest" Margin="0,0,12,0"/>
+                        <Button x:Name="TestButton" Content="{l:T 'Verbindung testen'}" Click="OnTest" Margin="0,0,12,0"/>
                         <TextBlock x:Name="TestResult" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" FontSize="12.5"/>
                     </StackPanel>
 
@@ -77,14 +78,14 @@
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Modell auf diesem PC" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'Modell auf diesem PC'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="Mit Ollama oder LM Studio laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen."/>
+                           Text="{l:T 'Mit Ollama oder LM Studio laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen.'}"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="SearchButton" Content="Auf diesem PC suchen" Click="OnSearch" Margin="0,0,12,0"/>
+                    <Button x:Name="SearchButton" Content="{l:T 'Auf diesem PC suchen'}" Click="OnSearch" Margin="0,0,12,0"/>
                     <ProgressBar x:Name="SearchProgress" IsIndeterminate="True" Width="120" Visibility="Collapsed" VerticalAlignment="Center"
-                                 AutomationProperties.Name="Suche läuft"/>
+                                 AutomationProperties.Name="{l:T 'Suche läuft'}"/>
                 </StackPanel>
                 <TextBlock x:Name="SearchResult" Style="{DynamicResource Diktat.CaptionText}" Visibility="Collapsed"/>
                 <ItemsControl x:Name="Servers" Focusable="False">
@@ -102,10 +103,10 @@
                                         <TextBlock Text="{Binding BaseUrl}" FontSize="12" Foreground="{DynamicResource Diktat.TextTertiary}"/>
                                     </StackPanel>
                                     <ComboBox x:Name="ServerModel" Grid.Column="1" ItemsSource="{Binding Models}" SelectedIndex="0" Margin="8,0"
-                                              AutomationProperties.Name="{Binding Name, StringFormat='Modell in {0}'}"/>
-                                    <Button Grid.Column="2" Content="Verwenden" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnUseServer"
+                                              AutomationProperties.Name="{Binding Name, StringFormat={l:T 'Modell in \{0\}'}}"/>
+                                    <Button Grid.Column="2" Content="{l:T 'Verwenden'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnUseServer"
                                             Tag="{Binding SelectedItem, ElementName=ServerModel}"
-                                            AutomationProperties.Name="{Binding Name, StringFormat='{}{0} verwenden'}"/>
+                                            AutomationProperties.Name="{Binding Name, StringFormat={l:T '\{0\} verwenden'}}"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -114,10 +115,10 @@
             </v:Stack>
         </HeaderedContentControl>
 
-        <HeaderedContentControl Header="KI-Modi" Style="{DynamicResource Diktat.Section}">
+        <HeaderedContentControl Header="{l:T 'KI-Modi'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="10">
                 <ListBox x:Name="Engines" Style="{DynamicResource Diktat.Segmented}" HorizontalAlignment="Left" MinWidth="380"
-                         SelectionChanged="OnEngineChanged" AutomationProperties.Name="Wo die KI-Modi laufen"/>
+                         SelectionChanged="OnEngineChanged" AutomationProperties.Name="{l:T 'Wo die KI-Modi laufen'}"/>
                 <TextBlock x:Name="EngineNote" Style="{DynamicResource Diktat.CaptionText}"/>
             </v:Stack>
         </HeaderedContentControl>

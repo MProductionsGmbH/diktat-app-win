@@ -8,18 +8,18 @@ public static class SpeechCleanupLevelInfo
 
     public static string DisplayName(this SpeechCleanupLevel level) => level switch
     {
-        SpeechCleanupLevel.Light => "Leicht",
-        SpeechCleanupLevel.Medium => "Mittel",
-        SpeechCleanupLevel.Strong => "Stark",
-        _ => "KI-Schreibstil",
+        SpeechCleanupLevel.Light => L.T("Leicht"),
+        SpeechCleanupLevel.Medium => L.T("Mittel"),
+        SpeechCleanupLevel.Strong => L.T("Stark"),
+        _ => L.T("KI-Schreibstil"),
     };
 
     public static string Detail(this SpeechCleanupLevel level) => level switch
     {
-        SpeechCleanupLevel.Light => "Entfernt „ähm“, Stottern und doppelt gesagte Satzteile. Rein regelbasiert, ohne KI.",
-        SpeechCleanupLevel.Medium => "Zusätzlich: Wenn du dich verhaspelst, einen Satz neu ansetzt oder dich korrigierst, bleibt nur die richtige Fassung.",
-        SpeechCleanupLevel.Strong => "Zusätzlich: Grammatik, Satzstellung und Zeichensetzung werden korrigiert. Deine Wortwahl bleibt.",
-        _ => "Ein Sprachmodell schreibt den Text neu: Rechtschreibung, Grammatik, Formulierung und Lesefluss, im Ton, den du unten unter Stil je Kontext wählst. Die Bedeutung bleibt.",
+        SpeechCleanupLevel.Light => L.T("Entfernt „ähm“, Stottern und doppelt gesagte Satzteile. Rein regelbasiert, ohne KI."),
+        SpeechCleanupLevel.Medium => L.T("Zusätzlich: Wenn du dich verhaspelst, einen Satz neu ansetzt oder dich korrigierst, bleibt nur die richtige Fassung."),
+        SpeechCleanupLevel.Strong => L.T("Zusätzlich: Grammatik, Satzstellung und Zeichensetzung werden korrigiert. Deine Wortwahl bleibt."),
+        _ => L.T("Ein Sprachmodell schreibt den Text neu: Rechtschreibung, Grammatik, Formulierung und Lesefluss, im Ton, den du unten unter Stil je Kontext wählst. Die Bedeutung bleibt."),
     };
 
     /// Leicht runs in plain string code (<see cref="Text.TranscriptPostProcessor"/>); the other
@@ -33,9 +33,9 @@ public static class HistoryRetentionInfo
 
     public static string DisplayName(this HistoryRetention retention) => retention switch
     {
-        HistoryRetention.Off => "Aus",
-        HistoryRetention.Day => "24 Std.",
-        _ => "7 Tage",
+        HistoryRetention.Off => L.T("Aus"),
+        HistoryRetention.Day => L.T("24 Std."),
+        _ => L.T("7 Tage"),
     };
 
     /// How long an entry is kept; null when the history is off.
@@ -56,9 +56,9 @@ public static class PillPositionInfo
 
     public static string DisplayName(this PillPosition position) => position switch
     {
-        PillPosition.Left => "Links",
-        PillPosition.Center => "Mitte",
-        _ => "Rechts",
+        PillPosition.Left => L.T("Links"),
+        PillPosition.Center => L.T("Mitte"),
+        _ => L.T("Rechts"),
     };
 
     /// The share of the screen width, from the left edge, where the middle of the pill sits.

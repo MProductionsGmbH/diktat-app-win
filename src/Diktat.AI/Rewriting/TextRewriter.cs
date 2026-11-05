@@ -33,7 +33,7 @@ public interface ITextRewriter
 /// No model can run the AI step.
 public sealed class TextRewriterException : Exception
 {
-    public const string NoModelMessage = "Für diesen Modus braucht Diktat einen Modell-Anbieter: einen API-Key oder einen lokalen Server wie Ollama in den Einstellungen.";
+    public static string NoModelMessage => L.T("Für diesen Modus braucht Diktat einen Modell-Anbieter: einen API-Key oder einen lokalen Server wie Ollama in den Einstellungen.");
 
     public TextRewriterException() : base(NoModelMessage) { }
 }

@@ -6,6 +6,7 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:l="clr-namespace:Diktat.Windows.Views"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:v="clr-namespace:Diktat.Windows.Views">
 
@@ -195,7 +196,7 @@
         <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Padding" Value="6,1"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="ToolTip" Value="Neu und noch in Erprobung. Rückmeldungen gern über „Feedback senden“."/>
+        <Setter Property="ToolTip" Value="{l:T 'Neu und noch in Erprobung. Rückmeldungen gern über „Feedback senden“.'}"/>
     </Style>
 
     <!-- A settings section: neutral title above a card -->
@@ -608,7 +609,7 @@
         <Grid Background="Transparent">
             <Border x:Name="Bd" CornerRadius="8" Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
-            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10" Margin="0,0,11,0"
+            <TextBlock Text="&#59149;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10" Margin="0,0,11,0"
                        HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource Diktat.TextSecondary}"/>
         </Grid>
         <ControlTemplate.Triggers>
@@ -978,7 +979,7 @@
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
                                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                                        <TextBlock x:Name="Chevron" Text="&#xE76C;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10"
+                                        <TextBlock x:Name="Chevron" Text="&#59244;" FontFamily="{StaticResource Diktat.IconFont}" FontSize="10"
                                                    VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource Diktat.TextSecondary}"/>
                                         <ContentPresenter VerticalAlignment="Center"/>
                                     </StackPanel>
