@@ -90,8 +90,14 @@ internal static class SmokeTest
             foreach (var language in new[] { UiLanguage.German, UiLanguage.English })
             {
                 L.Use(language);
-                if (language == UiLanguage.English && L.T("Verlauf") != "History")
-                    throw new InvalidOperationException("The English texts were not loaded.");
+                if (language == UiLanguage.English)
+                {
+                    if (L.T("Verlauf") != "History") throw new InvalidOperationException("The English texts were not loaded.");
+                    // The theme read its texts (tooltips in styles) at startup in German; the app
+                    // itself sets the language before that.
+                    System.Windows.Application.Current.Resources.MergedDictionaries.Add(
+                        new ResourceDictionary { Source = new Uri(ThemeManager.ThemeUri, UriKind.Absolute) });
+                }
                 await Step(report, $"MainWindow ({language})", async () =>
                 {
                     var window = OffScreen(new MainWindow(diktat));
@@ -127,6 +133,8 @@ internal static class SmokeTest
                 });
             }
             L.Use(UiLanguage.German);
+            if (Missed.Count > 0)
+                throw new InvalidOperationException("German texts in English: " + string.Join(" | ", Missed));
 
             await Step(report, "RecordingPillWindow", async () =>
             {
@@ -164,13 +172,15 @@ internal static class SmokeTest
     }
 
     /// In English, every text on screen that is a German text with an English version is a miss.
+    private static readonly SortedSet<string> Missed = new(StringComparer.Ordinal);
+
+    /// Collects the misses of all windows, so one run lists them all.
     private static void CheckLanguage(DependencyObject root, string where)
     {
         if (L.Current != UiLanguage.English) return;
         var missed = new SortedSet<string>(StringComparer.Ordinal);
         Visit(root, missed);
-        if (missed.Count > 0)
-            throw new InvalidOperationException($"German texts in English ({where}): " + string.Join(" | ", missed));
+        foreach (var text in missed) Missed.Add($"[{where}] {text}");
     }
 
     private static void Visit(DependencyObject node, SortedSet<string> missed)
