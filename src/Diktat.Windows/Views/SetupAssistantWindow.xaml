@@ -70,7 +70,7 @@
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '1. Mikrofon prüfen'}"/>
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '2. Sprachmodell laden, einmalig'}"/>
                             <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '3. Kurzbefehl ausprobieren'}"/>
-                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '4. Optional: KI-Anbieter für KI-Schreibstil, WTF und :-)'}"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T '4. KI-Modell laden für KI-Schreibstil, WTF und :-), einmalig'}"/>
                         </v:Stack>
                     </Border>
                 </v:Stack>
@@ -166,17 +166,43 @@
                                Text="{l:T 'Das Kürzel kannst du später unter Einstellungen, Allgemein ändern, auch auf „Umschalten“: einmal drücken zum Starten, nochmal zum Beenden.'}"/>
                 </v:Stack>
 
-                <!-- 5 KI-Anbieter -->
+                <!-- 5 KI-Modell -->
                 <v:Stack x:Name="AIStep" Spacing="16" Visibility="Collapsed">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{l:T 'KI-Anbieter'}" Style="{DynamicResource Diktat.TitleText}"/>
-                        <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="10,4,0,0" ToolTip="{x:Null}">
-                            <TextBlock Text="{l:T 'Optional'}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
-                        </Border>
-                    </StackPanel>
+                    <TextBlock Text="{l:T 'KI-Modell laden'}" Style="{DynamicResource Diktat.TitleText}"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
-                               Text="{l:T 'Wortgenaues Diktieren läuft ohne. KI-Schreibstil, WTF und :-) brauchen ein Sprachmodell: deinen eigenen API-Key oder Ollama bzw. LM Studio auf diesem PC. Das geht auch später unter Einstellungen, KI-Anbieter.'}"/>
-                    <ContentControl x:Name="AIHost" Focusable="False"/>
+                               Text="{l:T 'Das KI-Modell überarbeitet deine Diktate: KI-Schreibstil, WTF, :-), die Glättung Mittel und Stark und die Meeting-Zusammenfassungen. Es läuft auf diesem PC, wird einmalig geladen und braucht danach kein Internet.'}"/>
+                    <Border Style="{DynamicResource Diktat.CardStyle}">
+                        <v:Stack Spacing="10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="LmName" FontWeight="SemiBold" FontSize="14.5"/>
+                                <TextBlock x:Name="LmSize" Foreground="{DynamicResource Diktat.TextTertiary}" Margin="8,0,0,0" VerticalAlignment="Bottom"/>
+                            </StackPanel>
+                            <TextBlock x:Name="LmDetail" Style="{DynamicResource Diktat.CaptionText}"/>
+                            <TextBlock x:Name="LmMemory" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
+                            <StackPanel x:Name="LmProgressPanel" Visibility="Collapsed">
+                                <ProgressBar x:Name="LmProgress" AutomationProperties.Name="{l:T 'KI-Modell wird geladen'}"/>
+                                <TextBlock x:Name="LmProgressText" Style="{DynamicResource Diktat.CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <TextBlock x:Name="LmError" Style="{DynamicResource Diktat.ErrorTextStyle}" Visibility="Collapsed"/>
+                            <StackPanel x:Name="LmInstalled" Orientation="Horizontal" Visibility="Collapsed">
+                                <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#xE73E;" Foreground="{DynamicResource Diktat.SuccessText}" Margin="0,0,8,0"/>
+                                <TextBlock x:Name="LmInstalledText" Style="{DynamicResource Diktat.SuccessTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="LmDownloadButton" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnDownloadLanguageModel" Margin="0,0,8,0"/>
+                                <Button x:Name="LmCancelButton" Content="{l:T 'Abbrechen'}" Click="OnCancelLanguageModel" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </v:Stack>
+                    </Border>
+                    <TextBlock x:Name="LmRunningHint" Style="{DynamicResource Diktat.SmallText}" Visibility="Collapsed"
+                               Text="{l:T 'Du kannst schon weiter. Der Download läuft im Hintergrund fertig, auch wenn du den Assistenten schließt.'}"/>
+                    <TextBlock x:Name="LmNeeded" Style="{DynamicResource Diktat.SmallText}" Visibility="Collapsed"
+                               Text="{l:T 'Lade das KI-Modell oder richte unten einen eigenen Anbieter ein, dann geht es weiter.'}"/>
+                    <TextBlock x:Name="LmBigger" Style="{DynamicResource Diktat.SmallText}" Visibility="Collapsed"
+                               Text="{l:T 'Gründlicher ist Gemma 4 E4B (5,2 GB). Du findest es später unter Einstellungen, Modelle.'}"/>
+                    <Button x:Name="ProviderToggle" Style="{DynamicResource Diktat.SubtleButton}" HorizontalAlignment="Left" Click="OnToggleProvider"
+                            Content="{l:T 'Lieber eigenen Anbieter oder Ollama verwenden'}"/>
+                    <ContentControl x:Name="AIHost" Focusable="False" Visibility="Collapsed"/>
                 </v:Stack>
 
                 <!-- 6 Fertig -->
@@ -184,6 +210,9 @@
                     <TextBlock Text="{l:T 'Fertig'}" Style="{DynamicResource Diktat.TitleText}" FontSize="30"/>
                     <TextBlock Style="{DynamicResource Diktat.BodyText}"
                                Text="{l:T 'Diktat wartet unsichtbar im Infobereich der Taskleiste. Ein Klick auf das Symbol zeigt die Modi, den letzten Text und den Verlauf.'}"/>
+                    <Border x:Name="DoneLoading" Style="{DynamicResource Diktat.Notice}" Visibility="Collapsed">
+                        <TextBlock x:Name="DoneLoadingText" TextWrapping="Wrap"/>
+                    </Border>
                     <Border Style="{DynamicResource Diktat.CardStyle}">
                         <ItemsControl x:Name="DoneModes" Focusable="False">
                             <ItemsControl.ItemTemplate>

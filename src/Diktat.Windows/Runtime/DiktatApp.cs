@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Diktat.AI.Meetings;
 using Diktat.AI.Updates;
 using Diktat.Core.Settings;
+using Diktat.Transcription.Models;
 using Diktat.Windows.Pill;
 using Diktat.Windows.Platform;
 using Diktat.Windows.Tray;
@@ -42,7 +43,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         Dictation = new DictationController(services, _hotkeys, _paste, _foreground, Windows.IsContentWindow,
             () => _meeting?.RecordsSystemAudio == true);
         Dictation.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName);
-        Dictation.ModeUnavailable += (_, _) => ShowTrayPanel();
+        Dictation.ModeUnavailable += (_, mode) => OnModeUnavailable(mode);
 
         _hotkeys.Pressed += (_, mode) => Dictation.OnShortcutPressed(mode);
         _hotkeys.Released += (_, mode) => Dictation.OnShortcutReleased(mode);
@@ -71,10 +72,46 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         _updates.Start();
         MeetingAudio.DeleteOrphans(Services.Meetings.Meetings.Where(m => m.Status == MeetingStatus.Pending).Select(m => m.Id));
         WarmUp();
+        OfferLanguageModel();
         if (!_hotkeysRunning)
         {
             _tray.ShowBalloon(L.T("Tastenkürzel nicht verfügbar"),
                 L.T("Windows hat die Tastenkürzel nicht zugelassen. Diktat lässt sich über das Symbol in der Taskleiste starten."), null);
+        }
+    }
+
+    /// A shortcut started a mode that cannot run. An AI mode without a language model gets a
+    /// way to the model settings; anything else opens the tray panel, which says why.
+    private void OnModeUnavailable(WorkflowType mode)
+    {
+        if (mode.UsesLanguageModel() && Services.Transcription.HasModel)
+        {
+            _tray?.ShowBalloon(L.T("KI-Modell fehlt"),
+                L.T("Für diesen Modus braucht Diktat ein KI-Modell. Klicken öffnet Einstellungen, Modelle."), () => ShowMainWindow("settings/models"));
+            return;
+        }
+        ShowTrayPanel();
+    }
+
+    /// Once, for people who set up Diktat before it had a built-in AI model: a hint that it exists.
+    /// New users load it in the setup assistant.
+    private void OfferLanguageModel()
+    {
+        var app = Services.Settings.App;
+        if (!app.HasSeenOnboarding || app.LanguageModelHintShown) return;
+        try
+        {
+            var needed = Services.LanguageModel is null && !Services.AIProviders.IsConfigured
+                && ModelCatalog.GemmaE2B.MemoryProblem(Views.ViewModels.ModelsViewModel.InstalledMemoryGB) is null;
+            app.LanguageModelHintShown = true;
+            Services.SaveSettings();
+            if (!needed) return;
+            _tray?.ShowBalloon(L.T("Neu: KI-Modell auf diesem PC"),
+                L.T("KI-Schreibstil, WTF und :-) laufen jetzt ohne Internet und ohne API-Key. Klicken richtet es ein."), () => ShowMainWindow("settings/models"));
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Offering the language model failed", ex);
         }
     }
 

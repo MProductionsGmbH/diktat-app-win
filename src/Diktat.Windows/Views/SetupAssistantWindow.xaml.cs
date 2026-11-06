@@ -24,18 +24,20 @@ public sealed class SetupStep : ObservableObject
     public string AutomationName => IsCurrent ? L.F("{0}, aktueller Schritt", Title) : IsDone ? L.F("{0}, erledigt", Title) : Title;
 }
 
-/// The first-run assistant: Willkommen, Mikrofon, Sprachmodell, Kurzbefehl, KI-Anbieter, Fertig.
+/// The first-run assistant: Willkommen, Mikrofon, Sprachmodell, Kurzbefehl, KI-Modell, Fertig.
 public partial class SetupAssistantWindow : Window
 {
     private readonly IDiktatApp _app;
     private readonly List<SetupStep> _steps =
     [
-        new(L.T("Willkommen")), new(L.T("Mikrofon")), new(L.T("Sprachmodell")), new(L.T("Kurzbefehl")), new(L.T("KI-Anbieter")), new(L.T("Fertig")),
+        new(L.T("Willkommen")), new(L.T("Mikrofon")), new(L.T("Sprachmodell")), new(L.T("Kurzbefehl")), new(L.T("KI-Modell")), new(L.T("Fertig")),
     ];
     private readonly FrameworkElement[] _pages;
     private int _index;
     private ModelDownload? _download;
+    private ModelDownload? _lmDownload;
     private AIProviderSection? _aiSection;
+    private bool _watchingProviders;
     private string? _textBeforeTry;
     private bool _trySucceeded;
     private bool _loadingMic;
@@ -55,6 +57,7 @@ public partial class SetupAssistantWindow : Window
             _app.PropertyChanged -= OnAppChanged;
             ModelDownloads.Changed -= OnDownloadsChanged;
             AttachDownload(null);
+            AttachLanguageModelDownload(null);
             _aiSection?.OnHidden();
         };
         ShowStep(0);
@@ -64,7 +67,10 @@ public partial class SetupAssistantWindow : Window
 
     // --- Navigation -------------------------------------------------------------------
 
-    private void ShowStep(int index)
+    internal int StepCount => _pages.Length;
+
+    /// Also used by the smoke test, which walks every step.
+    internal void ShowStep(int index)
     {
         if (_index == 4 && index != 4) _aiSection?.OnHidden();
         _index = Math.Clamp(index, 0, _pages.Length - 1);
@@ -100,8 +106,10 @@ public partial class SetupAssistantWindow : Window
     {
         if (_index == 2 && !ModelIsInstalled() && _download is null) NextButton.Content = L.T("Überspringen");
         else if (_index == 3 && !_trySucceeded) NextButton.Content = L.T("Überspringen");
-        else if (_index == 4 && !_app.Services.AIProviders.IsConfigured) NextButton.Content = L.T("Ohne KI weiter");
+        else if (_index == 4 && LanguageModelStepState() == LmState.TooLittleMemory) NextButton.Content = L.T("Ohne KI-Modell weiter");
         else NextButton.Content = _index switch { 0 => L.T("Los geht's"), 5 => L.T("Fertig"), _ => L.T("Weiter") };
+        // The AI step is not optional: on, once the model loads or another language model is set up.
+        NextButton.IsEnabled = _index != 4 || LanguageModelStepState() != LmState.Missing;
     }
 
     private void OnNext(object sender, RoutedEventArgs e)
@@ -280,6 +288,7 @@ public partial class SetupAssistantWindow : Window
     private void OnDownloadsChanged(object? sender, ModelDownload download)
     {
         if (_index == 2) Ui.Post(UpdateModel);
+        if (_index == 4) Ui.Post(UpdateLanguageModel);
     }
 
     // --- Try the shortcut -------------------------------------------------------------
@@ -328,26 +337,142 @@ public partial class SetupAssistantWindow : Window
         TryStatus.SetResourceReference(StyleProperty, _app.Phase == DictationPhase.Error ? "Diktat.ErrorNotice" : "Diktat.Notice");
     }
 
-    // --- AI provider ------------------------------------------------------------------
+    // --- AI model -------------------------------------------------------------------
+
+    private enum LmState { Ready, Missing, TooLittleMemory }
+
+    /// The model the step offers: the one picked in the settings, else the recommended one.
+    private ModelInfo OfferedLanguageModel =>
+        ModelCatalog.Find(A.LanguageModel) is { IsLanguageModel: true } picked ? picked : ModelCatalog.GemmaE2B;
+
+    private bool LanguageModelIsInstalled()
+    {
+        try { return _app.Services.LanguageModel is not null; }
+        catch { return false; }
+    }
+
+    /// Ready: a model is installed or loading, or a provider or local server is set up.
+    private LmState LanguageModelStepState()
+    {
+        if (LanguageModelIsInstalled() || _lmDownload is { IsRunning: true } || _app.Services.AIProviders.IsConfigured) return LmState.Ready;
+        return OfferedLanguageModel.MemoryProblem(ModelsViewModel.InstalledMemoryGB) is null ? LmState.Missing : LmState.TooLittleMemory;
+    }
 
     private void PrepareAI()
+    {
+        if (!_watchingProviders)
+        {
+            _watchingProviders = true;
+            _app.Services.AIProviders.Changed += OnProviderChanged;
+            Closed += (_, _) => _app.Services.AIProviders.Changed -= OnProviderChanged;
+        }
+        // Someone who already uses a provider sees it right away.
+        if (_app.Services.AIProviders.IsConfigured && !LanguageModelIsInstalled()) ShowProvider();
+        else if (AIHost.Visibility == Visibility.Visible) _aiSection?.OnShown();
+        UpdateLanguageModel();
+    }
+
+    private void UpdateLanguageModel()
+    {
+        var model = OfferedLanguageModel;
+        AttachLanguageModelDownload(ModelDownloads.Find(model.Id));
+        var installedModel = _app.Services.LanguageModel;
+        var installed = installedModel is not null;
+        var shown = installedModel ?? model;
+        var name = Ui.ShortModelName(shown);
+        var memoryGB = ModelsViewModel.InstalledMemoryGB;
+        var memoryProblem = installed ? null : model.MemoryProblem(memoryGB);
+        var running = _lmDownload is { IsRunning: true };
+
+        LmName.Text = shown.DisplayName;
+        LmSize.Text = shown.SizeLabel;
+        LmDetail.Text = installed
+            ? shown.Description
+            : L.F("{0}, {1}, einmalig. {2}", name, model.SizeLabel, model.Description);
+        LmMemory.Text = memoryProblem is null ? "" : memoryProblem + " " + L.T("Die KI-Modi gehen dann nur mit einem eigenen Anbieter oder Ollama.");
+        LmMemory.Visibility = memoryProblem is null ? Visibility.Collapsed : Visibility.Visible;
+        LmInstalled.Visibility = installed ? Visibility.Visible : Visibility.Collapsed;
+        LmInstalledText.Text = L.F("{0} ist installiert.", name);
+        LmProgressPanel.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        LmProgress.Value = _lmDownload?.Progress ?? 0;
+        LmProgressText.Text = _lmDownload?.StatusText ?? "";
+        LmDownloadButton.Content = L.F("{0} laden", name);
+        LmDownloadButton.Visibility = !installed && !running && memoryProblem is null ? Visibility.Visible : Visibility.Collapsed;
+        LmCancelButton.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        LmRunningHint.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        LmNeeded.Visibility = LanguageModelStepState() == LmState.Missing ? Visibility.Visible : Visibility.Collapsed;
+        LmBigger.Visibility = !installed && model.Id == ModelCatalog.GemmaE2B.Id && ModelCatalog.GemmaE4B.MemoryProblem(memoryGB) is null && memoryGB > 0
+            ? Visibility.Visible : Visibility.Collapsed;
+        UpdateNextLabel();
+    }
+
+    private void OnDownloadLanguageModel(object sender, RoutedEventArgs e)
+    {
+        LmError.Visibility = Visibility.Collapsed;
+        AttachLanguageModelDownload(ModelDownloads.Start(_app.Services, OfferedLanguageModel));
+        UpdateLanguageModel();
+    }
+
+    private void OnCancelLanguageModel(object sender, RoutedEventArgs e) => _lmDownload?.Cancel();
+
+    private void AttachLanguageModelDownload(ModelDownload? download)
+    {
+        if (ReferenceEquals(download, _lmDownload)) return;
+        if (_lmDownload is not null) _lmDownload.Changed -= OnLanguageModelDownloadChanged;
+        _lmDownload = download;
+        if (_lmDownload is not null) _lmDownload.Changed += OnLanguageModelDownloadChanged;
+    }
+
+    private void OnLanguageModelDownloadChanged(object? sender, EventArgs e)
+    {
+        if (sender is ModelDownload { IsRunning: false } finished)
+        {
+            AttachLanguageModelDownload(null);
+            if (finished.Error is { } error)
+            {
+                LmError.Text = error;
+                LmError.Visibility = Visibility.Visible;
+            }
+        }
+        if (_index == 4) UpdateLanguageModel();
+    }
+
+    private void OnToggleProvider(object sender, RoutedEventArgs e)
+    {
+        if (AIHost.Visibility == Visibility.Visible)
+        {
+            AIHost.Visibility = Visibility.Collapsed;
+            _aiSection?.OnHidden();
+        }
+        else
+        {
+            ShowProvider();
+        }
+    }
+
+    private void ShowProvider()
     {
         if (_aiSection is null)
         {
             _aiSection = new AIProviderSection(_app);
             AIHost.Content = _aiSection;
-            _app.Services.AIProviders.Changed += OnProviderChanged;
-            Closed += (_, _) => _app.Services.AIProviders.Changed -= OnProviderChanged;
         }
+        AIHost.Visibility = Visibility.Visible;
         _aiSection.OnShown();
     }
 
-    private void OnProviderChanged(object? sender, EventArgs e) => Ui.Post(UpdateNextLabel);
+    private void OnProviderChanged(object? sender, EventArgs e) => Ui.Post(() =>
+    {
+        if (_index == 4) UpdateLanguageModel();
+    });
 
     // --- Done -------------------------------------------------------------------------
 
     private void PrepareDone()
     {
         DoneModes.ItemsSource = WorkflowTypeInfo.MainMenuCases.Select(m => new ModeRowViewModel(_app, m)).ToList();
+        var loading = ModelDownloads.Find(SelectedModel.Id) is not null || ModelDownloads.Find(OfferedLanguageModel.Id) is not null;
+        DoneLoading.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
+        DoneLoadingText.Text = L.T("Ein Modell wird noch geladen. Die Modi, die es brauchen, gehen, sobald der Download fertig ist.");
     }
 }

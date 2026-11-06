@@ -36,7 +36,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock x:Name="AiNote" Style="{DynamicResource Diktat.CaptionText}" Foreground="{DynamicResource Diktat.ErrorText}" Visibility="Collapsed"
-                           Text="{l:T 'KI-Modi brauchen einen Modell-Anbieter (KI-Anbieter). Bis dahin diktiert Diktat dort wortgenau.'}"/>
+                           Text="{l:T 'KI-Modi brauchen ein KI-Modell (Einstellungen, Modelle) oder einen Modell-Anbieter. Bis dahin diktiert Diktat dort wortgenau.'}"/>
             </v:Stack>
         </HeaderedContentControl>
 

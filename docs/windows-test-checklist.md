@@ -6,6 +6,8 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 
 - [ ] `Diktat-Setup.exe` installs without admin rights; SmartScreen "Weitere Informationen › Trotzdem ausführen".
 - [ ] The setup assistant opens, asks for the microphone, downloads Parakeet (about 670 MB) and the practice step detects a dictation.
+- [ ] Step "KI-Modell": "Weiter" stays off until Gemma 4 E2B (3.3 GB) is downloading or a provider is set up; the download finishes after the assistant closes, and WTF then works without internet.
+- [ ] Updating from 0.2.0 without an AI model: one tray hint at start, a click opens Einstellungen › Modelle; it does not come again.
 - [ ] Autostart: after signing out and in, Diktat is in the tray without a window.
 
 ## Dictation

@@ -96,7 +96,7 @@ public partial class AppRulesSection : UserControl, IMainPage
             }));
             Rules.ItemsSource = items;
             EmptyText.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            AiNote.Visibility = items.Any(i => i.Mode.UsesLanguageModel()) && !_app.Services.AIProviders.IsConfigured
+            AiNote.Visibility = items.Any(i => i.Mode.UsesLanguageModel()) && !_app.Services.Rewriter.CanRewrite(A.RewriteEngine)
                 ? Visibility.Visible : Visibility.Collapsed;
         }
         finally

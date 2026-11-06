@@ -217,6 +217,8 @@ public sealed class AppSettings
     [JsonPropertyName("windowsTranscriptionModel")] public string TranscriptionModel { get; set; } = "parakeet-tdt-0.6b-v3";
     /// Id of the built-in language model (Gemma 4 variant), see ModelCatalog.LanguageModels.
     [JsonPropertyName("windowsLanguageModel")] public string? LanguageModel { get; set; }
+    /// The one-time tray hint that Diktat now has a built-in AI model was shown (or not needed).
+    [JsonPropertyName("windowsLanguageModelHintShown")] public bool LanguageModelHintShown { get; set; }
     /// Shortcuts per mode (keyed by the JSON name of the mode). Missing entries use the defaults.
     [JsonPropertyName("windowsHotkeys")] public Dictionary<string, KeyCombo> Hotkeys { get; set; } = new();
     [JsonPropertyName("restoreClipboardAfterPaste")] public bool RestoreClipboardAfterPaste { get; set; } = true;

@@ -122,8 +122,12 @@ internal static class SmokeTest
                 {
                     var window = OffScreen(new SetupAssistantWindow(diktat));
                     window.Show();
-                    await Settle();
-                    CheckLanguage(window, "setup");
+                    for (int step = 0; step < window.StepCount; step++)
+                    {
+                        window.ShowStep(step);
+                        await Settle();
+                        CheckLanguage(window, $"setup step {step + 1}");
+                    }
                     window.Close();
                     return true;
                 });

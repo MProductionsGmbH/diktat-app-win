@@ -17,6 +17,19 @@ revision with a SHA-256 checksum (`ModelCatalog.GemmaE2B`, `GemmaE4B`):
 The download resumes after a broken connection, like the speech models. Without a model the app
 works as before (a provider or Ollama for the AI modes).
 
+## Setup
+
+The setup assistant has a step "KI-Modell" after the practice step. It offers the recommended model
+(E2B, or the one picked in the settings) with a download button, and only goes on once the model is
+installed or downloading, or a provider or local server is set up ("Lieber eigenen Anbieter oder
+Ollama verwenden" opens the provider settings). A PC with less memory than the model needs gets
+"Ohne KI-Modell weiter". The download keeps running after the assistant closes.
+
+People who set up Diktat before 0.2.1 never see that step. Once, at start, they get a tray hint
+that opens Einstellungen › Modelle when no model and no provider is set up
+(`windowsLanguageModelHintShown`). An AI mode started by shortcut without any language model shows
+a tray hint with the same link.
+
 ## What uses it
 
 - KI-Schreibstil, WTF, :-) and the cleanup levels Mittel and Stark (`TextRewriter`).
