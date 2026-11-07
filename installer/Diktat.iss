@@ -52,3 +52,16 @@ Filename: "{app}\Diktat.exe"; Description: "{cm:LaunchProgram,Diktat}"; Flags: n
 
 [UninstallRun]
 Filename: "taskkill"; Parameters: "/IM Diktat.exe /F"; Flags: runhidden; RunOnceId: "KillDiktat"
+
+[Code]
+// A running Diktat holds Diktat.exe, so an update could not replace it ("DeleteFile failed; code 5").
+// CloseApplications does not reliably reach Diktat in the tray, so end it before any file is copied.
+// The [Run] entry starts the new version afterwards.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  if Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM Diktat.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then
+    Sleep(1500);
+  Result := '';
+end;

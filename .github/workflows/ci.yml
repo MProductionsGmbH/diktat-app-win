@@ -71,6 +71,46 @@ jobs:
           name: Diktat-win-x64
           path: publish/win-x64
 
+      # Builds the installer like the release does, installs it, starts Diktat and installs again on top.
+      # The second run must replace Diktat.exe although Diktat is running (it once failed with "DeleteFile failed; code 5").
+      # /NOCLOSEAPPLICATIONS leaves the Restart Manager out, so the installer's own step has to end Diktat.
+      - name: Installer (update while Diktat runs)
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc /DAppVersion=0.0.0 /DSourceDir=..\publish\win-x64 installer\Diktat.iss
+          if ($LASTEXITCODE -ne 0) { Write-Output "::error title=Installer::ISCC failed"; exit 1 }
+          $setup = (Resolve-Path installer\Output\Diktat-Setup.exe).Path
+          $exe = "$env:LOCALAPPDATA\Programs\Diktat\Diktat.exe"
+
+          function Install($log, [string[]]$extra) {
+            $argList = @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/LOG=$log") + $extra
+            $p = Start-Process $setup -ArgumentList $argList -PassThru
+            if (-not $p.WaitForExit(300000)) { $p.Kill(); Write-Output "::error title=Installer::$log timed out"; exit 1 }
+            Get-Content $log -ErrorAction SilentlyContinue | Select-Object -Last 40
+            if ($p.ExitCode -ne 0) { Write-Output "::error title=Installer::$log ended with exit code $($p.ExitCode)"; exit 1 }
+          }
+
+          Install "install-first.log" @()
+          if (-not (Test-Path $exe)) { Write-Output "::error title=Installer::Diktat.exe was not installed"; exit 1 }
+
+          $app = Start-Process $exe -ArgumentList "--background" -PassThru
+          Start-Sleep 15
+          if ($app.HasExited) { Write-Output "::error title=Installer::Diktat did not keep running (exit $($app.ExitCode))"; exit 1 }
+
+          Install "install-update.log" @("/NOCLOSEAPPLICATIONS")
+          if (-not $app.HasExited) { $app.Kill(); Write-Output "::error title=Installer::the update did not end the running Diktat"; exit 1 }
+          Write-Output "Update over a running Diktat worked."
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Diktat-Setup
+          path: installer/Output/Diktat-Setup.exe
+
   build-crossplatform:
     name: Core tests (Linux)
     runs-on: ubuntu-latest
