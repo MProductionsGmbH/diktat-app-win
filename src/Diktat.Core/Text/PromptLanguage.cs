@@ -14,6 +14,11 @@ public static class PromptLanguages
     /// The code the filler-word list and the sentence tokenizer know.
     public static string Code(this PromptLanguage language) => language == PromptLanguage.German ? "de" : "en";
 
+    /// The language whose hesitation sounds may be removed from a text: "en" only when the text
+    /// clearly is English, otherwise "de" (the sounds every language shares). Treating any text
+    /// that is not German as English removed the German "um" from "Call with the team um 10".
+    public static string FillerLanguageCode(string text) => LanguageGuesser.IsClearlyEnglish(text) ? "en" : "de";
+
     /// German, or too little text to tell: German is the language the prompts were written in.
     public static PromptLanguage Detect(string text) =>
         LanguageGuesser.IsGermanOrUnknown(text) ? PromptLanguage.German : PromptLanguage.English;

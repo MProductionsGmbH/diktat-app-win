@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Diktat.Core.Text;
 
 /// Tells German from other languages by common short words, as a stand-in for the language
@@ -52,6 +54,20 @@ public static class LanguageGuesser
         var (german, english) = Count(text);
         return english >= 1 && english > german;
     }
+
+    /// True only for text that clearly is English: at least two English-only words and three
+    /// times as many as German-only ones. Decides whether English hesitation sounds ("um") may
+    /// go: a short German sentence with English words ("Call with the team um 10") keeps its
+    /// preposition. An "um" right before a comma ("I, um, think") is a hesitation and counts for
+    /// no language; any other "um" counts as German.
+    public static bool IsClearlyEnglish(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || HasGermanLetters(text)) return false;
+        var (german, english) = Count(HesitationBeforeComma.Replace(text, " "));
+        return english >= 2 && english >= 3 * german;
+    }
+
+    private static readonly Regex HesitationBeforeComma = new(@"\b[Uu]+[Mm]+(?=,)", RegexOptions.CultureInvariant);
 
     private static bool HasGermanLetters(string text) => text.IndexOfAny(['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü']) >= 0;
 

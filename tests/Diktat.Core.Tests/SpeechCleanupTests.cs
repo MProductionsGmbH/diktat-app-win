@@ -129,4 +129,49 @@ public class EnglishDictationTests
         Assert.False(LanguageGuesser.IsLikelyEnglish("Wichtiger Punkt "));
         Assert.False(LanguageGuesser.IsLikelyEnglish(" "));
     }
+
+    // "um" is a German word
+
+    /// German sentences with a few English words used to count as English, where "um" is a
+    /// hesitation sound.
+    [Theory]
+    [InlineData("Zoom Call um 9")]
+    [InlineData("Call um 3.")]
+    [InlineData("Lunch um 12?")]
+    [InlineData("Okay, um 5.")]
+    [InlineData("Team Call um 10, danach Lunch.")]
+    [InlineData("Call with the team um 10.")]
+    [InlineData("Meeting with you um 3.")]
+    public void GermanUmStaysInMixedSentences(string text)
+    {
+        var processor = new TranscriptPostProcessor { CorrectCustomTerms = false, RemoveFillerWords = true };
+        Assert.Equal(text, processor.Process(text));
+    }
+
+    [Fact]
+    public void FillerLanguageNeedsClearEnglish()
+    {
+        Assert.Equal("en", PromptLanguages.FillerLanguageCode("Well, um, that is a good question and I will look into it."));
+        Assert.Equal("en", PromptLanguages.FillerLanguageCode("I, um, think so."));
+        Assert.Equal("de", PromptLanguages.FillerLanguageCode("Zoom Call um 9"));
+        Assert.Equal("de", PromptLanguages.FillerLanguageCode("Call with the team um 10."));
+        Assert.Equal("de", PromptLanguages.FillerLanguageCode("Eu tenho um carro"));
+        Assert.Equal("de", PromptLanguages.FillerLanguageCode("Wir treffen uns um drei."));
+    }
+
+    [Fact]
+    public void ClearEnglishLosesItsHesitations()
+    {
+        var processor = new TranscriptPostProcessor { CorrectCustomTerms = false, RemoveFillerWords = true };
+        Assert.Equal("I, think so.", processor.Process("I, um, think so."));
+        var text = processor.Process("Um, so, um, I was, um, thinking that we, um, could meet.");
+        Assert.DoesNotContain("um", text.Split(' ', ',', '.'), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void OtherLanguagesKeepTheirUm()
+    {
+        var processor = new TranscriptPostProcessor { CorrectCustomTerms = false, RemoveFillerWords = true };
+        Assert.Equal("Eu tenho um carro.", processor.Process("Eu tenho um carro."));
+    }
 }

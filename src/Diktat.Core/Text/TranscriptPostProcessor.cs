@@ -49,7 +49,7 @@ public sealed class TranscriptPostProcessor
         var result = text;
         if (RemoveFillerWords)
         {
-            var language = Language == "auto" ? PromptLanguages.Detect(result).Code() : Language;
+            var language = Language == "auto" ? PromptLanguages.FillerLanguageCode(result) : Language;
             result = RemoveFillers(result, language);
         }
         // Fixed rules first, so the fuzzy matcher sees the intended spelling.
