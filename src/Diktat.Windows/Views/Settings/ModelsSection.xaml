@@ -96,6 +96,13 @@
                               SelectedValue="{Binding Language}" AutomationProperties.Name="{l:T 'Diktiersprache'}"/>
                 </Grid>
                 <TextBlock Text="{Binding LanguageNote}" Style="{DynamicResource Diktat.CaptionText}"/>
+                <CheckBox IsChecked="{Binding SwissSpelling}" Margin="0,4,0,0">
+                    <StackPanel>
+                        <TextBlock Text="{l:T 'Schweizer Schreibweise'}" FontWeight="SemiBold"/>
+                        <TextBlock Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"
+                                   Text="{l:T 'Schreibt ss statt ß, zum Beispiel „Strasse“ und „gross“: in Diktaten, in den Texten der KI-Modi und in Meetings.'}"/>
+                    </StackPanel>
+                </CheckBox>
             </v:Stack>
         </HeaderedContentControl>
 

@@ -193,6 +193,19 @@ public sealed class ModelsViewModel : ObservableObject
         _ => L.T("Mit Whisper hört Diktat nur auf diese Sprache. Parakeet erkennt die Sprache immer selbst."),
     };
 
+    /// "ss" instead of the sharp s in dictations, the AI modes and meetings.
+    public bool SwissSpelling
+    {
+        get => _app.Services.Settings.App.SwissSpelling;
+        set
+        {
+            if (_app.Services.Settings.App.SwissSpelling == value) return;
+            _app.Services.Settings.App.SwissSpelling = value;
+            _app.Services.SaveSettings();
+            OnPropertyChanged();
+        }
+    }
+
     public string InstalledSummary
     {
         get

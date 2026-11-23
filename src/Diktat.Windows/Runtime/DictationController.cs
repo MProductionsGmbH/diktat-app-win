@@ -440,6 +440,8 @@ public sealed class DictationController : ObservableObject, IDisposable
                 if (_session != session) return;
                 text = TranscriptionQualityService.CleanedTranscript(rewritten);
             }
+            // The AI modes and the polish write on their own; the Swiss spelling applies to them as well.
+            text = SwissSpelling.IfEnabled(text, settings.App.SwissSpelling);
             if (text.Length == 0)
             {
                 Fail(session, DictationRules.NothingRecognized);

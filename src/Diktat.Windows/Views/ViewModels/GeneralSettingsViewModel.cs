@@ -76,7 +76,8 @@ public sealed class GeneralSettingsViewModel : ObservableObject
     }
 
     /// The chosen language differs from the one the texts are shown in: it applies after a restart.
-    public bool AppLanguageNeedsRestart => L.Resolve(A.AppLanguage) != L.Current;
+    public bool AppLanguageNeedsRestart =>
+        L.Resolve(A.AppLanguage) != L.Current || L.UsesSwissSpelling(A.AppLanguage) != L.SwissSpelling;
 
     public void Restart()
     {

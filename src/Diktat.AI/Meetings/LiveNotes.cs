@@ -227,7 +227,7 @@ public sealed class LiveNotes
             var answer = await backend.Complete(german ? CatchUpInstruction : EnglishCatchUpInstruction, text, cancellationToken)
                 .ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
-            CatchUp = answer;
+            CatchUp = Diktat.Core.Text.SwissSpelling.IfEnabled(answer);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

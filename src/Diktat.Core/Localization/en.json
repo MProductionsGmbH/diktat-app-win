@@ -728,5 +728,12 @@
   "Lieber eigenen Anbieter oder Ollama verwenden": "Use my own provider or Ollama instead",
   "Neu: KI-Modell auf diesem PC": "New: AI model on this PC",
   "Ohne KI-Modell weiter": "Continue without AI model",
-  "{0}, {1}, einmalig. {2}": "{0}, {1}, once. {2}"
+  "{0}, {1}, einmalig. {2}": "{0}, {1}, once. {2}",
+  "Whisper Large v3 Turbo (volle Genauigkeit)": "Whisper Large v3 Turbo (full precision)",
+  "Ohne Kompression: genauer, größer und langsamer.": "Uncompressed: more accurate, larger and slower.",
+  "Erkennt die Sprache selbst, rund 100 Sprachen. Kommt mit Mundart, etwa Schweizerdeutsch, klar besser zurecht als die stark komprimierte Fassung.": "Detects the language itself, about 100 languages. Copes clearly better with dialect, such as Swiss German, than the strongly compressed build.",
+  "Am genauesten, aber deutlich langsamer als die anderen Modelle.": "The most accurate, but clearly slower than the other models.",
+  "Erkennt die Sprache selbst, rund 100 Sprachen. Das genaueste Whisper, auch bei Mundart, dafür langsamer und größer.": "Detects the language itself, about 100 languages. The most accurate Whisper, also with dialect, but slower and larger.",
+  "Schweizer Schreibweise": "Swiss spelling",
+  "Schreibt ss statt ß, zum Beispiel „Strasse“ und „gross“: in Diktaten, in den Texten der KI-Modi und in Meetings.": "Writes ss instead of ß, for example “Strasse” and “gross”: in dictations, in the texts of the AI modes and in meetings."
 }

@@ -60,6 +60,26 @@ public class ModelCatalogTests
     }
 
     [Fact]
+    public void TheFullWhisperModelsAreOffered()
+    {
+        // The Mac's two extra choices since 0.1.16, as ggml files of whisper.cpp.
+        var turbo = ModelCatalog.TranscriptionModelOrDefault("whisper-large-v3-turbo");
+        var large = ModelCatalog.TranscriptionModelOrDefault("whisper-large-v3");
+        Assert.Equal(ModelCatalog.WhisperTurboFull, turbo);
+        Assert.Equal(ModelCatalog.WhisperLarge, large);
+        Assert.Equal("ggml-large-v3-turbo.bin", Assert.Single(turbo.Files).FileName);
+        Assert.Equal("ggml-large-v3.bin", Assert.Single(large.Files).FileName);
+        Assert.Equal("1,6 GB", turbo.SizeLabel);
+        Assert.Equal("3,1 GB", large.SizeLabel);
+        Assert.All([turbo, large], m => Assert.NotNull(m.Files[0].Sha256));
+        // Too big for a PC with little memory.
+        Assert.NotNull(turbo.MemoryProblem(4));
+        Assert.Null(turbo.MemoryProblem(8));
+        Assert.NotNull(large.MemoryProblem(8));
+        Assert.Null(large.MemoryProblem(16));
+    }
+
+    [Fact]
     public void WhisperModelsHaveOneFileAndParakeetHasItsFour()
     {
         Assert.All(ModelCatalog.All.Where(m => m.Engine == ModelEngine.Whisper), m => Assert.Single(m.Files));
