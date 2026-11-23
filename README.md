@@ -88,7 +88,7 @@ Diktat has no backend and collects no data.
 ## Requirements
 
 - Windows 10 (version 2004 or newer) or Windows 11, x64 or ARM64.
-- About 700 MB of disk space for the Parakeet model (Whisper Small 490 MB, Whisper Large v3 Turbo 570 to 870 MB).
+- About 700 MB of disk space for the Parakeet model (Whisper Small 490 MB, Whisper Large v3 Turbo 570 MB to 1.6 GB, Whisper Large v3 3.1 GB).
 - 8 GB of memory recommended.
 
 ## Build It Yourself

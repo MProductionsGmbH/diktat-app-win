@@ -92,6 +92,11 @@ internal static class ModelTexts
         "Klein und schnell, etwas ungenauer." => L.T("Klein und schnell, etwas ungenauer."),
         "Genau und für viele Sprachen, langsamer als Parakeet." => L.T("Genau und für viele Sprachen, langsamer als Parakeet."),
         "Weniger stark komprimiert: minimal genauer, größer und langsamer." => L.T("Weniger stark komprimiert: minimal genauer, größer und langsamer."),
+        "Whisper Large v3 Turbo (volle Genauigkeit)" => L.T("Whisper Large v3 Turbo (volle Genauigkeit)"),
+        "Ohne Kompression: genauer, größer und langsamer." => L.T("Ohne Kompression: genauer, größer und langsamer."),
+        "Erkennt die Sprache selbst, rund 100 Sprachen. Kommt mit Mundart, etwa Schweizerdeutsch, klar besser zurecht als die stark komprimierte Fassung." => L.T("Erkennt die Sprache selbst, rund 100 Sprachen. Kommt mit Mundart, etwa Schweizerdeutsch, klar besser zurecht als die stark komprimierte Fassung."),
+        "Am genauesten, aber deutlich langsamer als die anderen Modelle." => L.T("Am genauesten, aber deutlich langsamer als die anderen Modelle."),
+        "Erkennt die Sprache selbst, rund 100 Sprachen. Das genaueste Whisper, auch bei Mundart, dafür langsamer und größer." => L.T("Erkennt die Sprache selbst, rund 100 Sprachen. Das genaueste Whisper, auch bei Mundart, dafür langsamer und größer."),
         "Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)." => L.T("Unterscheidet in Meetings die Stimmen (Person 1, Person 2, ...)."),
         "Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx." => L.T("Parakeet TDT 0.6B v3 von NVIDIA, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), via sherpa-onnx."),
         "pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx." => L.T("pyannote segmentation 3.0 (MIT) und WeSpeaker ResNet34 (Apache-2.0), via sherpa-onnx."),
@@ -112,6 +117,8 @@ public static class ModelCatalog
     public const string WhisperSmallId = "whisper-small";
     public const string WhisperTurboId = "whisper-large-v3-turbo-q5_0";
     public const string WhisperTurboQ8Id = "whisper-large-v3-turbo-q8_0";
+    public const string WhisperTurboFullId = "whisper-large-v3-turbo";
+    public const string WhisperLargeId = "whisper-large-v3";
     public const string SpeakerDiarizationId = "speaker-diarization";
     public const string GemmaE2BId = "gemma-4-e2b-it-q4_0";
     public const string GemmaE4BId = "gemma-4-e4b-it-q4_0";
@@ -173,6 +180,32 @@ public static class ModelCatalog
         [new("ggml-large-v3-turbo-q8_0.bin", WhisperBase + "ggml-large-v3-turbo-q8_0.bin", 874_188_075, "317eb69c11673c9de1e1f0d459b253999804ec71ac4c23c17ecf5fbe24e259a1")],
         PageUrl: "https://huggingface.co/ggerganov/whisper.cpp");
 
+    // The two models at full precision (like the Mac's choices in 0.1.16). The compression costs
+    // about a point on Standard German but far more on dialect: in the Mac app's comparison with
+    // a Swiss German recording the 4-bit turbo got eleven of eleven hard spots wrong, the full
+    // turbo three. Memory: whisper.cpp needs about 2 GB for the turbo and 3.9 GB for large-v3
+    // while it runs, plus Windows and the other apps.
+    public static readonly ModelInfo WhisperTurboFull = new(
+        WhisperTurboFullId,
+        "Whisper Large v3 Turbo (volle Genauigkeit)",
+        ModelEngine.Whisper,
+        "Erkennt die Sprache selbst, rund 100 Sprachen. Kommt mit Mundart, etwa Schweizerdeutsch, klar besser zurecht als die stark komprimierte Fassung.",
+        "Ohne Kompression: genauer, größer und langsamer.",
+        [new("ggml-large-v3-turbo.bin", WhisperBase + "ggml-large-v3-turbo.bin", 1_624_555_275, "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69")],
+        PageUrl: "https://huggingface.co/ggerganov/whisper.cpp",
+        MinimumMemoryGB: 8);
+
+    /// OpenAI's full large-v3: the most accurate Whisper, slower.
+    public static readonly ModelInfo WhisperLarge = new(
+        WhisperLargeId,
+        "Whisper Large v3",
+        ModelEngine.Whisper,
+        "Erkennt die Sprache selbst, rund 100 Sprachen. Das genaueste Whisper, auch bei Mundart, dafür langsamer und größer.",
+        "Am genauesten, aber deutlich langsamer als die anderen Modelle.",
+        [new("ggml-large-v3.bin", WhisperBase + "ggml-large-v3.bin", 3_095_033_483, "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2")],
+        PageUrl: "https://huggingface.co/ggerganov/whisper.cpp",
+        MinimumMemoryGB: 12);
+
     /// Optional package for meetings: pyannote segmentation 3.0 plus a WeSpeaker ResNet34
     /// speaker embedding (the embedding pyannote 3.0 itself was built with).
     public static readonly ModelInfo SpeakerDiarization = new(
@@ -219,7 +252,7 @@ public static class ModelCatalog
         MinimumMemoryGB: 16);
 
     /// Recommended first, then by size.
-    public static IReadOnlyList<ModelInfo> All { get; } = [Parakeet, WhisperSmall, WhisperTurbo, WhisperTurboQ8, SpeakerDiarization, GemmaE2B, GemmaE4B];
+    public static IReadOnlyList<ModelInfo> All { get; } = [Parakeet, WhisperSmall, WhisperTurbo, WhisperTurboQ8, WhisperTurboFull, WhisperLarge, SpeakerDiarization, GemmaE2B, GemmaE4B];
 
     public static IReadOnlyList<ModelInfo> TranscriptionModels { get; } = All.Where(m => m.IsTranscriptionModel).ToList();
 

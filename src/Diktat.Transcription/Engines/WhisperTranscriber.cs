@@ -10,11 +10,20 @@ namespace Diktat.Transcription.Engines;
 /// Mirrors the macOS WhisperDictation: "auto" detects the language (a fixed language makes
 /// Whisper translate English speech into German), segments over room noise are dropped, and
 /// stock phrases on silence ("Vielen Dank.", subtitle credits) count as no text.
+///
+/// A recording longer than one window of the model (30 seconds) is cut at pauses in the speech
+/// (see <see cref="Pieces"/>), and its language is decided once for all pieces (see
+/// <see cref="SpokenLanguage"/>).
 public sealed class WhisperTranscriber : ISpeechTranscriber
 {
     private const int SampleRate = 16_000;
     /// whisper.cpp skips input shorter than one second.
     private const int MinimumSamples = SampleRate * 6 / 5;
+
+    /// One window of the model: the longest piece decoded at once.
+    public const double WindowSeconds = 30;
+    /// How far back from the window end a cut may move to find a pause.
+    public const double CutSearchSeconds = 10;
 
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly int _threads;
@@ -49,16 +58,28 @@ public sealed class WhisperTranscriber : ISpeechTranscriber
         await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            var code = TranscriptionLanguage.Code(language);
-            var processor = EnsureProcessor(code ?? TranscriptionLanguage.Auto);
+            var picked = TranscriptionLanguage.Code(language);
             var samples = samples16kMono.Length >= MinimumSamples ? samples16kMono : Padded(samples16kMono);
+            var pieces = Pieces(samples);
+            // Any loaded processor can tell the language; only the decoding needs the right one.
+            var detector = _processor ?? EnsureProcessor(picked ?? TranscriptionLanguage.Auto);
+            var spoken = await Task.Run(() => SpokenLanguage(picked, samples, pieces.Count, detector.DetectLanguage), ct).ConfigureAwait(false);
+            var processor = EnsureProcessor(spoken ?? TranscriptionLanguage.Auto);
 
             var segments = new List<SegmentData>();
-            await foreach (var segment in processor.ProcessAsync(samples, ct).ConfigureAwait(false))
+            var offsets = new List<double>();
+            foreach (var piece in pieces)
             {
-                segments.Add(segment);
+                ct.ThrowIfCancellationRequested();
+                var audio = piece.Length == samples.Length ? samples : samples.AsSpan(piece.Start, piece.Length).ToArray();
+                if (audio.Length < MinimumSamples) audio = Padded(audio);
+                await foreach (var segment in processor.ProcessAsync(audio, ct).ConfigureAwait(false))
+                {
+                    segments.Add(segment);
+                    offsets.Add(piece.StartSeconds);
+                }
             }
-            return BuildResult(segments, samples, code);
+            return BuildResult(segments, samples, spoken, offsets);
         }
         finally
         {
@@ -82,6 +103,29 @@ public sealed class WhisperTranscriber : ISpeechTranscriber
         return _processor;
     }
 
+    /// The pieces a recording is decoded in. Up to one window it is one piece; a longer one is cut
+    /// at pauses in the speech and not wherever whisper.cpp's window ends. Without that, a window
+    /// the model ends early takes the rest of its half minute along: in a four-minute dialect
+    /// recording on the Mac a third of the text went missing.
+    internal static List<AudioChunker.Chunk> Pieces(float[] samples) =>
+        samples.Length > WindowSeconds * SampleRate
+            ? AudioChunker.Split(samples, WindowSeconds, CutSearchSeconds, SampleRate)
+            : [new AudioChunker.Chunk(0, samples.Length)];
+
+    /// The language of a recording: the one picked in the settings, else what the model takes the
+    /// start (up to one window) for, asked once and then held for every piece. Left to itself the
+    /// model chooses anew in every piece, and with dialect that goes wrong: on the Mac a Swiss
+    /// German recording came out partly as an English translation, partly in Cyrillic. Null when
+    /// one piece is all (whisper.cpp then detects once by itself) or the model cannot say.
+    internal static string? SpokenLanguage(string? picked, float[] samples, int pieceCount, Func<float[], string?> detect)
+    {
+        if (picked is not null) return picked;
+        if (pieceCount <= 1) return null;
+        var window = (int)(WindowSeconds * SampleRate);
+        var start = samples.Length > window ? samples[..window] : samples;
+        return TranscriptionLanguage.Code(detect(start));
+    }
+
     private static float[] Padded(float[] samples)
     {
         var padded = new float[MinimumSamples];
@@ -89,9 +133,15 @@ public sealed class WhisperTranscriber : ISpeechTranscriber
         return padded;
     }
 
-    internal static TranscriptionResult BuildResult(IReadOnlyList<SegmentData> segments, float[] samples, string? requestedLanguage)
+    /// <param name="offsets">Per segment, where its piece starts in <paramref name="samples"/>, in
+    /// seconds; null when the segments come from one piece.</param>
+    internal static TranscriptionResult BuildResult(IReadOnlyList<SegmentData> segments, float[] samples, string? requestedLanguage,
+        IReadOnlyList<double>? offsets = null)
     {
-        var voiced = segments.Select(s => HallucinationFilter.VoicedSeconds(samples, s.Start.TotalSeconds, s.End.TotalSeconds)).ToList();
+        double Offset(int i) => offsets is null ? 0 : offsets[i];
+        var voiced = segments
+            .Select((s, i) => HallucinationFilter.VoicedSeconds(samples, Offset(i) + s.Start.TotalSeconds, Offset(i) + s.End.TotalSeconds))
+            .ToList();
         var flags = HallucinationFilter.KeepFlags(voiced);
 
         var text = string.Join(' ', segments.Select(s => s.Text.Trim()).Where(t => t.Length > 0)).Trim();
@@ -111,7 +161,7 @@ public sealed class WhisperTranscriber : ISpeechTranscriber
         var words = new List<TimedWord>();
         for (var i = 0; i < segments.Count; i++)
         {
-            var segmentWords = SegmentWords(segments[i]);
+            var segmentWords = SegmentWords(segments[i], Offset(i));
             if (!flags[i] && segmentWords.Count <= 3) continue;
             words.AddRange(segmentWords);
         }
@@ -122,16 +172,17 @@ public sealed class WhisperTranscriber : ISpeechTranscriber
     }
 
     /// Whisper tokens begin with a space at a word start; control tokens ("[_BEG_]", "<|de|>")
-    /// carry no text. Without token times the segment's span is spread over its words.
-    private static List<TimedWord> SegmentWords(SegmentData segment)
+    /// carry no text. Without token times the segment's span is spread over its words. Times are
+    /// shifted by <paramref name="offset"/>, the start of the segment's piece.
+    private static List<TimedWord> SegmentWords(SegmentData segment, double offset)
     {
         var tokens = (segment.Tokens ?? [])
             .Where(t => !string.IsNullOrEmpty(t.Text) && !IsControl(t.Text))
-            .Select(t => (t.Text!, Start: t.Start / 100.0, End: t.End / 100.0))
+            .Select(t => (t.Text!, Start: offset + t.Start / 100.0, End: offset + t.End / 100.0))
             .ToList();
-        var segmentStart = segment.Start.TotalSeconds;
-        var segmentEnd = Math.Max(segmentStart, segment.End.TotalSeconds);
-        if (tokens.Count > 0 && tokens.All(t => t.End >= t.Start) && tokens.Any(t => t.End > 0))
+        var segmentStart = offset + segment.Start.TotalSeconds;
+        var segmentEnd = Math.Max(segmentStart, offset + segment.End.TotalSeconds);
+        if (tokens.Count > 0 && tokens.All(t => t.End >= t.Start) && tokens.Any(t => t.End > offset))
         {
             return TimedWord.FromTokens(tokens)
                 .Select(w => w with { Text = HallucinationFilter.StrippingTokens(w.Text) })
