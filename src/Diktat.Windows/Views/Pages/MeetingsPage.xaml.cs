@@ -132,13 +132,37 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnOpenMeeting(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is MeetingListItem item)
-        {
-            HideRename();
-            _model.Open(item.Id);
-            Scroller.ScrollToTop();
-        }
+        if ((sender as FrameworkElement)?.DataContext is MeetingListItem item) ShowMeeting(item.Id);
     }
+
+    /// One meeting, e.g. after a click on the message that it is evaluated. A running recording
+    /// or evaluation stays on screen.
+    public void ShowMeeting(Guid id)
+    {
+        HideRename();
+        if (_app.Meeting is { Phase: not MeetingPhase.Idle } || _app.Services.Meetings.Meeting(id) is null) return;
+        _model.Open(id);
+        Scroller.ScrollToTop();
+    }
+
+    /// Back to the list of meetings ("Meetings" in the sidebar again).
+    public void ShowList()
+    {
+        if (!_model.IsDetail && !_model.IsFailed) return;
+        HideRename();
+        _model.Close();
+        _model.ReloadList();
+        Scroller.ScrollToTop();
+    }
+
+    private void OnDeleteMeeting(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not MeetingListItem item) return;
+        if (ConfirmDelete()) _model.DeleteMeeting(item.Id);
+    }
+
+    private bool ConfirmDelete() => Ui.Confirm(this,
+        L.T("Transkript, Zusammenfassung und eine noch nicht ausgewertete Aufnahme werden gelöscht."), L.T("Meeting löschen?"));
 
     // --- Live -------------------------------------------------------------------------
 
@@ -146,7 +170,10 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnDiscard(object sender, RoutedEventArgs e)
     {
-        if (Ui.Confirm(this, L.T("Die Aufnahme verwerfen? Sie wird gelöscht und nicht ausgewertet."), L.T("Meeting verwerfen"))) _app.CancelMeeting();
+        if (Ui.Confirm(this, L.T("Die Aufnahme wird gelöscht und nicht ausgewertet. Das lässt sich nicht rückgängig machen."), L.T("Aufnahme verwerfen?")))
+        {
+            _app.CancelMeeting();
+        }
     }
 
     // --- Detail -----------------------------------------------------------------------
@@ -158,7 +185,10 @@ public partial class MeetingsPage : UserControl, IMainPage
         _model.ReloadList();
     }
 
-    private void OnDeleteFailed(object sender, RoutedEventArgs e) => _model.DeleteFailed();
+    private void OnDeleteFailed(object sender, RoutedEventArgs e)
+    {
+        if (Ui.Confirm(this, L.T("Die Aufnahme wird gelöscht und kann nicht mehr ausgewertet werden."), L.T("Meeting löschen?"))) _model.DeleteFailed();
+    }
 
     private void OnRetry(object sender, RoutedEventArgs e) => Retry(null);
     private void OnRetryFailed(object sender, RoutedEventArgs e) => Retry(_model.FailedMeetingId);
@@ -182,11 +212,43 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnDelete(object sender, RoutedEventArgs e)
     {
-        if (Ui.Confirm(this, L.T("Dieses Meeting mit Transkript und Zusammenfassung löschen?"), L.T("Meeting löschen")))
+        if (ConfirmDelete())
         {
             HideRename();
             _model.Delete();
         }
+    }
+
+    private void OnRenameTitle(object sender, RoutedEventArgs e)
+    {
+        if (_model.Record is not { } record) return;
+        HideRename();
+        TitleBox.Text = record.Title;
+        TitleRow.Visibility = Visibility.Collapsed;
+        TitleRenamePanel.Visibility = Visibility.Visible;
+        TitleBox.Focus();
+        TitleBox.SelectAll();
+    }
+
+    private void OnTitleKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) { SaveTitle(); e.Handled = true; }
+        else if (e.Key == Key.Escape) { HideTitleRename(); e.Handled = true; }
+    }
+
+    private void OnTitleSave(object sender, RoutedEventArgs e) => SaveTitle();
+    private void OnTitleCancel(object sender, RoutedEventArgs e) => HideTitleRename();
+
+    private void SaveTitle()
+    {
+        _model.RenameMeeting(TitleBox.Text);
+        HideTitleRename();
+    }
+
+    private void HideTitleRename()
+    {
+        TitleRenamePanel.Visibility = Visibility.Collapsed;
+        TitleRow.Visibility = Visibility.Visible;
     }
 
     private void OnCopyTranscript(object sender, RoutedEventArgs e) => _model.Copy("transcript");
@@ -250,5 +312,6 @@ public partial class MeetingsPage : UserControl, IMainPage
     {
         _renaming = null;
         RenamePanel.Visibility = Visibility.Collapsed;
+        HideTitleRename();
     }
 }

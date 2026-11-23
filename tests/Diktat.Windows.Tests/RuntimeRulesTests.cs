@@ -185,7 +185,7 @@ public class DictationRulesTests
     [Fact]
     public void MeetingToastNamesLengthAndPeopleOnly()
     {
-        Assert.Equal("45 Min., 3 Personen. In Diktat unter Meetings.", DictationRules.MeetingFinishedText(45 * 60, 3));
+        Assert.Equal("45 Min., 3 Personen. Ein Klick öffnet es.", DictationRules.MeetingFinishedText(45 * 60, 3));
         Assert.StartsWith("1 Min., 1 Person.", DictationRules.MeetingFinishedText(30, 1));
     }
 

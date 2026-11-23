@@ -23,13 +23,24 @@ public sealed record MeetingModelBackend(string Name, int CharacterLimit, Func<s
             (instruction, text, cancellationToken) => rewriter.RewriteOnServerOnThisPCAsync(text, instruction, cancellationToken));
     }
 
+    /// Tokens the model the app runs itself may write per answer: a summary with a long list of
+    /// to-dos fits comfortably; an answer that still reaches it gets three times as many once.
+    public const int SummaryTokens = 1_500;
+
     /// The model the app runs itself, or null when none is installed.
     public static MeetingModelBackend? BuiltIn(ITextRewriter rewriter)
     {
         if (rewriter.BuiltInModel is not { } model) return null;
-        return new MeetingModelBackend(model.Name, LocalModelCharacterLimit,
-            async (instruction, text, cancellationToken) =>
-                (await model.CompleteAsync(instruction, text, 1_500, cancellationToken).ConfigureAwait(false)).Text);
+        return new MeetingModelBackend(model.Name, LocalModelCharacterLimit, async (instruction, text, cancellationToken) =>
+        {
+            // An answer cut at the limit would be stored as if complete, and the to-dos come last.
+            // More room once; cut again (a model repeating itself), it fails and the next model is tried.
+            var answer = await model.CompleteAsync(instruction, text, SummaryTokens, cancellationToken).ConfigureAwait(false);
+            if (!answer.CutOff) return answer.Text;
+            answer = await model.CompleteAsync(instruction, text, SummaryTokens * 3, cancellationToken).ConfigureAwait(false);
+            if (!answer.CutOff) return answer.Text;
+            throw new TextRewriterException(L.T("Die Antwort war zu lang und wurde abgeschnitten."));
+        });
     }
 }
 
@@ -124,8 +135,10 @@ public static class MeetingSummarizer
     private static readonly string[] Placeholders = ["- Offen", "- Offen:", "- Open", "- Open:"];
 
     /// Small models sometimes echo parts of the instruction or leave placeholder bullets.
-    public static string Cleaned(string summary)
+    public static string Cleaned(string answer)
     {
+        // "**To-dos**" and "## Themen" become plain lines, also for copying.
+        var summary = ListDisplay.Plain(answer);
         var lines = summary.Split(TextHelpers.Newlines)
             .Select(line => TextHelpers.Trim(line, TextHelpers.IsHorizontalWhitespace))
             .Where(line => !Echoes.Any(line.Contains) && !Placeholders.Contains(line));

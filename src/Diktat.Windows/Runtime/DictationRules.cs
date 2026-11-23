@@ -97,6 +97,6 @@ public static class DictationRules
     public static string MeetingFinishedText(double durationSeconds, int speakers)
     {
         var people = speakers == 1 ? L.T("1 Person") : L.F("{0} Personen", speakers);
-        return L.F("{0}, {1}. In Diktat unter Meetings.", MeetingDuration(durationSeconds), people);
+        return L.F("{0}, {1}. Ein Klick öffnet es.", MeetingDuration(durationSeconds), people);
     }
 }

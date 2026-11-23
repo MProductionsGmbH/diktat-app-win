@@ -68,6 +68,46 @@ public sealed class MeetingSummarizerTests
     }
 
     [Fact]
+    public void MarkdownMarksOfTheModelAreRemoved() => Assert.Equal(
+        "Zusammenfassung\nText.\n\nTo-dos\n- Paul: Angebot",
+        MeetingSummarizer.Cleaned("**Zusammenfassung**\nText.\n\n## To-dos\n- **Paul:** Angebot"));
+
+    /// A built-in model that is cut off below a token limit.
+    private sealed class LimitedModel(int tokensNeeded) : ILocalTextModel
+    {
+        public bool IsAvailable => true;
+        public string Name => "Gemma 4 E2B";
+        public List<int> Limits { get; } = new();
+
+        public Task<LocalTextAnswer> CompleteAsync(string instruction, string text, int maxTokens, CancellationToken cancellationToken = default)
+        {
+            Limits.Add(maxTokens);
+            var cutOff = maxTokens < tokensNeeded;
+            return Task.FromResult(new LocalTextAnswer(cutOff ? "Zusammenfassung\nDas Team" : "Zusammenfassung\nDas Team plant.", cutOff));
+        }
+    }
+
+    [Fact]
+    public async Task ACutOffAnswerIsWrittenAgainWithMoreRoom()
+    {
+        var model = new LimitedModel(3_000);
+        var backend = MeetingModelBackend.BuiltIn(new FakeRewriter { BuiltInModel = model })!;
+        var summary = await MeetingSummarizer.SummarizeAsync("Person 1: Wir planen.", backend);
+        Assert.Equal("Zusammenfassung\nDas Team plant.", summary);
+        Assert.Equal([MeetingModelBackend.SummaryTokens, MeetingModelBackend.SummaryTokens * 3], model.Limits);
+    }
+
+    [Fact]
+    public async Task AnAnswerCutOffTwiceFailsAndTheServerTakesOver()
+    {
+        var model = new LimitedModel(100_000);
+        var rewriter = new FakeRewriter((_, _) => "Zusammenfassung\nVom Server.") { BuiltInModel = model, ServerOnThisPC = new AIProviderConfig(AIProvider.Custom) };
+        var result = await new MeetingSummaryService(rewriter).SummarizeAsync(new MeetingRecord { Turns = [new MeetingTurn(1, 0, "Wir planen.")] });
+        Assert.Equal("Zusammenfassung\nVom Server.", result.Summary);
+        Assert.Equal(2, model.Limits.Count);
+    }
+
+    [Fact]
     public void ChunksCutLongTurnsAtSentenceEnds()
     {
         var chunks = MeetingSummarizer.Chunks("Erster Satz. Zweiter Satz. Dritter.\n\nKurz.", 20);
@@ -176,6 +216,90 @@ public sealed class MeetingStoreTests
     }
 
     [Fact]
+    public void AMeetingIsRenamedAndAnEmptyTitleChangesNothing()
+    {
+        using var directory = new TempDirectory();
+        var store = new MeetingStore(directory.Path, new PassThroughDataProtector());
+        var meeting = new MeetingRecord { Title = "Meeting am 17. Okt." };
+        store.Upsert(meeting);
+        var changes = 0;
+        store.Changed += (_, _) => changes++;
+
+        Assert.True(store.Rename(meeting.Id, "  Workshop mit Anna "));
+        Assert.False(store.Rename(meeting.Id, "   "));
+        Assert.False(store.Rename(Guid.NewGuid(), "Anderes"));
+        Assert.Equal(1, changes);
+        Assert.Equal("Workshop mit Anna", new MeetingStore(directory.Path, new PassThroughDataProtector()).Meeting(meeting.Id)!.Title);
+    }
+
+    [Fact]
+    public void DeletingAMeetingTakesItsRecordingAlong()
+    {
+        using var directory = new TempDirectory();
+        using var audio = new TempDirectory();
+        var store = new MeetingStore(directory.Path, new PassThroughDataProtector(), audio.Path);
+        var meeting = new MeetingRecord();
+        store.Upsert(meeting);
+        File.WriteAllText(store.AudioPath(meeting.Id), "");
+        File.WriteAllText(store.SystemAudioPath(meeting.Id), "");
+        Assert.StartsWith(audio.Path, store.AudioPath(meeting.Id));
+
+        store.Delete(meeting.Id);
+        Assert.Empty(Directory.GetFiles(audio.Path));
+    }
+
+    [Fact]
+    public void RecordingsWithoutAPendingMeetingAreRemovedAtStart()
+    {
+        using var directory = new TempDirectory();
+        using var audio = new TempDirectory();
+        var store = new MeetingStore(directory.Path, new PassThroughDataProtector(), audio.Path);
+        var pending = new MeetingRecord();
+        var done = new MeetingRecord { Status = MeetingStatus.Done };
+        store.Upsert(pending);
+        store.Upsert(done);
+        var gone = Guid.NewGuid();
+        foreach (var path in new[] { store.AudioPath(pending.Id), store.SystemAudioPath(pending.Id), store.AudioPath(done.Id), store.AudioPath(gone), Path.Combine(audio.Path, "notiz.wav") })
+        {
+            File.WriteAllText(path, "");
+        }
+
+        _ = new MeetingStore(directory.Path, new PassThroughDataProtector(), audio.Path);
+        Assert.Equal(
+            new[] { "notiz.wav", MeetingAudioFiles.MicrophoneFile(pending.Id), MeetingAudioFiles.SystemAudioFile(pending.Id) }.Order(),
+            Directory.GetFiles(audio.Path).Select(Path.GetFileName).Order());
+    }
+
+    [Fact]
+    public void RecordingsStayWhenTheMeetingsCannotBeRead()
+    {
+        using var directory = new TempDirectory();
+        using var audio = new TempDirectory();
+        File.WriteAllText(Path.Combine(directory.Path, MeetingStore.FileName), "kaputt");
+        var recording = Path.Combine(audio.Path, MeetingAudioFiles.MicrophoneFile(Guid.NewGuid()));
+        File.WriteAllText(recording, "");
+
+        var store = new MeetingStore(directory.Path, new PassThroughDataProtector(), audio.Path);
+        Assert.True(store.ReadFailed);
+        Assert.True(File.Exists(recording));
+    }
+
+    [Fact]
+    public void OnlyRecordingsCountAsOrphaned()
+    {
+        var kept = Guid.NewGuid();
+        var other = Guid.NewGuid();
+        var names = new[]
+        {
+            MeetingAudioFiles.MicrophoneFile(kept), MeetingAudioFiles.SystemAudioFile(other), MeetingAudioFiles.MicrophoneFile(other),
+            ".meetings", ".meetings.unreadable-1", "kein-guid-mic.wav", $"{other}.wav",
+        };
+        Assert.Equal([MeetingAudioFiles.SystemAudioFile(other), MeetingAudioFiles.MicrophoneFile(other)],
+            MeetingAudioFiles.Orphaned(names, new HashSet<Guid> { kept }));
+        Assert.Equal(kept, MeetingAudioFiles.MeetingOf(MeetingAudioFiles.MicrophoneFile(kept)));
+    }
+
+    [Fact]
     public void OldSpeakerLabelsAreMigrated()
     {
         using var directory = new TempDirectory();
@@ -201,6 +325,13 @@ public sealed class MeetingStoreTests
         Assert.Equal("Meeting am 17. Okt. 2026, 11:58\n\nKurz.\n\nTranskript\n\nIch: Hallo.\n\nPerson 2: Hi.", meeting.ShareText);
         meeting.SpeakerNames[0] = "Marc";
         Assert.Equal("Marc: Hallo.\n\nPerson 2: Hi.", meeting.TranscriptText("Paul"));
+    }
+
+    [Fact]
+    public void CopiedTextHasNoMarkdownMarks()
+    {
+        var meeting = new MeetingRecord { Title = "Workshop", Summary = "**Zusammenfassung**\nKurz.\n\n## To-dos\n- **Paul:** Raum buchen" };
+        Assert.Equal("Workshop\n\nZusammenfassung\nKurz.\n\nTo-dos\n- Paul: Raum buchen\n\nTranskript\n\n", meeting.ShareText);
     }
 }
 

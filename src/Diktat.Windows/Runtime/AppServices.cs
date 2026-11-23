@@ -42,7 +42,7 @@ public sealed class AppServices : IDisposable
         Transcription = new LocalTranscriptionService(Models, Settings.App.TranscriptionModel);
 
         History = new TranscriptHistoryStore(AppPaths.HistoryDirectory, Protector, Settings.App.HistoryRetention);
-        Meetings = new MeetingStore(AppPaths.MeetingsDirectory, Protector);
+        Meetings = new MeetingStore(AppPaths.MeetingsDirectory, Protector, MeetingAudio.Directory);
 
         Updates = new UpdateChecker();
     }

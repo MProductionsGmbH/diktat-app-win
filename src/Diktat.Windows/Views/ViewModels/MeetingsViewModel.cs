@@ -17,6 +17,7 @@ public enum MeetingsView
 public sealed record MeetingListItem(Guid Id, string Title, string Detail, bool IsPending)
 {
     public string AutomationName => $"{Title}, {Detail}";
+    public string DeleteAutomationName => L.F("{0} löschen", Title);
 }
 
 public sealed record SpeakerItem(int Speaker, string Name)
@@ -117,11 +118,14 @@ public sealed class MeetingsViewModel : ObservableObject
 
     public MeetingRecord? Record => _record;
     public string DetailTitle => _record?.Title ?? "";
+    public string RenameTitleAutomationName => L.F("{0}, umbenennen", DetailTitle);
     public string DetailLine => _record is null ? "" : $"{_record.CreatedAt.ToLocalTime().ToString(DetailDatePattern, L.Culture)} · {Ui.MeetingSummaryLine(_record)}";
 
     private static string DetailDatePattern =>
         L.Current == UiLanguage.English ? "dddd, MMMM d, yyyy, h:mm tt" : "dddd, d. MMMM yyyy, HH:mm";
     public string? Summary => _record?.Summary;
+    /// The card is titled "Zusammenfassung" already; the summary does not repeat it.
+    public string SummaryTitle => ListDisplay.SummaryTitle(_record?.Summary ?? "");
     public bool HasSummary => !string.IsNullOrWhiteSpace(_record?.Summary);
     public string SummaryNote => _record?.SummaryNote ?? L.T("Noch keine Zusammenfassung.");
     public bool IsPending => _record?.Status == MeetingStatus.Pending;
@@ -162,7 +166,7 @@ public sealed class MeetingsViewModel : ObservableObject
         var text = target switch
         {
             "transcript" => _record.TranscriptShareText,
-            "summary" => _record.Summary ?? "",
+            "summary" => ListDisplay.Plain(_record.Summary ?? ""),
             _ => _record.ShareText,
         };
         if (text.Length == 0) return;
@@ -199,19 +203,36 @@ public sealed class MeetingsViewModel : ObservableObject
 
     public void Delete()
     {
-        if (_record is null) return;
-        _summaryCts?.Cancel();
-        _app.Services.Meetings.Delete(_record.Id);
-        Close();
-        ReloadList();
+        if (_record is not null) DeleteMeeting(_record.Id);
     }
 
     public void DeleteFailed()
     {
-        if (_session?.MeetingId is { } id) _app.Services.Meetings.Delete(id);
-        _showFailure = false;
+        if (_session?.MeetingId is { } id) DeleteMeeting(id);
+    }
+
+    /// Removes a meeting with its recording, from the list, its page or its failure. Never the
+    /// one being recorded or evaluated.
+    public void DeleteMeeting(Guid id)
+    {
+        if (_session is { Phase: not MeetingPhase.Idle } session && session.MeetingId == id) return;
+        if (_record?.Id == id)
+        {
+            _summaryCts?.Cancel();
+            _selectedId = null;
+            _record = null;
+        }
+        if (_session?.MeetingId == id) _showFailure = false;
+        _app.Services.Meetings.Delete(id);
         ReloadList();
-        Raise();
+    }
+
+    /// A title of one's own for the open meeting. An empty one changes nothing.
+    public void RenameMeeting(string title)
+    {
+        if (_record is null) return;
+        _app.Services.Meetings.Rename(_record.Id, title);
+        LoadRecord();
     }
 
     public void Rename(int speaker, string name)
@@ -299,8 +320,9 @@ public sealed class MeetingsViewModel : ObservableObject
         foreach (var record in _app.Services.Meetings.Meetings)
         {
             if (record.Id == recordingId) continue;
-            var detail = record.Status == MeetingStatus.Done
-                ? Ui.MeetingSummaryLine(record)
+            // Until the evaluation succeeds the recording is still on this PC, and that is said.
+            var detail = record.Status == MeetingStatus.Done ? Ui.MeetingSummaryLine(record)
+                : SafeHasAudio(record.Id) ? L.T("Noch nicht ausgewertet, die Aufnahme liegt auf diesem PC.")
                 : L.T("Noch nicht ausgewertet");
             Meetings.Add(new MeetingListItem(record.Id, record.Title, detail, record.Status == MeetingStatus.Pending));
         }
