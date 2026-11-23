@@ -29,6 +29,8 @@ public sealed class TranscriptPostProcessor
     public double CorrectionThreshold { get; set; } = DefaultCorrectionThreshold;
     /// Returns true when a single word is a correctly spelled dictionary word.
     public Func<string, bool> IsDictionaryWord { get; set; } = _ => false;
+    /// "ss" instead of the sharp s in the result (setting "Schweizer Schreibweise").
+    public bool SwissSpelling { get; set; }
 
     public const double DefaultCorrectionThreshold = 0.74;
 
@@ -41,6 +43,7 @@ public sealed class TranscriptPostProcessor
         RemoveFillerWords = settings.App.RemoveFillerWordsEnabled,
         Language = settings.Transcription.Language,
         IsDictionaryWord = DictionaryWords.From(checker),
+        SwissSpelling = settings.App.SwissSpelling,
     };
 
     public string Process(string text)
@@ -61,7 +64,7 @@ public sealed class TranscriptPostProcessor
         {
             result = ApplyCustomTerms(result, CustomTerms, CorrectionThreshold, IsDictionaryWord);
         }
-        return Normalize(result, text);
+        return Diktat.Core.Text.SwissSpelling.IfEnabled(Normalize(result, text), SwissSpelling);
     }
 
     // MARK: - Replacements

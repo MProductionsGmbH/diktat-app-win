@@ -6,6 +6,7 @@ using Diktat.LocalModel;
 using Diktat.Core.History;
 using Diktat.Core.Settings;
 using Diktat.Core.Support;
+using Diktat.Core.Text;
 using Diktat.Transcription;
 using Diktat.Transcription.Models;
 using Diktat.Windows.Platform;
@@ -27,6 +28,7 @@ public sealed class AppServices : IDisposable
 
         SettingsStore = new SettingsStore(AppPaths.SettingsFile);
         Settings = SettingsStore.Load();
+        SwissSpelling.IsEnabled = Settings.App.SwissSpelling;
 
         AIProviders = new AIProviderStore(Path.Combine(AppPaths.RoamingDirectory, "ai-provider.json"), Secrets);
         AIClient = new AIClient();
@@ -65,6 +67,7 @@ public sealed class AppServices : IDisposable
     public void SaveSettings()
     {
         SettingsStore.Save(Settings);
+        SwissSpelling.IsEnabled = Settings.App.SwissSpelling;
         Transcription.SelectModel(Settings.App.TranscriptionModel);
         History.UpdateRetention(Settings.App.HistoryRetention);
         AutostartService.Apply(Settings.App.LaunchAtLogin);

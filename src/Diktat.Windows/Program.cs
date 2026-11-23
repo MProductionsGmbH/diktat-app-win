@@ -25,7 +25,8 @@ internal static class Program
         }
 
         // The language first: every window and the theme read their texts when they load.
-        L.Use(L.Resolve(ReadAppLanguage()));
+        var appLanguage = ReadAppLanguage();
+        L.Use(L.Resolve(appLanguage), L.UsesSwissSpelling(appLanguage));
 
         try
         {

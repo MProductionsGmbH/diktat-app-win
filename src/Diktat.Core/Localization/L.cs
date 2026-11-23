@@ -43,7 +43,15 @@ public static class L
 
     public static IReadOnlyDictionary<string, string> English => EnglishTexts.Value;
 
-    public static void Use(UiLanguage language) => Current = language;
+    /// Whether the German texts are shown with "ss" instead of the sharp s (the Mac app's de-CH
+    /// variant). Set at startup with <see cref="Use"/>; tests run without it.
+    public static bool SwissSpelling { get; private set; }
+
+    public static void Use(UiLanguage language, bool swissSpelling = false)
+    {
+        Current = language;
+        SwissSpelling = swissSpelling && language == UiLanguage.German;
+    }
 
     /// The language a setting means; "System" follows the Windows display language
     /// (only German and English exist, every other language falls back to German).
@@ -54,16 +62,40 @@ public static class L
         _ => (system ?? CultureInfo.InstalledUICulture).TwoLetterISOLanguageName == "en" ? UiLanguage.English : UiLanguage.German,
     };
 
+    /// Whether the German texts take the Swiss spelling, like the Mac app's de-CH variant: only
+    /// with "Automatisch" when Windows itself is German and Swiss, that is the display language
+    /// is de-CH or German with the region Switzerland. A fallback to German (French Windows in
+    /// Switzerland) and the choice "Deutsch" keep the sharp s. Independent of the setting
+    /// "Schweizer Schreibweise", which is about what Diktat writes.
+    public static bool UsesSwissSpelling(AppLanguage setting, CultureInfo? system = null, string? region = null)
+    {
+        if (setting != AppLanguage.System) return false;
+        var culture = system ?? CultureInfo.InstalledUICulture;
+        if (culture.TwoLetterISOLanguageName != "de") return false;
+        if (culture.Name.EndsWith("-CH", StringComparison.OrdinalIgnoreCase)) return true;
+        return string.Equals(region ?? CurrentRegion(), "CH", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? CurrentRegion()
+    {
+        try { return RegionInfo.CurrentRegion.TwoLetterISORegionName; }
+        catch (ArgumentException) { return null; }
+    }
+
     /// The text in the current language.
-    public static string T(string german) => Translate(german, Current);
+    public static string T(string german) => Translate(german, Current, SwissSpelling);
 
     /// A text with placeholders ({0}, {1}) in the current language.
     public static string F(string germanFormat, params object?[] args) =>
         string.Format(Culture, T(germanFormat), args);
 
-    /// The text in <paramref name="language"/>; a text without translation stays German.
-    public static string Translate(string german, UiLanguage language) =>
-        language == UiLanguage.English && English.TryGetValue(german, out var english) ? english : german;
+    /// The text in <paramref name="language"/>; a text without translation stays German. The
+    /// German text takes "ss" for the sharp s when <paramref name="swissSpelling"/> is set.
+    public static string Translate(string german, UiLanguage language, bool swissSpelling = false)
+    {
+        if (language == UiLanguage.English && English.TryGetValue(german, out var english)) return english;
+        return swissSpelling && language == UiLanguage.German ? Diktat.Core.Text.SwissSpelling.Apply(german) : german;
+    }
 
     private static IReadOnlyDictionary<string, string> LoadEnglish()
     {

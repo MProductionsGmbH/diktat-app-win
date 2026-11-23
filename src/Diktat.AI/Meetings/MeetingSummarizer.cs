@@ -123,13 +123,14 @@ public static class MeetingSummarizer
 
     private static readonly string[] Placeholders = ["- Offen", "- Offen:", "- Open", "- Open:"];
 
-    /// Small models sometimes echo parts of the instruction or leave placeholder bullets.
+    /// Small models sometimes echo parts of the instruction or leave placeholder bullets. With the
+    /// setting "Schweizer Schreibweise" the text comes out with "ss".
     public static string Cleaned(string summary)
     {
         var lines = summary.Split(TextHelpers.Newlines)
             .Select(line => TextHelpers.Trim(line, TextHelpers.IsHorizontalWhitespace))
             .Where(line => !Echoes.Any(line.Contains) && !Placeholders.Contains(line));
-        return string.Join("\n", lines).Replace("\n\n\n", "\n\n").Trim();
+        return SwissSpelling.IfEnabled(string.Join("\n", lines).Replace("\n\n\n", "\n\n").Trim());
     }
 
     /// Splits at paragraph boundaries (speaker turns) so no turn is cut in half.
