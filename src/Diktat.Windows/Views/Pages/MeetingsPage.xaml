@@ -74,25 +74,37 @@
                         <ItemsControl ItemsSource="{Binding Meetings}" Focusable="False">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Style="{DynamicResource Diktat.RowButton}" Click="OnOpenMeeting" AutomationProperties.Name="{Binding AutomationName}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource Diktat.AccentSoft}">
-                                                <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59158;" HorizontalAlignment="Center"
-                                                           Foreground="{DynamicResource Diktat.Accent}"/>
-                                            </Border>
-                                            <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource Diktat.TextSecondary}"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" Style="{DynamicResource Diktat.IconText}" Text="&#59244;" FontSize="11"
-                                                       Foreground="{DynamicResource Diktat.TextTertiary}"/>
-                                        </Grid>
-                                    </Button>
+                                    <Grid>
+                                        <Button Style="{DynamicResource Diktat.RowButton}" Click="OnOpenMeeting" AutomationProperties.Name="{Binding AutomationName}">
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="{l:T 'Löschen'}" Click="OnDeleteMeeting"/>
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource Diktat.AccentSoft}">
+                                                    <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59158;" HorizontalAlignment="Center"
+                                                               Foreground="{DynamicResource Diktat.Accent}"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource Diktat.TextSecondary}" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="3" Style="{DynamicResource Diktat.IconText}" Text="&#59244;" FontSize="11"
+                                                           Foreground="{DynamicResource Diktat.TextTertiary}"/>
+                                            </Grid>
+                                        </Button>
+                                        <!-- Visible, so nobody has to know about the right click. -->
+                                        <Button Style="{DynamicResource Diktat.IconButton}" Content="&#xE74D;" FontSize="13" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center" Margin="0,0,30,0" Click="OnDeleteMeeting"
+                                                ToolTip="{l:T 'Meeting löschen'}" AutomationProperties.Name="{Binding DeleteAutomationName}"/>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -141,8 +153,7 @@
                                 <TextBlock Text="{l:T 'Beta'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
                             </Border>
                         </StackPanel>
-                        <TextBox Text="{Binding LiveNotes, Mode=OneWay}" Style="{DynamicResource Diktat.ReadOnlyText}" FontSize="13"
-                                 AutomationProperties.Name="{l:T 'Live-Notizen'}"/>
+                        <c:SummaryText Text="{Binding LiveNotes, Mode=OneWay}" FontSize="13" AutomationProperties.Name="{l:T 'Live-Notizen'}"/>
                     </v:Stack>
                 </Border>
 
@@ -171,6 +182,9 @@
                         <TextBlock Text="{Binding FailureText}" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap" MaxWidth="640"/>
                     </StackPanel>
                 </Border>
+                <!-- The promise "deleted after the evaluation" holds once it succeeds; until then the recording is still here, and that is said. -->
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Die Aufnahme bleibt auf diesem PC, bis du sie auswertest oder löschst.'}"
+                           Visibility="{Binding CanRetryFailed, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                 <StackPanel Orientation="Horizontal">
                     <Button Content="{l:T 'Erneut auswerten'}" Style="{DynamicResource Diktat.PrimaryButton}" Click="OnRetryFailed" Margin="0,0,8,0"
                             Visibility="{Binding CanRetryFailed, Converter={StaticResource Diktat.BoolToVisibility}}"/>
@@ -190,7 +204,22 @@
                     </StackPanel>
                 </Button>
                 <StackPanel>
-                    <TextBlock Text="{Binding DetailTitle}" Style="{DynamicResource Diktat.HeadingText}" FontSize="18"/>
+                    <StackPanel x:Name="TitleRow" Orientation="Horizontal">
+                        <TextBlock Text="{Binding DetailTitle}" Style="{DynamicResource Diktat.HeadingText}" FontSize="18" TextWrapping="Wrap"
+                                   VerticalAlignment="Center" MaxWidth="660"/>
+                        <Button Style="{DynamicResource Diktat.IconButton}" Content="&#xE70F;" FontSize="12" Margin="4,0,0,0" Click="OnRenameTitle"
+                                VerticalAlignment="Center" ToolTip="{l:T 'Meeting umbenennen'}" AutomationProperties.Name="{Binding RenameTitleAutomationName}"/>
+                    </StackPanel>
+                    <Grid x:Name="TitleRenamePanel" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TitleBox" v:Hint.Text="{l:T 'Titel'}" KeyDown="OnTitleKey" AutomationProperties.Name="{l:T 'Meeting umbenennen'}"/>
+                        <Button Grid.Column="1" Content="{l:T 'Sichern'}" Style="{DynamicResource Diktat.PrimaryButton}" Margin="8,0,0,0" Click="OnTitleSave"/>
+                        <Button Grid.Column="2" Content="{l:T 'Abbrechen'}" Style="{DynamicResource Diktat.SubtleButton}" Margin="4,0,0,0" Click="OnTitleCancel"/>
+                    </Grid>
                     <TextBlock Text="{Binding DetailLine}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,3,0,0"/>
                 </StackPanel>
 
@@ -209,8 +238,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center"
-                                   Text="{l:T 'Dieses Meeting wurde noch nicht fertig ausgewertet.'}"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Dieses Meeting wurde noch nicht fertig ausgewertet.'}"/>
+                            <TextBlock Style="{DynamicResource Diktat.CaptionText}" Text="{l:T 'Die Aufnahme bleibt auf diesem PC, bis du sie auswertest oder löschst.'}"
+                                       Margin="0,2,0,0" Visibility="{Binding CanRetry, Converter={StaticResource Diktat.BoolToVisibility}}"/>
+                        </StackPanel>
                         <Button Grid.Column="1" Content="{l:T 'Erneut auswerten'}" Style="{DynamicResource Diktat.PrimaryButton}" Margin="10,0,0,0" Click="OnRetry"
                                 Visibility="{Binding CanRetry, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                     </Grid>
@@ -219,8 +251,8 @@
                 <!-- Summary -->
                 <HeaderedContentControl Header="{l:T 'Zusammenfassung'}" Style="{DynamicResource Diktat.Section}">
                     <v:Stack Spacing="10">
-                        <TextBox Text="{Binding Summary, Mode=OneWay}" Style="{DynamicResource Diktat.ReadOnlyText}"
-                                 Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}" AutomationProperties.Name="{l:T 'Zusammenfassung'}"/>
+                        <c:SummaryText Text="{Binding Summary, Mode=OneWay}" Title="{Binding SummaryTitle, Mode=OneWay}"
+                                       Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}" AutomationProperties.Name="{l:T 'Zusammenfassung'}"/>
                         <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="{l:T 'Automatisch erstellt. Bitte vor allem die Zuständigkeiten bei den To-dos kurz prüfen.'}"
                                    Visibility="{Binding HasSummary, Converter={StaticResource Diktat.BoolToVisibility}}"/>
                         <TextBlock Text="{Binding SummaryNote}" Style="{DynamicResource Diktat.CaptionText}"

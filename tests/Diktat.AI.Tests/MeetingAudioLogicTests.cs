@@ -248,4 +248,41 @@ public sealed class ListDisplayTests
     [Fact]
     public void OtherDashesStay() =>
         Assert.Equal("Zahlen -5 % zum Vorjahr\n-Keine", ListDisplay.Bullets("Zahlen -5 % zum Vorjahr\n-Keine"));
+
+    // Markdown marks a model adds on its own
+
+    [Fact]
+    public void MarkdownHeadingsBecomePlainLines()
+    {
+        Assert.Equal("Zusammenfassung\nText.\n\nTo-dos\n- Paul: Angebot", ListDisplay.Plain("**Zusammenfassung**\nText.\n\n## To-dos\n- **Paul:** Angebot"));
+        Assert.Equal("Entscheidungen\n- Keine", ListDisplay.Plain("**Entscheidungen:**\n- Keine"));
+        Assert.Equal("Decisions\n- None", ListDisplay.Plain("__Decisions__\n- None"));
+    }
+
+    [Fact]
+    public void BulletStarsAndPlainTextStay() =>
+        Assert.Equal("* Punkt eins\n5 * 3 = 15", ListDisplay.Plain("* Punkt eins\n5 * 3 = 15"));
+
+    [Fact]
+    public void HeadingsAreMarkedAndTheTitleIsNotRepeated()
+    {
+        var lines = ListDisplay.Lines("**Zusammenfassung**\nEs ging um den Workshop.\n\n**To-dos**\n- Paul: Angebot", droppingTitle: "Zusammenfassung");
+        Assert.Equal(new ListDisplay.Line("Es ging um den Workshop.", false), lines[0]);
+        Assert.Contains(new ListDisplay.Line("To-dos", true), lines);
+        Assert.Contains(new ListDisplay.Line("• Paul: Angebot", false), lines);
+    }
+
+    [Fact]
+    public void OtherFirstHeadingsStay()
+    {
+        var lines = ListDisplay.Lines("Themen\n- Workshop", droppingTitle: "Zusammenfassung");
+        Assert.Equal(new ListDisplay.Line("Themen", true), lines[0]);
+    }
+
+    [Fact]
+    public void TheSummaryTitleFollowsTheLanguage()
+    {
+        Assert.Equal("Summary", ListDisplay.SummaryTitle("Summary\nWe met."));
+        Assert.Equal("Zusammenfassung", ListDisplay.SummaryTitle("Zusammenfassung\nWir trafen uns."));
+    }
 }

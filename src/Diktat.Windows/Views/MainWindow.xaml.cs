@@ -79,8 +79,9 @@ public partial class MainWindow : Window
         Nav.SelectedIndex = 0;
     }
 
-    /// "history", "modes", "meetings", "audio", "settings", or "settings/&lt;section&gt;"
-    /// (general, models, microphone, dictionary, apps, ai, meetings, privacy). Null keeps the page.
+    /// "history", "modes", "meetings", "audio", "settings", "meetings/&lt;meeting id&gt;" or
+    /// "settings/&lt;section&gt;" (general, models, microphone, dictionary, apps, ai, meetings,
+    /// privacy). Null keeps the page.
     public void ShowPage(string? page)
     {
         if (string.IsNullOrWhiteSpace(page)) return;
@@ -99,6 +100,20 @@ public partial class MainWindow : Window
         var item = _items.First(i => i.Key == key);
         if (Nav.SelectedItem == item) ApplyPendingSection();
         else Nav.SelectedItem = item;
+        if (key == "meetings" && parts.Length > 1 && Guid.TryParse(parts[1], out var meetingId) && PageHost.Content is MeetingsPage meetings)
+        {
+            meetings.ShowMeeting(meetingId);
+        }
+    }
+
+    /// "Meetings" again while one is open: back to the list.
+    private void OnNavMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ContainerFromElement(Nav, e.OriginalSource as DependencyObject) is ListBoxItem { DataContext: NavItem { Key: "meetings" } item }
+            && Nav.SelectedItem == item && PageHost.Content is MeetingsPage meetings)
+        {
+            meetings.ShowList();
+        }
     }
 
     private void OnNavChanged(object sender, SelectionChangedEventArgs e)

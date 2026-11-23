@@ -70,7 +70,6 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         _tray = new TrayIcon(this);
         _pill = new PillController(this);
         _updates.Start();
-        MeetingAudio.DeleteOrphans(Services.Meetings.Meetings.Where(m => m.Status == MeetingStatus.Pending).Select(m => m.Id));
         WarmUp();
         OfferLanguageModel();
         if (!_hotkeysRunning)
@@ -239,8 +238,9 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         {
             if (record is not null)
             {
+                // A click opens the evaluated meeting (the meeting page while another one runs).
                 _tray?.ShowBalloon(L.T("Meeting ausgewertet"),
-                    DictationRules.MeetingFinishedText(record.Duration, record.Speakers.Count), () => ShowMainWindow("meetings"));
+                    DictationRules.MeetingFinishedText(record.Duration, record.Speakers.Count), () => ShowMainWindow($"meetings/{record.Id}"));
             }
             else
             {

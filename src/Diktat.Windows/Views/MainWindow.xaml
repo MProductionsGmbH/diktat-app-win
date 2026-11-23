@@ -38,7 +38,7 @@
             </StackPanel>
 
             <ListBox x:Name="Nav" Grid.Row="1" Style="{DynamicResource Diktat.SidebarList}" SelectionChanged="OnNavChanged"
-                     AutomationProperties.Name="{l:T 'Bereiche'}">
+                     PreviewMouseLeftButtonDown="OnNavMouseDown" AutomationProperties.Name="{l:T 'Bereiche'}">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type v:NavItem}">
                         <Grid AutomationProperties.Name="{Binding Title}">

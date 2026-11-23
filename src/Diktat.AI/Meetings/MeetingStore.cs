@@ -91,7 +91,7 @@ public sealed class MeetingRecord
         get
         {
             var parts = new List<string> { Title };
-            if (Summary is not null) parts.Add(Summary);
+            if (Summary is not null) parts.Add(ListDisplay.Plain(Summary));
             parts.Add(L.T("Transkript") + "\n\n" + TranscriptPlainText);
             return string.Join("\n\n", parts);
         }
@@ -112,7 +112,8 @@ public sealed class MeetingRecord
 }
 
 /// Meetings stay on this PC, encrypted for the current user (DPAPI via <see cref="IDataProtector"/>),
-/// in one file in the given directory. The audio of a meeting being processed lies next to it.
+/// in one file in the given directory. The audio of a meeting waiting for its evaluation lies in
+/// the audio directory (next to it when none is given).
 public sealed class MeetingStore
 {
     public const string FileName = ".meetings";
@@ -121,16 +122,23 @@ public sealed class MeetingStore
     private static readonly Regex OldSpeakerLabel = new(@"Sprecher (\d+)", RegexOptions.CultureInvariant);
 
     private readonly string _directory;
+    private readonly string _audioDirectory;
     private readonly IDataProtector _protector;
     private readonly object _lock = new();
     private List<MeetingRecord> _meetings = new();
 
-    public MeetingStore(string directory, IDataProtector protector)
+    public MeetingStore(string directory, IDataProtector protector, string? audioDirectory = null)
     {
         _directory = directory;
+        _audioDirectory = audioDirectory ?? directory;
         _protector = protector;
         Load();
+        // Only with the list in hand is it clear which recordings belong to no meeting.
+        if (!ReadFailed) RemoveOrphanedAudio();
     }
+
+    /// The stored meetings could not be read and were put aside.
+    public bool ReadFailed { get; private set; }
 
     /// Raised after the meetings changed.
     public event EventHandler? Changed;
@@ -139,10 +147,10 @@ public sealed class MeetingStore
     private string FilePath => Path.Combine(_directory, FileName);
 
     /// The microphone recording of a meeting.
-    public string AudioPath(Guid id) => Path.Combine(_directory, $"{id}.wav");
+    public string AudioPath(Guid id) => Path.Combine(_audioDirectory, MeetingAudioFiles.MicrophoneFile(id));
 
     /// What the PC played during an online meeting, i.e. the other side.
-    public string SystemAudioPath(Guid id) => Path.Combine(_directory, $"{id}-system.wav");
+    public string SystemAudioPath(Guid id) => Path.Combine(_audioDirectory, MeetingAudioFiles.SystemAudioFile(id));
 
     /// Newest first.
     public IReadOnlyList<MeetingRecord> Meetings
@@ -186,6 +194,23 @@ public sealed class MeetingStore
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// A title of one's own, e.g. "Workshop mit Anna". An empty one changes nothing.
+    public bool Rename(Guid id, string title)
+    {
+        title = title.Trim();
+        if (title.Length == 0) return false;
+        lock (_lock)
+        {
+            var meeting = _meetings.FirstOrDefault(m => m.Id == id);
+            if (meeting is null || meeting.Title == title) return false;
+            meeting.Title = title;
+            Save();
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    /// Removes a meeting and its recording, evaluated or not.
     public void Delete(Guid id)
     {
         lock (_lock)
@@ -215,11 +240,27 @@ public sealed class MeetingStore
         {
             // Never overwrite meetings that only this build cannot read (another user's key, a
             // later format): keep the file aside so they can still be recovered.
+            ReadFailed = true;
             MoveUnreadableFileAside();
             return;
         }
         _meetings = meetings;
         MigrateSpeakerLabels();
+    }
+
+    /// A deleted or evaluated meeting takes its recording along; one left behind anyway (a crash
+    /// in between) would lie on disk for good, unencrypted. Only a meeting still waiting for its
+    /// evaluation needs its recording. Runs at startup, before a new recording can begin.
+    private void RemoveOrphanedAudio()
+    {
+        try
+        {
+            if (!Directory.Exists(_audioDirectory)) return;
+            var pending = _meetings.Where(m => m.Status == MeetingStatus.Pending).Select(m => m.Id).ToHashSet();
+            var names = Directory.EnumerateFiles(_audioDirectory).Select(Path.GetFileName).OfType<string>();
+            foreach (var name in MeetingAudioFiles.Orphaned(names, pending)) TryDelete(Path.Combine(_audioDirectory, name));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
     }
 
     private void MoveUnreadableFileAside()

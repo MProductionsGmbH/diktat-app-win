@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using Diktat.AI.Meetings;
 using Diktat.Transcription.Audio;
 using Diktat.Windows.Platform;
 
@@ -7,13 +8,14 @@ namespace Diktat.Windows.Runtime;
 
 /// Where a meeting's raw audio lies while it records and until it is evaluated: in the temp
 /// folder, one 16 kHz mono WAV per track, written in chunks so a long meeting does not grow in
-/// memory. Deleted once the transcript is saved (as on the Mac).
+/// memory. Deleted once the transcript is saved (as on the Mac); MeetingStore removes leftovers
+/// at startup.
 public static class MeetingAudio
 {
     public static string Directory => Path.Combine(AppPaths.TempDirectory, "meetings");
 
-    public static string MicrophonePath(Guid id) => Path.Combine(Directory, $"{id}-mic.wav");
-    public static string SystemAudioPath(Guid id) => Path.Combine(Directory, $"{id}-system.wav");
+    public static string MicrophonePath(Guid id) => Path.Combine(Directory, MeetingAudioFiles.MicrophoneFile(id));
+    public static string SystemAudioPath(Guid id) => Path.Combine(Directory, MeetingAudioFiles.SystemAudioFile(id));
 
     public static bool Exists(Guid id) => File.Exists(MicrophonePath(id));
 
@@ -29,27 +31,6 @@ public static class MeetingAudio
             {
                 Log.Warn("Deleting meeting audio failed", ex);
             }
-        }
-    }
-
-    /// Removes audio no pending meeting needs any more (a meeting deleted or finished elsewhere).
-    public static void DeleteOrphans(IEnumerable<Guid> pendingMeetings)
-    {
-        try
-        {
-            if (!System.IO.Directory.Exists(Directory)) return;
-            var keep = pendingMeetings.ToHashSet();
-            foreach (var file in System.IO.Directory.EnumerateFiles(Directory, "*.wav"))
-            {
-                // "<36-character id>-mic" or "<id>-system"
-                var name = Path.GetFileNameWithoutExtension(file);
-                if (name.Length >= 36 && Guid.TryParse(name[..36], out var id) && keep.Contains(id)) continue;
-                File.Delete(file);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warn("Cleaning up meeting audio failed", ex);
         }
     }
 
