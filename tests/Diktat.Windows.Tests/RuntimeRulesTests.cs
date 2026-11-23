@@ -114,6 +114,12 @@ public class DictationRulesTests
         Assert.Null(DictationRules.UnavailableReason(WorkflowType.TapTalk, true, false));
     }
 
+    /// The AI step failed: the notice names why and where the word-for-word text is.
+    [Fact]
+    public void RewriteFailureNamesTheReasonAndTheClipboard() =>
+        Assert.Equal("Der KI-Schritt ist fehlgeschlagen (Keine Verbindung). Dein wortgenauer Text liegt in der Zwischenablage.",
+            DictationRules.RewriteFailed("Keine Verbindung."));
+
     [Fact]
     public void CustomModeNamesWin()
     {

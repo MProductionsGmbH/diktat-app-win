@@ -131,6 +131,7 @@
   "Der API-Key wurde abgelehnt. Bitte in den Einstellungen prüfen.": "The API key was rejected. Please check it in the settings.",
   "Der Assistent führt durch Mikrofon, Sprachmodell und Kurzbefehl. Diktat transkribiert direkt auf diesem PC.": "The assistant guides you through microphone, language model and shortcut. Diktat transcribes directly on this PC.",
   "Der Download hat nicht geklappt. Bitte die Internetverbindung prüfen und erneut versuchen.": "The download did not work. Please check the internet connection and try again.",
+  "Der KI-Schritt ist fehlgeschlagen ({0}). Dein wortgenauer Text liegt in der Zwischenablage.": "The AI step failed ({0}). Your word-for-word text is on the clipboard.",
   "Der Modell-Anbieter hat die Anfrage abgelehnt.": "The model provider rejected the request.",
   "Der Name ersetzt „{0}“ im Transkript. Leer lassen für „{0}“.": "The name replaces “{0}” in the transcript. Leave empty for “{0}”.",
   "Der Text ist für das Modell auf diesem PC zu lang.": "The text is too long for the model on this PC.",

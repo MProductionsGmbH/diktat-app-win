@@ -399,6 +399,8 @@ public sealed class DictationController : ObservableObject, IDisposable
 
             var mode = await session.ResolvedMode;
             var host = await session.WebHost;
+            // Reading the website can take a moment; a dictation cancelled meanwhile is not pasted.
+            if (_session != session) return;
             var tone = settings.App.StyleSettings.ToneFor(StyleContextInfo.Detect(session.Target?.ExeName, host));
             string text;
             string? transcript = null;
@@ -419,8 +421,22 @@ public sealed class DictationController : ObservableObject, IDisposable
                 transcript = processed;
                 StatusMessage = ModeRewriter.StatusText(mode);
                 var field = await session.Field;
+                if (_session != session) return;
                 var context = DictationRules.AiContext(field, settings.App.AiSeesFieldContext);
-                var rewritten = await _services.ModeRewriter.RewriteAsync(mode, processed, settings, context, ct);
+                string rewritten;
+                try
+                {
+                    rewritten = await _services.ModeRewriter.RewriteAsync(mode, processed, settings, context, ct);
+                }
+                catch (Exception ex) when (ex is not NothingRecognizedException && !ct.IsCancellationRequested)
+                {
+                    if (_session != session) return;
+                    // What was said is there; only the AI step failed. Hand it over instead of
+                    // losing the dictation.
+                    Log.Warn("AI step failed, the transcript goes to the clipboard", ex);
+                    await DeliverTranscriptAfterRewriteFailureAsync(session, processed, mode, ex.Message);
+                    return;
+                }
                 if (_session != session) return;
                 text = TranscriptionQualityService.CleanedTranscript(rewritten);
             }
@@ -453,6 +469,8 @@ public sealed class DictationController : ObservableObject, IDisposable
 
     private async Task DeliverAsync(Session session, string text, string? transcript, WorkflowType mode, SettingsContainer settings)
     {
+        // A replaced or cancelled dictation must not be pasted with the state of the one running now.
+        if (_session != session) return;
         session.IsPasting = true;
         LastText = text;
         LastTranscript = transcript;
@@ -491,6 +509,25 @@ public sealed class DictationController : ObservableObject, IDisposable
             ShowResult(DictationPhase.Done, DictationRules.StatusFor(outcome),
                 outcome == PasteOutcome.Pasted ? DictationRules.DoneDuration : DictationRules.CopiedDuration);
         }
+    }
+
+    /// The AI step failed and <paramref name="transcript"/> is what was said. It goes to the
+    /// clipboard and not unasked into the field: a rant meant for the WTF mode is not what
+    /// belongs there.
+    private async Task DeliverTranscriptAfterRewriteFailureAsync(Session session, string transcript, WorkflowType mode, string reason)
+    {
+        session.IsPasting = true;
+        LastText = transcript;
+        LastTranscript = null;
+        _services.History.Add(transcript, mode);
+        var copied = await _paste.CopyOnlyAsync(transcript);
+        if (_session != session) return;
+        Log.Info($"AI step failed, transcript copied: {copied}");
+        LastTextWasOnlyCopied = true;
+        _lastInsertion = null;
+        _session = null;
+        if (copied) ShowResult(DictationPhase.Done, DictationRules.RewriteFailed(reason), DictationRules.ErrorDuration);
+        else ShowResult(DictationPhase.Error, DictationRules.ClipboardBusy, DictationRules.ErrorDuration);
     }
 
     // ------------------------------------------------------------------ after the text

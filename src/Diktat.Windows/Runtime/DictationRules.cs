@@ -21,6 +21,10 @@ public static class DictationRules
     public static string ClipboardBusy => L.T("Die Zwischenablage war belegt, der Text wurde nicht eingefügt. Du findest ihn im Verlauf.");
     public static string ReplaceFailed => L.T("Ersetzen ging hier nicht. Der wortgenaue Text liegt in der Zwischenablage.");
 
+    /// The AI step of a mode failed; what was said went to the clipboard instead.
+    public static string RewriteFailed(string reason) =>
+        L.F("Der KI-Schritt ist fehlgeschlagen ({0}). Dein wortgenauer Text liegt in der Zwischenablage.", reason.Trim().TrimEnd('.'));
+
     /// How long "Done" stays before the app is idle again; a text that was only copied stays longer.
     public static readonly TimeSpan DoneDuration = TimeSpan.FromSeconds(1.5);
     public static readonly TimeSpan CopiedDuration = TimeSpan.FromSeconds(2.8);
