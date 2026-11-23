@@ -23,3 +23,23 @@ Durchlauf 1, geprüft gegen `docs/reports/mac-0.1.16-kriterien.md` auf Stand 680
 **Auffälligkeiten.** Keine gelöschten oder abgeschwächten Tests, eine angepasste Assertion (Mitteilungstext MTL-03). Neu `SECURITY.md`, nicht in der Spec. Lokaler `main` war veraltet, gegen `origin/main` keine Änderungen an CI, Lockfiles oder Regeldateien. Hinweise ohne Schweregrad: «Alle Daten löschen», während ein Meeting gerade das Mikrofon öffnet, kann eine Tondatei hinterlassen, die erst der nächste Start entfernt. Ist ein Diktat-Ordner eine Junction, entfernt die Löschung beim Ziel das Schreibschutz-Flag und meldet Erfolg, obwohl das Ziel bleibt.
 
 **Für die Projektleitung.** Fünf wichtige Befunde, kein Blocker. Alle fünf werden vor der Freigabe behoben und in einem zweiten Durchlauf geprüft.
+
+# Durchlauf 2
+
+Geprüft auf Stand 4e1509c gegen 680166f, nur DSU-01-AK2, MTG-04-AK1, MTG-02-AK1, DSU-03-AK1 und Regression, Prüfer Anforderungen. Ergebnisse unverändert.
+
+**Bestanden (nur Code geprüft).** MTG-04-AK1, MTG-02-AK1 (die Mitteilung selbst lässt sich unter Windows nicht zurückziehen, Windows-Grenze)
+
+## Nicht bestanden
+
+| Spec-ID | Schritte zum Nachstellen | Erwartet | Tatsächlich | Schweregrad |
+|---|---|---|---|---|
+| DSU-01-AK2 | Mit 0.2.2 Schlüssel für `https://a.example.com/v1` sichern, dann «OpenAI» oder «Keiner», aktualisieren, dann «Eigene Adresse» mit Standardadresse oder «Server suchen» › «Übernehmen» | Der Schlüssel von A geht an keinen anderen Server | Der Schlüssel ohne Serverbindung wird an die neue Adresse gebunden und gesendet. Mit Wegwerf-Test bewiesen. | Wichtig |
+| DSU-01-AK2 | Neue Adresse eintragen, innerhalb von 0,7 s Schlüssel einfügen und sichern | Schlüssel gilt für die neue Adresse | Das Festschreiben der Adresse leert das Schlüsselfeld vorher, gespeichert wird nichts | Wichtig |
+| DSU-03-AK1 | Neue Testlisten-Zeile zum Umweg abarbeiten | Liste beschreibt das Verhalten | Liste sagt, der Schlüssel sei auf der ersten Adresse wieder da. Tatsächlich ist er gelöscht (so auch der Test). | Wichtig |
+
+**Tests.** Core 202, AI 198, Transcription 82, LocalModel 15, alle grün. CI-Lauf 45164920312 auf 4e1509c grün, 46 Windows-Tests.
+
+**Auffälligkeiten.** Keine gelöschten oder abgeschwächten Tests. Die Testlisten-Zeile «Dictation fixes: the first word is kept, a missing or very quiet microphone is reported …» ist gestrichen.
+
+**Behoben nach Durchlauf 2.** Ein Schlüssel ohne Serverbindung, der nicht unter «Eigene Adresse» liegt, gilt als Schlüssel eines unbekannten Servers und wird nie gesendet (drei neue Tests, vorher rot). Das Schlüsselfeld wird vor dem Festschreiben der Adresse gelesen. Die Testlisten-Zeile ist richtiggestellt. Die gestrichene Zeile beschrieb Diktat-Korrekturen, die in Mac 0.1.13 bis 0.1.16 nicht vorkommen, und bleibt gestrichen. Diese Korrekturen sind durch Tests belegt, aber nicht in einem dritten unabhängigen Durchlauf geprüft.

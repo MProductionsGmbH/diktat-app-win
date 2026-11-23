@@ -77,14 +77,18 @@ public sealed class AIProviderStore
         return key;
     }
 
+    /// Stands for a key whose server is not known: it matches no address, so it is never sent.
+    private const string UnknownScope = "unknown";
+
     /// The server the key of "Eigene Adresse" belongs to. A key from a version before this was
-    /// stored belongs to the address set up then.
+    /// stored belongs to the address set up now if "Eigene Adresse" is set up; otherwise its
+    /// server is unknown and the key is dropped once "Eigene Adresse" is chosen again.
     private string? CustomKeyScope()
     {
         var scope = _secrets.Get(CustomScopeName);
         if (!string.IsNullOrEmpty(scope)) return scope;
         if (string.IsNullOrEmpty(_secrets.Get(SecretName(AIProvider.Custom)))) return null;
-        if (Config is not { Provider: AIProvider.Custom, KeyScope: { } current }) return null;
+        if (Config is not { Provider: AIProvider.Custom, KeyScope: { } current }) return UnknownScope;
         _secrets.Set(CustomScopeName, current);
         return current;
     }

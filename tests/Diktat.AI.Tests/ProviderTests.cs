@@ -267,6 +267,23 @@ public sealed class CustomServerKeyTests
         Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
     }
 
+    [Theory]
+    [InlineData("http://localhost:11434/v1")]
+    [InlineData("http://localhost:1234/v1")]
+    [InlineData("https://a.example.com/v1")]
+    public void AKeyFromAnOlderVersionSavedBeforeADetourIsNeverSent(string address)
+    {
+        using var directory = new TempDirectory();
+        var path = Path.Combine(directory.Path, "p.json");
+        var secrets = new InMemorySecretStore();
+        // An older version: the key of a.example.com, then OpenAI was picked.
+        new AIProviderStore(path, secrets) { Config = new AIProviderConfig(AIProvider.OpenAI) };
+        secrets.Set(AIProviderStore.SecretName(AIProvider.Custom), "sk-proxy-1234567890");
+
+        var store = new AIProviderStore(path, secrets) { Config = Custom(address) };
+        Assert.Null(store.Key(AIProvider.Custom));
+    }
+
     [Fact]
     public void AKeyFromAnOlderVersionBelongsToTheAddressSetUpThen()
     {

@@ -81,5 +81,5 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 - [ ] Drag an `.m4a` or `.opus` from Explorer onto the Verlauf page: a dashed frame appears, the drop opens "Audiodatei" and transcribes; a `.txt` shows no frame.
 - [ ] Main window sidebar: "Alles auf diesem PC" with the built-in AI model; with OpenAI and "Immer Modell-Anbieter" it says "Sprache auf diesem PC" and names OpenAI.
 - [ ] "Eigene Adresse" with a saved key: change only the path, the key stays; change the host or port, the key is gone.
-- [ ] "Eigene Adresse" with a saved key, then OpenAI or "Keiner", then "Eigene Adresse" again with the default address: no key is shown or sent; back on the first address, the key is there again.
+- [ ] "Eigene Adresse" with a saved key, then OpenAI or "Keiner", then "Eigene Adresse" again with the default address: no key is shown or sent, and the key is gone (also back on the first address it has to be entered again).
 - [ ] Einstellungen › Datenschutz › "Alle Daten löschen …" (with a model loaded and a meeting running): Diktat quits, `%APPDATA%\Diktat`, `%LOCALAPPDATA%\Diktat`, `%TEMP%\Diktat` and the Run entry are gone, and stay gone after Diktat has ended.
