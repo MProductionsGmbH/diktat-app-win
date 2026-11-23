@@ -54,8 +54,22 @@ public partial class GeneralSection : UserControl, IMainPage
 
     private async void OnChangeHotkey(object sender, RoutedEventArgs e)
     {
-        if (RowOf(sender) is { } row) await _model.CaptureAsync(row);
+        if (RowOf(sender) is not { } row) return;
+        // Switched to another program while recording: the next Strg + V there must not become
+        // Diktat's shortcut.
+        var window = Window.GetWindow(this);
+        if (window is not null) window.Deactivated += OnWindowDeactivated;
+        try
+        {
+            await _model.CaptureAsync(row);
+        }
+        finally
+        {
+            if (window is not null) window.Deactivated -= OnWindowDeactivated;
+        }
     }
+
+    private void OnWindowDeactivated(object? sender, EventArgs e) => _model.CancelCapture();
 
     private void OnCancelCapture(object sender, RoutedEventArgs e) => _model.CancelCapture();
 

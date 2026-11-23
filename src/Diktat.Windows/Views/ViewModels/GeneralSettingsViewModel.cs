@@ -119,6 +119,10 @@ public sealed class GeneralSettingsViewModel : ObservableObject
 
     public string? HotkeyMessage { get => _hotkeyMessage; private set => Set(ref _hotkeyMessage, value); }
 
+    /// How long the recorder waits for a key combination. Armed, it takes the next combination
+    /// pressed anywhere, and all shortcuts of Diktat are off meanwhile.
+    public static readonly TimeSpan CaptureTimeout = TimeSpan.FromSeconds(15);
+
     public void RefreshHotkeys()
     {
         var settings = _app.Services.Settings;
@@ -135,7 +139,7 @@ public sealed class GeneralSettingsViewModel : ObservableObject
         _captureCts?.Cancel();
         foreach (var other in Hotkeys) other.IsCapturing = false;
         RefreshHotkeys();
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var cts = new CancellationTokenSource(CaptureTimeout);
         _captureCts = cts;
         row.IsCapturing = true;
         row.Label = L.T("Kürzel drücken …");
@@ -143,6 +147,13 @@ public sealed class GeneralSettingsViewModel : ObservableObject
         try
         {
             var combo = await _app.CaptureShortcutAsync(cts.Token);
+            while (combo is not null && ReservedShortcuts.IsReserved(combo))
+            {
+                // Keeps listening: the user picks another one.
+                row.Label = L.T("Belegt, anderes wählen");
+                HotkeyMessage = L.F("{0} ist schon von Windows oder fast jedem Programm belegt.", combo.Label(GlobalHotkeyService.KeyName));
+                combo = await _app.CaptureShortcutAsync(cts.Token);
+            }
             if (combo is null)
             {
                 HotkeyMessage = null;
