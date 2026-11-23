@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Threading;
+using Diktat.AI.Meetings;
 using Diktat.Windows.Platform;
 using Diktat.Windows.Runtime;
 
@@ -76,7 +77,12 @@ public sealed class PillController : IDisposable
 
     private void OnMeetingChanged(object? sender, EventArgs e)
     {
-        if (_state == PillState.Meeting) _window.Visual.MeetingElapsed = _app.CurrentMeeting?.Elapsed ?? TimeSpan.Zero;
+        if (_state == PillState.Meeting)
+        {
+            _window.Visual.MeetingElapsed = _app.CurrentMeeting?.Elapsed ?? TimeSpan.Zero;
+            // A problem appeared or went away.
+            if (_window.Visual.MeetingWarning != MeetingWarning()) UpdateHint();
+        }
         // A meeting that starts or ends matters only while no dictation shows.
         if (_app.Phase == DictationPhase.Idle) Update(replace: false);
     }
@@ -172,11 +178,23 @@ public sealed class PillController : IDisposable
     {
         var visual = _window.Visual;
         bool noSignal = _state == PillState.Recording && _app.NoSignal;
+        var problem = _state == PillState.Meeting ? _app.CurrentMeeting?.Problem : null;
         visual.Silent = noSignal;
-        visual.HintIsWarning = noSignal;
-        visual.Hint = PillLayout.HintText(_state, _app.Dictation.MicrophoneName, noSignal, _showsMicrophone);
+        visual.HintIsWarning = noSignal || problem is not null;
+        visual.MeetingWarning = MeetingWarning();
+        visual.Hint = PillLayout.HintText(_state, _app.Dictation.MicrophoneName, noSignal, _showsMicrophone, problem?.Title());
+        if (_state == PillState.Meeting)
+        {
+            visual.ToolTip = problem is { } p
+                ? L.F("Meeting: {0}. Klicken öffnet die Meeting-Seite.", p.Title())
+                : L.T("Meeting läuft. Klicken öffnet die Meeting-Seite.");
+        }
         visual.InvalidateVisual();
     }
+
+    /// "Mikrofon prüfen" while the running meeting has a problem, else null.
+    private string? MeetingWarning() =>
+        _state == PillState.Meeting && _app.CurrentMeeting is { Phase: MeetingPhase.Recording, Problem: { } problem } ? problem.ShortLabel() : null;
 
     private void Meter()
     {

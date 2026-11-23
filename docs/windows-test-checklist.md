@@ -41,6 +41,14 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 
 - [ ] "Im Raum" with two people: transcript with Person 1 and Person 2 (the speaker package is downloaded once).
 - [ ] "Online-Meeting" in Teams or Zoom: you are "Ich", the others come from the system audio; without headphones the echo is filtered out of your part.
+- [ ] "Online-Meeting" with "Mein Mikrofon mit aufnehmen" off (a webinar on YouTube): no "Ich", the voices are told apart; the choice is still there after a restart.
+- [ ] "Ton testen" on the online card and in Settings, Meetings: the level moves while a video plays, "Das System-Audio kommt an."; it stops by itself after 30 s.
+- [ ] Online without microphone while nothing plays: the evaluation fails with the hint about the Windows default output device.
+- [ ] During a meeting: unplug the USB microphone. The red banner "Das Mikrofon ist nicht erreichbar" shows on the meeting page, the pill says "Mikrofon prüfen", a notification comes; the recording goes on with the default input (notice "Das Mikrofon hat gewechselt") and the transcript keeps its timing.
+- [ ] During a meeting: plug in a headset that becomes the default input, and connect a monitor with speakers. The recording goes on.
+- [ ] During a meeting: mute the microphone in Windows (or close the laptop lid with an external monitor). After 5 s "Das Mikrofon liefert keinen Ton".
+- [ ] During an online meeting: unplug the headphones the call plays on. "Das System-Audio ist nicht erreichbar" shows only while no output is there.
+- [ ] Call detection: start a Teams, Zoom or Meet call in the browser. After about 6 s a notification suggests recording; its click opens the meeting page on "Online-Meeting". Not again for the same app within 15 minutes; never while a meeting records; never when switched off in Settings, Meetings.
 - [ ] A one-hour meeting: memory stays low (audio goes to disk), the tracks stay in sync.
 - [ ] Summary with Ollama running on this PC.
 - [ ] Drop a WhatsApp voice message (`.opus`), an iPhone voice memo (`.m4a`) and an `.mp3`.

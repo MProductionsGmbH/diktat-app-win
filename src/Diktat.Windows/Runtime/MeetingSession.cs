@@ -12,9 +12,9 @@ using MeetingTranscript = Diktat.Transcription.Meeting.MeetingTranscript;
 
 namespace Diktat.Windows.Runtime;
 
-/// One meeting: records the microphone (and in an online meeting what the PC plays) into WAV
-/// files in chunks, optionally writes live notes, then transcribes by person, cleans up each
-/// paragraph, saves the meeting and summarizes it on this PC (port of MeetingController.swift).
+/// One meeting: records the microphone, what the PC plays, or both (see <see cref="MeetingSource"/>)
+/// into WAV files in chunks, optionally writes live notes, then transcribes by person, cleans up
+/// each paragraph, saves the meeting and summarizes it on this PC (port of MeetingController.swift).
 /// Everything stays on this PC; the raw audio is deleted once the transcript is saved.
 /// UI thread only.
 public sealed class MeetingSession : ObservableObject, IMeetingSession
@@ -24,6 +24,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     private readonly AppServices _services;
     private readonly DispatcherTimer _meterTimer;
     private readonly DispatcherTimer _flushTimer;
+    private readonly MeetingProblems _problems = new();
+    private readonly MicrophoneSilenceTracker _silence = new();
     private DispatcherTimer? _liveNotesTimer;
     private MeetingRecorder? _recorder;
     private TrackWriter? _micWriter;
@@ -39,6 +41,9 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
 
     private MeetingPhase _phase;
     private bool _isOnline;
+    private bool _recordsMicrophone;
+    private string? _microphoneName;
+    private MeetingProblem? _problem;
     private TimeSpan _elapsed;
     private float _microphoneLevel;
     private float _systemAudioLevel;
@@ -64,6 +69,9 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
 
     public MeetingPhase Phase { get => _phase; private set => SetProperty(ref _phase, value); }
     public bool IsOnline { get => _isOnline; private set => SetProperty(ref _isOnline, value); }
+    public bool RecordsMicrophone { get => _recordsMicrophone; private set => SetProperty(ref _recordsMicrophone, value); }
+    public string? MicrophoneName { get => _microphoneName; private set => SetProperty(ref _microphoneName, value); }
+    public MeetingProblem? Problem { get => _problem; private set => SetProperty(ref _problem, value); }
     public TimeSpan Elapsed { get => _elapsed; private set => SetProperty(ref _elapsed, value); }
     public float MicrophoneLevel { get => _microphoneLevel; private set => SetProperty(ref _microphoneLevel, value); }
     public float SystemAudioLevel { get => _systemAudioLevel; private set => SetProperty(ref _systemAudioLevel, value); }
@@ -82,13 +90,13 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     /// Recording, evaluating, or the microphone is being opened.
     public bool IsBusy => Phase != MeetingPhase.Idle || _starting;
 
-    public async Task StartAsync(bool online)
+    public async Task StartAsync(MeetingSource source)
     {
         if (IsBusy || _recorder is not null) return;
         _starting = true;
         try
         {
-            await StartCoreAsync(online);
+            await StartCoreAsync(source);
         }
         finally
         {
@@ -96,7 +104,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         }
     }
 
-    private async Task StartCoreAsync(bool online)
+    private async Task StartCoreAsync(MeetingSource source)
     {
         ErrorMessage = null;
         StatusMessage = null;
@@ -106,24 +114,31 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
             return;
         }
 
+        bool withMicrophone = source.UsesMicrophone();
+        bool withSystemAudio = source.UsesSystemAudio();
         var startedAt = DateTimeOffset.Now;
         var record = new MeetingRecord { CreatedAt = startedAt, Title = MeetingRecord.TitleFor(startedAt), Status = MeetingStatus.Pending };
         _id = record.Id;
         var recorder = new MeetingRecorder(_services.UiContext);
+        // A monitor connected for the presentation or a microphone unplugged must not end the meeting.
+        recorder.Microphone.SurvivesDeviceChanges = true;
         var microphone = _services.Settings.App.MicrophoneId;
         Exception? systemError = null;
         try
         {
-            if (online) systemError = await Task.Run(() => recorder.Start(microphone));
-            else await Task.Run(() => recorder.Microphone.Start(microphone));
+            systemError = await Task.Run(() => recorder.Start(microphone, withMicrophone, withSystemAudio));
         }
         catch (Exception ex)
         {
             recorder.Dispose();
             Log.Warn("Meeting recording could not start", ex);
-            ErrorMessage = ex is AudioCaptureException ? ex.Message : L.F("Die Aufnahme ließ sich nicht starten: {0}", ex.Message);
+            ErrorMessage = !withMicrophone
+                // Without the microphone the PC's sound is the whole meeting.
+                ? L.F("Das System-Audio lässt sich nicht aufnehmen. ({0})", ex.Message)
+                : ex is AudioCaptureException ? ex.Message : L.F("Die Aufnahme ließ sich nicht starten: {0}", ex.Message);
             return;
         }
+        bool online = withSystemAudio && systemError is null;
 
         // The files first: a recorder that runs without them would fill the memory unseen, and
         // this session could never start again.
@@ -131,8 +146,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         TrackWriter? systemWriter = null;
         try
         {
-            micWriter = new TrackWriter(MeetingAudio.MicrophonePath(_id), AudioRecorder.SampleRate);
-            systemWriter = online && systemError is null ? new TrackWriter(MeetingAudio.SystemAudioPath(_id), LoopbackRecorder.SampleRate) : null;
+            micWriter = withMicrophone ? new TrackWriter(MeetingAudio.MicrophonePath(_id), AudioRecorder.SampleRate) : null;
+            systemWriter = online ? new TrackWriter(MeetingAudio.SystemAudioPath(_id), LoopbackRecorder.SampleRate) : null;
         }
         catch (Exception ex)
         {
@@ -145,16 +160,20 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         }
 
         _recorder = recorder;
-        IsOnline = online && systemError is null;
-        if (online && systemError is not null)
+        IsOnline = online;
+        RecordsMicrophone = withMicrophone;
+        MicrophoneName = withMicrophone ? recorder.Microphone.DeviceName : null;
+        if (withSystemAudio && systemError is not null)
         {
-            StatusMessage = L.F("Der Ton des PCs lässt sich nicht aufnehmen, es läuft nur das Mikrofon. ({0})", systemError.Message);
+            StatusMessage = L.F("Das System-Audio lässt sich nicht aufnehmen, es läuft nur das Mikrofon. ({0})", systemError.Message);
         }
         recorder.Microphone.Interrupted += OnMicrophoneInterrupted;
+        recorder.Microphone.DeviceChanged += OnMicrophoneChanged;
         recorder.SystemAudio.OutputChanged += OnOutputChanged;
         _micWriter = micWriter;
         _systemWriter = systemWriter;
-        _aligned = !IsOnline;
+        // Two tracks start at the same moment; a single one needs no alignment.
+        _aligned = micWriter is null || systemWriter is null;
         // Stored as pending from the start, so a crash or quit keeps the audio for a later evaluation.
         _services.Meetings.Upsert(record);
         MeetingId = null;
@@ -164,17 +183,48 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         _meterTimer.Start();
         _flushTimer.Start();
         Phase = MeetingPhase.Recording;
-        Log.Info($"Meeting recording starts ({(IsOnline ? "online" : "in the room")})");
+        Log.Info($"Meeting recording starts ({source}{(withSystemAudio && !online ? ", without system audio" : "")})");
     }
 
-    private static string OutputLostNotice => L.T("Das Ausgabegerät ist weg, der Ton des PCs lässt sich gerade nicht aufnehmen. Diktat versucht es weiter, das Mikrofon läuft.");
+    private void SetProblem(MeetingProblem problem, bool isActive)
+    {
+        if (_problems.Set(problem, isActive)) Problem = _problems.Current;
+    }
 
+    private void ClearProblems()
+    {
+        _problems.Clear();
+        _silence.Reset();
+        Problem = null;
+    }
+
+    /// Headphones unplugged or the output gone: the loopback moves to the current output by itself.
     private void OnOutputChanged(object? sender, Exception? error)
     {
-        if (error is not null) StatusMessage = OutputLostNotice;
-        else if (StatusMessage == OutputLostNotice) StatusMessage = null;
+        if (Phase != MeetingPhase.Recording) return;
+        SetProblem(MeetingProblem.SystemAudioLost, error is not null);
     }
 
+    /// The audio setup changed under the recording and the microphone records again, or not yet.
+    private void OnMicrophoneChanged(object? sender, AudioCaptureException? error)
+    {
+        if (Phase != MeetingPhase.Recording || _recorder is not { } recorder) return;
+        SetProblem(MeetingProblem.MicrophoneLost, error is not null);
+        if (error is not null)
+        {
+            Log.Warn("Meeting microphone lost, trying again", error);
+            return;
+        }
+        var name = recorder.Microphone.DeviceName;
+        if (!string.IsNullOrEmpty(name) && name != MicrophoneName)
+        {
+            // Said once, so nobody wonders why the far end of the table got quiet.
+            StatusMessage = L.F("Das Mikrofon hat gewechselt. Die Aufnahme läuft mit „{0}“ weiter.", name);
+        }
+        MicrophoneName = string.IsNullOrEmpty(name) ? MicrophoneName : name;
+    }
+
+    /// Only without SurvivesDeviceChanges, which the meeting sets; kept as the last resort.
     private void OnMicrophoneInterrupted(object? sender, AudioCaptureException error)
     {
         if (Phase != MeetingPhase.Recording) return;
@@ -185,28 +235,35 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
 
     private void Meter()
     {
-        if (_recorder is null) return;
-        MicrophoneLevel = _recorder.Microphone.Level;
-        SystemAudioLevel = IsOnline ? _recorder.SystemAudio.Level : 0;
-        Elapsed = TimeSpan.FromSeconds(Math.Floor(_recorder.Microphone.Duration.TotalSeconds));
+        if (_recorder is not { } recorder) return;
+        if (RecordsMicrophone)
+        {
+            MicrophoneLevel = recorder.Microphone.Level;
+            SetProblem(MeetingProblem.MicrophoneSilent, _silence.IsSilentTooLong(recorder.Microphone.CurrentDecibels, DateTimeOffset.Now));
+        }
+        SystemAudioLevel = IsOnline ? recorder.SystemAudio.Level : 0;
+        var duration = RecordsMicrophone ? recorder.Microphone.Duration : TimeSpan.Zero;
+        if (IsOnline && recorder.SystemAudio.Duration > duration) duration = recorder.SystemAudio.Duration;
+        Elapsed = TimeSpan.FromSeconds(Math.Floor(duration.TotalSeconds));
     }
 
-    /// Moves the recorded samples from memory to the files. Both tracks start at the same moment:
+    /// Moves the recorded samples from memory to the files. Two tracks start at the same moment:
     /// the later one gets silence in front, once the first microphone sample has arrived (at the
     /// end of a very short recording with what is known by then).
     private void Flush(MeetingRecorder recorder, bool final)
     {
-        if (_micWriter is null) return;
+        if (_micWriter is null && _systemWriter is null) return;
         if (!_aligned)
         {
             long micStart = recorder.Microphone.FirstSampleTimestamp;
             long systemStart = recorder.SystemAudio.FirstSampleTimestamp;
             if (micStart == 0 && !final) return; // wait for the first microphone packet
-            _micWriter.AppendSilence(MeetingAudio.LeadingPad(micStart, systemStart, AudioRecorder.SampleRate));
+            _micWriter?.AppendSilence(MeetingAudio.LeadingPad(micStart, systemStart, AudioRecorder.SampleRate));
             _systemWriter?.AppendSilence(MeetingAudio.LeadingPad(systemStart, micStart, LoopbackRecorder.SampleRate));
             _aligned = true;
         }
-        Append(recorder.Microphone.TakeSamples(), recorder.SystemAudio.IsRecording ? recorder.SystemAudio.TakeSamples() : []);
+        Append(_micWriter is not null ? recorder.Microphone.TakeSamples() : [],
+            _systemWriter is not null && recorder.SystemAudio.IsRecording ? recorder.SystemAudio.TakeSamples() : []);
     }
 
     private void Append(float[] mic, float[] system)
@@ -221,7 +278,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     public async void Stop()
     {
         if (Phase != MeetingPhase.Recording || _recorder is not { } recorder) return;
-        var notice = StatusMessage == OutputLostNotice ? null : StatusMessage;
+        var notice = StatusMessage;
+        bool withMicrophone = RecordsMicrophone;
         Phase = MeetingPhase.Processing;
         StatusMessage = DictationRules.TranscribingStatus;
         // Writers and live buffers belong to the UI thread; only the stopping runs elsewhere.
@@ -230,12 +288,18 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         var result = await Task.Run(() => StopRecorders(recorder));
         Append(result.Mic, result.System);
         await CloseWritersAsync();
-        if (FinishStorage(result))
+        bool systemSilent = FinishStorage(result);
+        if (systemSilent && withMicrophone)
         {
-            notice = Join(notice, L.T("Vom Ton des PCs kam nichts an. Ausgewertet wird nur das Mikrofon."));
+            notice = Join(notice, SystemAudioSilentNotice);
         }
-        await ProcessAsync(_id, notice);
+        await ProcessAsync(_id, notice, systemSilent);
     }
+
+    /// Nothing came from the PC's sound. On Windows that is mostly a call app that plays through
+    /// another device than the Windows default output, which is what the loopback records.
+    private static string SystemAudioSilentNotice =>
+        L.T("Vom System-Audio kam nichts an. Diktat nimmt auf, was über das Standard-Ausgabegerät von Windows läuft. Spielte die Anruf-App über ein anderes Gerät? Ausgewertet wird nur das Mikrofon.");
 
     /// Throws a running recording away, audio included; a running evaluation stops (the meeting
     /// stays pending and can be evaluated again).
@@ -257,6 +321,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         _services.Meetings.Delete(_id);
         RuntimeNative.KeepAwake(false);
         ResetLevels();
+        ClearProblems();
+        MicrophoneName = null;
         StatusMessage = null;
         Phase = MeetingPhase.Idle;
         Log.Info("Meeting discarded");
@@ -296,13 +362,16 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     private StoppedTracks StopRecorders(MeetingRecorder recorder)
     {
         bool online = IsOnline;
-        double duration = recorder.Microphone.Duration.TotalSeconds;
+        bool withMicrophone = RecordsMicrophone;
+        double duration = Math.Max(
+            withMicrophone ? recorder.Microphone.Duration.TotalSeconds : 0,
+            online ? recorder.SystemAudio.Duration.TotalSeconds : 0);
         float peak = 0;
         float[] mic = [];
         float[] system = [];
         try
         {
-            mic = recorder.Microphone.Stop();
+            if (withMicrophone) mic = recorder.Microphone.Stop();
             if (online)
             {
                 peak = recorder.SystemAudio.Peak;
@@ -325,6 +394,8 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         Detach(result.Recorder);
         StopLiveNotes();
         ResetLevels();
+        ClearProblems();
+        MicrophoneName = null;
         if (_services.Meetings.Meeting(_id) is { } record)
         {
             record.Duration = result.Duration;
@@ -341,6 +412,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     private void Detach(MeetingRecorder recorder)
     {
         recorder.Microphone.Interrupted -= OnMicrophoneInterrupted;
+        recorder.Microphone.DeviceChanged -= OnMicrophoneChanged;
         recorder.SystemAudio.OutputChanged -= OnOutputChanged;
         recorder.Dispose();
     }
@@ -403,13 +475,16 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
             await notes.UpdateAsync(async ct =>
             {
                 var language = settings.Transcription.Language;
-                var own = await _services.Transcription.TranscribeAllowingEmptyAsync(mic, language, ct);
+                // "Nur System-Audio" brings no microphone samples.
+                IReadOnlyList<AiTimedWord> own = mic.Length > 0
+                    ? Words(await _services.Transcription.TranscribeAllowingEmptyAsync(mic, language, ct))
+                    : [];
                 IReadOnlyList<AiTimedWord> others = [];
                 if (system is { Length: > 0 })
                 {
                     others = Words(await _services.Transcription.TranscribeAllowingEmptyAsync(system, language, ct));
                 }
-                return Diktat.AI.Meetings.LiveNotes.ComposeStretch(Words(own), others, OwnName, post.Process);
+                return Diktat.AI.Meetings.LiveNotes.ComposeStretch(own, others, OwnName, post.Process);
             });
         }
         catch (Exception ex)
@@ -446,9 +521,10 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
     // ------------------------------------------------------------------ evaluation
 
     /// Evaluates a stored meeting whose audio is still there (after Stop, or again after a failure).
-    public Task ProcessAsync(Guid meetingId) => ProcessAsync(meetingId, null);
+    public Task ProcessAsync(Guid meetingId) => ProcessAsync(meetingId, null, systemAudioSilent: false);
 
-    private async Task ProcessAsync(Guid meetingId, string? notice)
+    /// <param name="systemAudioSilent">The recording just ended and the PC's sound brought nothing.</param>
+    private async Task ProcessAsync(Guid meetingId, string? notice, bool systemAudioSilent)
     {
         if (_services.Meetings.Meeting(meetingId) is not { } record)
         {
@@ -470,15 +546,24 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
         {
             var micPath = MeetingAudio.MicrophonePath(meetingId);
             var systemPath = MeetingAudio.SystemAudioPath(meetingId);
-            if (!File.Exists(micPath)) throw new MeetingTranscriptionException(L.T("Die Aufnahme dieses Meetings ist nicht mehr da."));
+            // "Nur System-Audio" has no microphone file, and nothing may have arrived at all.
+            bool hasMicrophone = File.Exists(micPath);
+            bool hasSystemAudio = File.Exists(systemPath);
+            if (!hasMicrophone && !hasSystemAudio)
+            {
+                throw new MeetingTranscriptionException(systemAudioSilent
+                    ? L.T("Von diesem Meeting ist kein Ton da. Vom System-Audio kam nichts an. Diktat nimmt auf, was über das Standard-Ausgabegerät von Windows läuft. Spielte die Anruf-App über ein anderes Gerät?")
+                    : L.T("Die Aufnahme dieses Meetings ist nicht mehr da."));
+            }
             var (mic, system) = await Task.Run(() =>
             {
-                var micTrack = MeetingAudio.Read(micPath);
-                if (!File.Exists(systemPath)) return (micTrack, (float[]?)null);
-                var (a, b) = MeetingAudio.SameLength(micTrack, MeetingAudio.Read(systemPath));
-                return (a, (float[]?)b);
+                float[]? micTrack = hasMicrophone ? MeetingAudio.Read(micPath) : null;
+                float[]? systemTrack = hasSystemAudio ? MeetingAudio.Read(systemPath) : null;
+                if (micTrack is null || systemTrack is null) return (micTrack, systemTrack);
+                var (a, b) = MeetingAudio.SameLength(micTrack, systemTrack);
+                return ((float[]?)a, (float[]?)b);
             }, cancel.Token);
-            if (record.Duration <= 0) record.Duration = (double)mic.Length / AudioRecorder.SampleRate;
+            if (record.Duration <= 0) record.Duration = (double)(mic ?? system!).Length / AudioRecorder.SampleRate;
 
             MeetingTranscript transcript;
             using (var diarizer = SherpaSpeakerDiarizer.FromStore(_services.Models))
@@ -486,7 +571,7 @@ public sealed class MeetingSession : ObservableObject, IMeetingSession
                 var transcriber = new MeetingTranscriber(_services.Transcription, () => diarizer);
                 transcript = await transcriber.TranscribeAsync(mic, system, settings.Transcription.Language, status, cancel.Token);
             }
-            mic = [];
+            mic = null;
             system = null;
             notice = Join(notice, transcript.Notice);
 

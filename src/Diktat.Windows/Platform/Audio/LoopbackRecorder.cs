@@ -274,20 +274,26 @@ public sealed class MeetingRecorder : IDisposable
 
     public bool IsRecording => Microphone.IsRecording || SystemAudio.IsRecording;
 
-    /// Starts both. If the system audio cannot be recorded the microphone still records and
-    /// the exception is returned (null when both run). Throws when the microphone fails.
-    public Exception? Start(string? microphoneId)
+    /// Starts what the meeting records. If the system audio cannot be recorded next to the
+    /// microphone, the microphone still records and the exception is returned (null when all
+    /// run). Throws when the microphone fails, or the system audio when it records alone
+    /// ("Nur System-Audio").
+    public Exception? Start(string? microphoneId, bool microphone = true, bool systemAudio = true)
     {
         Exception? loopbackError = null;
-        try
+        if (systemAudio)
         {
-            SystemAudio.Start();
+            try
+            {
+                SystemAudio.Start();
+            }
+            catch (Exception ex) when (microphone)
+            {
+                loopbackError = ex;
+                Log.Warn("Meeting: system audio not available", ex);
+            }
         }
-        catch (Exception ex)
-        {
-            loopbackError = ex;
-            Log.Warn("Meeting: system audio not available", ex);
-        }
+        if (!microphone) return null;
         try
         {
             Microphone.Start(microphoneId);

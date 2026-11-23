@@ -159,7 +159,13 @@ public sealed class TrayPanelViewModel : ObservableObject
     public string UpdateTitle => _app.AvailableUpdate is { } u ? L.F("Diktat {0} ist da", u.Version) : "";
 
     public bool ShowsMeetingBanner => _app.Meeting is { Phase: not MeetingPhase.Idle };
-    public string MeetingBannerTitle => _app.Meeting?.Phase == MeetingPhase.Recording ? L.T("Meeting wird aufgenommen") : L.T("Meeting wird ausgewertet");
+    public string MeetingBannerTitle => _app.Meeting switch
+    {
+        // A problem outranks the plain "recording": what is not recorded is lost.
+        { Phase: MeetingPhase.Recording, Problem: { } problem } => L.F("Meeting: {0}", Diktat.AI.Meetings.MeetingProblemInfo.Title(problem)),
+        { Phase: MeetingPhase.Recording } => L.T("Meeting wird aufgenommen"),
+        _ => L.T("Meeting wird ausgewertet"),
+    };
 
     public bool ShowsInsertTranscript => _app.LastTranscript is not null && _app.Phase is DictationPhase.Done or DictationPhase.Idle;
     public string InsertTranscriptTitle

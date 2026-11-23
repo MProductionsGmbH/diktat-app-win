@@ -76,6 +76,69 @@ public class MeetingTranscriberTests
         Assert.Equal("In der Aufnahme wurde keine Sprache erkannt.", error.Message);
     }
 
+    /// "Nur System-Audio": there is no "Ich", the system sound is split into the people.
+    [Fact]
+    public async Task SystemAudioOnlyHasNoIchAndDiarizesTheSystemSound()
+    {
+        var system = new float[16_000 * 20];
+        var transcriber = new FakeTranscriber("fake", "")
+        {
+            Handler = _ => new TranscriptionResult("x", "de", Words(1, "Willkommen", "zum", "Webinar").Concat(Words(8, "Danke", "schön")).ToList()),
+        };
+        var diarizer = new FakeDiarizer([new SpeakerTurn(1, 0.5, 3), new SpeakerTurn(2, 7.5, 10)]);
+        var status = new List<string>();
+
+        var result = await new MeetingTranscriber(transcriber, diarizer).TranscribeAsync(null, system, "de", new SyncProgress(status.Add));
+
+        Assert.Same(system, diarizer.Input);
+        Assert.Equal(system.Length, transcriber.LastInputLength);
+        Assert.Equal([("Person 1", "Willkommen zum Webinar"), ("Person 2", "Danke schön")], result.Segments.Select(s => (s.SpeakerLabel, s.Text)));
+        Assert.DoesNotContain(result.Segments, s => s.Speaker == 0);
+        Assert.DoesNotContain("Mikrofon wird transkribiert ...", status);
+        Assert.Contains("System-Audio wird transkribiert ...", status);
+    }
+
+    [Fact]
+    public async Task SystemAudioOnlyWithoutSpeechIsAnError()
+    {
+        var transcriber = new FakeTranscriber("fake", "");
+        var error = await Assert.ThrowsAsync<MeetingTranscriptionException>(() =>
+            new MeetingTranscriber(transcriber, new FakeDiarizer([])).TranscribeAsync(null, new float[16_000], "auto"));
+        Assert.Equal("In der Aufnahme wurde keine Sprache erkannt.", error.Message);
+    }
+
+    /// Without the microphone a broken system track cannot fall back to anything.
+    [Fact]
+    public async Task SystemAudioOnlyThatFailsSaysWhy()
+    {
+        var transcriber = new FakeTranscriber("fake", "") { Handler = _ => throw new InvalidOperationException("kaputt") };
+        var error = await Assert.ThrowsAsync<MeetingTranscriptionException>(() =>
+            new MeetingTranscriber(transcriber, new FakeDiarizer([])).TranscribeAsync(null, new float[16_000], "auto"));
+        Assert.Equal("Das System-Audio ließ sich nicht auswerten. (kaputt)", error.Message);
+    }
+
+    [Fact]
+    public async Task NoTrackAtAllIsAnError()
+    {
+        var error = await Assert.ThrowsAsync<MeetingTranscriptionException>(() =>
+            new MeetingTranscriber(new FakeTranscriber("fake", ""), null).TranscribeAsync(null, null, "auto"));
+        Assert.Equal("Von diesem Meeting ist kein Ton da.", error.Message);
+    }
+
+    [Fact]
+    public void ParagraphsWithoutMicrophoneWordsAreOnlyTheOthers()
+    {
+        var system = Words(2, "Hallo", "alle");
+        var paragraphs = MeetingTranscriber.Paragraphs([], system, [new SpeakerTurn(1, 1, 4)]);
+        Assert.Equal([(1, "Hallo alle")], paragraphs.Select(p => (p.Speaker, p.Text.Trim())));
+    }
+
+    /// Reports at once on the calling thread, so the test sees every line.
+    private sealed class SyncProgress(Action<string> report) : IProgress<string>
+    {
+        public void Report(string value) => report(value);
+    }
+
     private sealed class FakeDiarizer(IReadOnlyList<SpeakerTurn> turns) : ISpeakerDiarizer
     {
         public float[]? Input { get; private set; }

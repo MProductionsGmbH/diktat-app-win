@@ -26,6 +26,8 @@ public sealed class MeetingTranscriptionException(string message, Exception? inn
 /// - Online meeting (microphone plus the PC's sound, captured by WASAPI loopback): the
 ///   microphone is "Ich", without what it heard from the speakers (<see cref="EchoFilter"/>);
 ///   the system sound is diarized into "Person 1", "Person 2", ...
+/// - Online without microphone ("Nur System-Audio", a webinar): no "Ich", the system sound
+///   is diarized.
 /// - Meeting in a room (microphone only): the microphone is diarized.
 ///
 /// Each track is transcribed as a whole with word times and the words are then placed with
@@ -53,29 +55,36 @@ public sealed class MeetingTranscriber
         _diarizer = diarizer;
     }
 
-    /// <param name="microphone">The microphone track, 16 kHz mono.</param>
+    /// <param name="microphone">The microphone track, 16 kHz mono, or null for "Nur System-Audio".</param>
     /// <param name="systemAudio">The PC's sound in an online meeting (16 kHz mono, same start), or null.</param>
     /// <param name="status">German status lines for the UI ("Stimmen werden erkannt ...").</param>
     public async Task<MeetingTranscript> TranscribeAsync(
-        float[] microphone,
+        float[]? microphone,
         float[]? systemAudio,
         string language,
         IProgress<string>? status = null,
         CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(microphone);
+        if (microphone is null && systemAudio is null)
+        {
+            throw new MeetingTranscriptionException(L.T("Von diesem Meeting ist kein Ton da."));
+        }
         string? notice = null;
 
-        status?.Report(L.T("Mikrofon wird transkribiert ..."));
         var transcriber = await _transcriber(ct).ConfigureAwait(false);
-        var words = (await transcriber.TranscribeAsync(microphone, language, ct).ConfigureAwait(false)).Words;
-        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<TimedWord> words = [];
+        if (microphone is not null)
+        {
+            status?.Report(L.T("Mikrofon wird transkribiert ..."));
+            words = (await transcriber.TranscribeAsync(microphone, language, ct).ConfigureAwait(false)).Words;
+            ct.ThrowIfCancellationRequested();
+        }
 
         // An online meeting: the system sound holds the other people.
         IReadOnlyList<TimedWord>? systemWords = null;
         if (systemAudio is { Length: > 0 })
         {
-            status?.Report(L.T("Ton des PCs wird transkribiert ..."));
+            status?.Report(L.T("System-Audio wird transkribiert ..."));
             try
             {
                 var result = await transcriber.TranscribeAsync(systemAudio, language, ct).ConfigureAwait(false);
@@ -84,9 +93,18 @@ public sealed class MeetingTranscriber
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
-                notice = L.F("Der Ton des PCs ließ sich nicht auswerten, ausgewertet wird nur das Mikrofon. ({0})", error.Message);
+                // Without the microphone the system sound is the whole meeting.
+                if (microphone is null)
+                {
+                    throw new MeetingTranscriptionException(L.F("Das System-Audio ließ sich nicht auswerten. ({0})", error.Message), error);
+                }
+                notice = L.F("Das System-Audio ließ sich nicht auswerten, ausgewertet wird nur das Mikrofon. ({0})", error.Message);
             }
             ct.ThrowIfCancellationRequested();
+        }
+        if (microphone is null && systemWords is null)
+        {
+            throw new MeetingTranscriptionException(L.T("In der Aufnahme wurde keine Sprache erkannt."));
         }
 
         IReadOnlyList<SpeakerTurn> turns = [];
@@ -100,7 +118,7 @@ public sealed class MeetingTranscriber
             status?.Report(L.T("Stimmen werden erkannt ..."));
             try
             {
-                turns = await diarizer.DiarizeAsync(systemWords is not null ? systemAudio! : microphone, ct: ct).ConfigureAwait(false);
+                turns = await diarizer.DiarizeAsync(systemWords is not null ? systemAudio! : microphone!, ct: ct).ConfigureAwait(false);
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
@@ -128,10 +146,13 @@ public sealed class MeetingTranscriber
         {
             return SpeakerAlignment.Paragraphs(microphoneWords, turns);
         }
-        // The microphone is "Ich", without what it heard from the speakers.
-        var own = SpeakerAlignment.Paragraphs(EchoFilter.RemoveEcho(microphoneWords, systemWords), [])
-            .Select(p => p with { Speaker = 0 })
-            .ToList();
+        // The microphone is "Ich", without what it heard from the speakers. Without a microphone
+        // ("Nur System-Audio") there is no "Ich".
+        List<SpeakerAlignment.Paragraph> own = microphoneWords.Count == 0
+            ? []
+            : SpeakerAlignment.Paragraphs(EchoFilter.RemoveEcho(microphoneWords, systemWords), [])
+                .Select(p => p with { Speaker = 0 })
+                .ToList();
         var others = SpeakerAlignment.Paragraphs(systemWords, turns, own.Select(p => p.Start));
         return others.Concat(own).OrderBy(p => p.Start).ToList();
     }

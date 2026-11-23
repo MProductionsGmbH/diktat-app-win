@@ -26,6 +26,8 @@ internal sealed class PillVisual : FrameworkElement
     private static readonly WpfBrush WhiteSoft = Frozen(new SolidColorBrush(WpfColor.FromArgb(0xE6, 0xFF, 0xFF, 0xFF)));
     private static readonly WpfBrush Warning = Frozen(new SolidColorBrush(WpfColor.FromRgb(0xFF, 0x8F, 0xA8)));
     private static readonly WpfBrush RecordingDot = Frozen(new SolidColorBrush(WpfColor.FromRgb(0xFF, 0x4D, 0x5E)));
+    private static readonly WpfBrush WarningYellow = Frozen(new SolidColorBrush(WpfColor.FromRgb(0xFF, 0xD6, 0x0A)));
+    private static readonly WpfBrush LilacDark = Frozen(new SolidColorBrush(WpfColor.FromRgb(0x83, 0x37, 0xA8)));
     private static readonly WpfPen CheckPen = FrozenPen(new WpfPen(Brushes.White, 2) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round });
     private static readonly WpfPen ClipboardPen = FrozenPen(new WpfPen(Brushes.White, 1.4) { LineJoin = PenLineJoin.Round });
     private static readonly Typeface LabelFace = MakeTypeface(FontWeights.SemiBold);
@@ -39,6 +41,8 @@ internal sealed class PillVisual : FrameworkElement
     public bool HintIsWarning { get; set; }
     public bool Silent { get; set; }
     public TimeSpan MeetingElapsed { get; set; }
+    /// The short warning of a meeting with a problem ("Mikrofon prüfen"); it replaces the clock.
+    public string? MeetingWarning { get; set; }
     /// Seconds since the state began, for the wave and the pulse.
     public double Time { get; set; }
 
@@ -62,7 +66,7 @@ internal sealed class PillVisual : FrameworkElement
     {
         get
         {
-            double width = PillLayout.CapsuleWidth(State);
+            double width = PillLayout.CapsuleWidth(State, MeetingWarning is not null);
             return new Rect((PillLayout.PanelWidth - width) / 2, PillLayout.PanelHeight - PillLayout.BottomMargin - PillLayout.PillHeight,
                 width, PillLayout.PillHeight);
         }
@@ -170,6 +174,11 @@ internal sealed class PillVisual : FrameworkElement
 
     private void DrawMeeting(DrawingContext dc, Rect capsule, WpfPoint center)
     {
+        if (MeetingWarning is { } warning)
+        {
+            DrawMeetingWarning(dc, center, warning);
+            return;
+        }
         var text = Text(PillLayout.Clock(MeetingElapsed), 11.5, WhiteSoft);
         double total = 7 + 7 + text.Width;
         double x = center.X - total / 2;
@@ -177,6 +186,29 @@ internal sealed class PillVisual : FrameworkElement
         dc.DrawEllipse(RecordingDot, null, new WpfPoint(x + 3.5, center.Y), 3.5, 3.5);
         dc.Pop();
         dc.DrawText(text, new WpfPoint(x + 14, center.Y - text.Height / 2));
+    }
+
+    /// Nothing (or not everything) is recorded: a blinking triangle and two words outrank the clock.
+    private void DrawMeetingWarning(DrawingContext dc, WpfPoint center, string warning)
+    {
+        var text = Text(warning, 11.5, White);
+        double total = 12 + 6 + text.Width;
+        double x = center.X - total / 2;
+        bool on = (int)(Time / 0.6) % 2 == 0;
+        var triangle = new StreamGeometry();
+        using (var g = triangle.Open())
+        {
+            g.BeginFigure(new WpfPoint(x + 6, center.Y - 5.5), true, true);
+            g.LineTo(new WpfPoint(x + 12, center.Y + 5), true, true);
+            g.LineTo(new WpfPoint(x, center.Y + 5), true, true);
+        }
+        triangle.Freeze();
+        dc.PushOpacity(on ? 1 : 0.35);
+        dc.DrawGeometry(WarningYellow, null, triangle);
+        dc.Pop();
+        dc.DrawRectangle(LilacDark, null, new Rect(x + 5.3, center.Y - 2.2, 1.4, 4));
+        dc.DrawRectangle(LilacDark, null, new Rect(x + 5.3, center.Y + 2.6, 1.4, 1.3));
+        dc.DrawText(text, new WpfPoint(x + 18, center.Y - text.Height / 2));
     }
 
     private void DrawHint(DrawingContext dc, string hint, double bottom)

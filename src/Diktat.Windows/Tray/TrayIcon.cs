@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using Diktat.AI.Meetings;
 using Diktat.Core.Settings;
 using Diktat.Windows.Platform;
 using Diktat.Windows.Runtime;
@@ -43,10 +44,11 @@ public sealed class TrayIcon : IDisposable
     }
 
     /// Shows a notification (a toast on Windows 10 and 11). <paramref name="onClick"/> runs when it is clicked.
-    public void ShowBalloon(string title, string text, Action? onClick)
+    /// <paramref name="warning"/> marks a message that needs attention now (a recording problem).
+    public void ShowBalloon(string title, string text, Action? onClick, bool warning = false)
     {
         _balloonClick = onClick;
-        _icon.ShowBalloonTip(8_000, title, string.IsNullOrWhiteSpace(text) ? " " : text, ToolTipIcon.None);
+        _icon.ShowBalloonTip(8_000, title, string.IsNullOrWhiteSpace(text) ? " " : text, warning ? ToolTipIcon.Warning : ToolTipIcon.None);
     }
 
     private void RunBalloonAction()
@@ -101,6 +103,8 @@ public sealed class TrayIcon : IDisposable
             DictationPhase.Recording => (_images.Recording, L.T("Diktat – Aufnahme läuft")),
             DictationPhase.Processing => (_images.Processing, "Diktat – " + (_app.StatusMessage ?? L.T("wird verarbeitet ..."))),
             DictationPhase.Error => (_images.Idle, "Diktat – " + (_app.StatusMessage ?? L.T("Fehler"))),
+            // A problem outranks the plain "recording": what is not recorded is lost.
+            _ when meeting is { Phase: MeetingPhase.Recording, Problem: { } problem } => (_images.Recording, "Diktat – " + L.F("Meeting: {0}", problem.Title())),
             _ when meeting?.Phase == MeetingPhase.Recording => (_images.Recording, L.T("Diktat – Meeting wird aufgenommen")),
             _ when meeting?.Phase == MeetingPhase.Processing => (_images.Processing, L.T("Diktat – Meeting wird ausgewertet")),
             _ => (_images.Idle, L.T("Diktat – bereit")),
@@ -147,8 +151,11 @@ public sealed class TrayIcon : IDisposable
         else
         {
             var meetingMenu = new ToolStripMenuItem(L.T("Meeting aufnehmen")) { Enabled = meeting?.Phase != MeetingPhase.Processing };
-            meetingMenu.DropDownItems.Add(Item(L.T("Online-Meeting (Teams, Zoom, Meet)"), () => StartMeeting(online: true)));
-            meetingMenu.DropDownItems.Add(Item(L.T("Meeting im Raum"), () => StartMeeting(online: false)));
+            // The online entry keeps the choice of the microphone switch on the meeting page.
+            var picked = _app.MeetingSource;
+            var online = picked.Card() == MeetingSource.Online ? picked : MeetingSource.Online;
+            meetingMenu.DropDownItems.Add(Item(L.T("Online-Meeting (Teams, Zoom, Meet)"), () => StartMeeting(online)));
+            meetingMenu.DropDownItems.Add(Item(L.T("Meeting im Raum"), () => StartMeeting(MeetingSource.Room)));
             _menu.Items.Add(meetingMenu);
         }
         _menu.Items.Add(Item(L.T("Audiodatei transkribieren …"), _app.ChooseAndTranscribeAudioFile));
@@ -159,9 +166,9 @@ public sealed class TrayIcon : IDisposable
         _menu.Items.Add(Item(L.T("Beenden"), _app.Quit));
     }
 
-    private void StartMeeting(bool online)
+    private void StartMeeting(MeetingSource source)
     {
-        _app.StartMeeting(online);
+        _app.StartMeeting(source);
         _app.ShowMainWindow("meetings");
     }
 

@@ -11,11 +11,20 @@ namespace Diktat.Windows.Platform;
 /// <see cref="Start"/> opens the device (10–200 ms) — call it off the UI thread if that matters,
 /// or <see cref="Prewarm"/> ahead of time. <see cref="Interrupted"/> is raised on the event
 /// context given to the constructor (or a private background thread).
+///
+/// A meeting sets <see cref="SurvivesDeviceChanges"/>: when the audio setup changes under a
+/// running recording (the microphone is unplugged, a headset becomes the default input), the
+/// recording opens the picked microphone again or, when that is gone, the default input, and
+/// goes on in the same buffer. The gap becomes silence, so the track stays in step with the
+/// clock and with the system sound of an online meeting (EngineCapture.swift).
 public sealed class AudioRecorder : IDisposable
 {
     public const int SampleRate = CaptureSession.OutputRate;
     /// How much audio from before <see cref="Start"/> a pre-warmed stream contributes.
     public static readonly TimeSpan PrerollLength = TimeSpan.FromMilliseconds(300);
+    /// No packet for this long means the stream no longer records, whatever it says.
+    private static readonly TimeSpan SilenceBeforeRestart = TimeSpan.FromSeconds(2);
+    private const int GapThresholdSamples = SampleRate / 10;
 
     private readonly EventDispatcher _events;
     private readonly object _sessionGate = new(); // serialises open/close of the device
@@ -32,9 +41,27 @@ public sealed class AudioRecorder : IDisposable
     private volatile bool _heardOnlySilence;
     private bool _disposed;
 
+    // With SurvivesDeviceChanges, while recording.
+    private string? _recordingDeviceId;
+    private System.Threading.Timer? _watchdog;
+    private AudioDeviceWatcher? _watcher;
+    private long _lastDelivery;
+    private bool _inGap;           // under _dataLock: the microphone is away, silence fills in
+    private bool _restartFailed;   // under _sessionGate
+    private volatile bool _restarting;
+
     /// The device went away or the stream broke while recording. The samples so far are kept;
-    /// call <see cref="Stop"/> to get them.
+    /// call <see cref="Stop"/> to get them. Not raised with <see cref="SurvivesDeviceChanges"/>.
     public event EventHandler<AudioCaptureException>? Interrupted;
+
+    /// With <see cref="SurvivesDeviceChanges"/>: the audio setup changed under the recording.
+    /// Null when it records again (maybe on another microphone, see <see cref="DeviceName"/>),
+    /// otherwise why not; it keeps trying and reports the next success.
+    public event EventHandler<AudioCaptureException?>? DeviceChanged;
+
+    /// Keep recording through device changes instead of raising <see cref="Interrupted"/>.
+    /// Set before <see cref="Start"/>.
+    public bool SurvivesDeviceChanges { get; set; }
 
     public AudioRecorder(SynchronizationContext? eventContext = null)
     {
@@ -135,9 +162,122 @@ public sealed class AudioRecorder : IDisposable
                     _firstSampleTimestamp = 0;
                 }
                 _preroll.Clear();
+                _inGap = false;
                 _recording = true;
             }
+            if (SurvivesDeviceChanges) StartWatching(deviceId);
         }
+    }
+
+    private void StartWatching(string? deviceId)
+    {
+        _recordingDeviceId = deviceId;
+        _restartFailed = false;
+        Interlocked.Exchange(ref _lastDelivery, Stopwatch.GetTimestamp());
+        _watchdog = new System.Threading.Timer(_ => CheckDelivery(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        try
+        {
+            _watcher = new AudioDeviceWatcher();
+            _watcher.DefaultInputChanged += OnDefaultInputChanged;
+            _watcher.DevicesChanged += OnDevicesChanged;
+        }
+        catch (Exception ex)
+        {
+            // The watchdog still notices a stream that stopped.
+            Log.Warn("Watching the microphones failed", ex);
+        }
+    }
+
+    private void StopWatching()
+    {
+        _watchdog?.Dispose();
+        _watchdog = null;
+        if (_watcher is { } watcher)
+        {
+            watcher.DefaultInputChanged -= OnDefaultInputChanged;
+            watcher.DevicesChanged -= OnDevicesChanged;
+            watcher.Dispose();
+            _watcher = null;
+        }
+    }
+
+    // Timer thread. The change notice does not come for every way a microphone can go; a dead
+    // stream, or no packets, say the same.
+    private void CheckDelivery()
+    {
+        if (_restarting || !IsRecording) return;
+        long silentTicks = Stopwatch.GetTimestamp() - Interlocked.Read(ref _lastDelivery);
+        var session = _session;
+        bool dead = session is null || !session.IsAlive;
+        if (dead || silentTicks > SilenceBeforeRestart.TotalSeconds * Stopwatch.Frequency) Restart(dead ? "stream ended" : "no packets");
+    }
+
+    // Watcher thread. Following the Windows default: a new default (a headset plugged in) is
+    // what Windows would record now, so the recording moves there.
+    private void OnDefaultInputChanged(object? sender, string? deviceId)
+    {
+        if (!IsRecording) return;
+        bool followsDefault = string.IsNullOrEmpty(_recordingDeviceId) || UsedFallbackDevice;
+        if (followsDefault && !string.Equals(deviceId, DeviceId, StringComparison.OrdinalIgnoreCase)) Restart("default input changed");
+    }
+
+    // Watcher thread. The picked microphone came back after recording on the default input.
+    private void OnDevicesChanged(object? sender, EventArgs e)
+    {
+        if (!IsRecording || !UsedFallbackDevice || string.IsNullOrEmpty(_recordingDeviceId)) return;
+        if (AudioDevices.Resolve(_recordingDeviceId) is MicrophoneResolution.Device) Restart("picked microphone is back");
+    }
+
+    /// Opens the microphone again: the picked one while it is connected, else the default input.
+    /// The samples go on in the same buffer; the time without a microphone becomes silence.
+    private void Restart(string reason)
+    {
+        AudioCaptureException? failure = null;
+        bool report;
+        lock (_sessionGate)
+        {
+            if (_disposed || !IsRecording) return;
+            _restarting = true;
+            try
+            {
+                CloseSession();
+                lock (_dataLock)
+                {
+                    _inGap = true;
+                    _meter.Level = 0;
+                    // Until the microphone delivers again, its level is "nothing", not the last one heard.
+                    _meter.CurrentDb = -160f;
+                }
+                try
+                {
+                    OpenSession(_recordingDeviceId);
+                }
+                catch (Exception ex)
+                {
+                    failure = AudioCaptureException.From(ex);
+                }
+                // Once per loss; the next tries are quiet.
+                report = failure is null || !_restartFailed;
+                _restartFailed = failure is not null;
+                Interlocked.Exchange(ref _lastDelivery, Stopwatch.GetTimestamp());
+            }
+            finally
+            {
+                _restarting = false;
+            }
+        }
+        if (!report) return;
+        Log.Info($"Microphone restarted ({reason}){(failure is null ? $": {DeviceName}" : ": " + failure.Message)}");
+        _events.Post(() => DeviceChanged?.Invoke(this, failure));
+    }
+
+    /// Pads with silence when the track lags the clock by more than 100 ms. Caller holds _dataLock.
+    private void FillGapUntil(long timestamp)
+    {
+        if (_firstSampleTimestamp == 0) return;
+        long expected = (long)((double)(timestamp - _firstSampleTimestamp) / Stopwatch.Frequency * SampleRate);
+        long have = _takenSamples + _buffer.Count;
+        if (expected - have > GapThresholdSamples) _buffer.AddSilence(expected - have);
     }
 
     /// Stops and returns the recording as 16 kHz mono float. Empty when nothing was recorded.
@@ -160,6 +300,7 @@ public sealed class AudioRecorder : IDisposable
     {
         lock (_dataLock)
         {
+            if (_inGap && _recording) FillGapUntil(Stopwatch.GetTimestamp());
             var samples = _buffer.ToArray();
             _takenSamples += samples.Length;
             _buffer.Clear();
@@ -171,11 +312,14 @@ public sealed class AudioRecorder : IDisposable
     {
         lock (_sessionGate)
         {
+            StopWatching();
             _session?.Stop(); // flushes the resampler tail into the buffer
             CloseSession();
             lock (_dataLock)
             {
                 bool wasRecording = _recording;
+                if (_inGap && wasRecording) FillGapUntil(Stopwatch.GetTimestamp());
+                _inGap = false;
                 _recording = false;
                 var samples = keep && wasRecording ? _buffer.ToArray() : [];
                 double seconds = (double)(_takenSamples + _buffer.Count) / SampleRate;
@@ -234,9 +378,17 @@ public sealed class AudioRecorder : IDisposable
             var span = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(samples);
             if (_recording)
             {
+                Interlocked.Exchange(ref _lastDelivery, arrival);
+                long arrivalStart = arrival - (long)((double)samples.Count / SampleRate * Stopwatch.Frequency);
                 if (_firstSampleTimestamp == 0)
                 {
-                    _firstSampleTimestamp = arrival - (long)((double)samples.Count / SampleRate * Stopwatch.Frequency);
+                    _firstSampleTimestamp = arrivalStart;
+                }
+                else if (_inGap)
+                {
+                    // Back after a device change: the time without a microphone becomes silence.
+                    FillGapUntil(arrivalStart);
+                    _inGap = false;
                 }
                 _buffer.Add(span);
                 _meter.Add(span);
@@ -255,6 +407,12 @@ public sealed class AudioRecorder : IDisposable
     {
         bool recording = IsRecording;
         if (!recording) return; // a pre-warmed stream that broke is simply reopened by Start
+        if (SurvivesDeviceChanges)
+        {
+            // The watchdog opens the microphone again within a second; until then nothing comes.
+            lock (_dataLock) _inGap = true;
+            return;
+        }
         var failure = error as AudioCaptureException
             ?? new AudioCaptureException(AudioCaptureFailure.DeviceLost, L.T("Das Mikrofon wurde während der Aufnahme getrennt."), error);
         _events.Post(() => Interrupted?.Invoke(this, failure));
@@ -268,6 +426,7 @@ public sealed class AudioRecorder : IDisposable
         {
             _prewarmTimer?.Dispose();
             _prewarmTimer = null;
+            StopWatching();
             CloseSession();
             lock (_dataLock)
             {

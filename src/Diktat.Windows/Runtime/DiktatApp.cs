@@ -20,6 +20,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
     private readonly ForegroundTracker _foreground;
     private readonly AudioFileTranscriber _audioFiles;
     private readonly UpdateScheduler _updates;
+    private readonly CallMonitor _calls = new();
     private TrayIcon? _tray;
     private PillController? _pill;
     private MeetingSession? _meeting;
@@ -49,6 +50,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         _hotkeys.Released += (_, mode) => Dictation.OnShortcutReleased(mode);
         _hotkeys.Cancelled += (_, _) => Dictation.OnShortcutCancelled();
         _hotkeys.PotentialStart += (_, mode) => Dictation.OnPotentialStart(mode);
+        _calls.CallStarted += (_, app) => OnCallStarted(app);
 
         services.SettingsChanged += (_, _) => OnSettingsChanged();
     }
@@ -73,6 +75,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         MeetingAudio.DeleteOrphans(Services.Meetings.Meetings.Where(m => m.Status == MeetingStatus.Pending).Select(m => m.Id));
         WarmUp();
         OfferLanguageModel();
+        UpdateCallMonitor();
         if (!_hotkeysRunning)
         {
             _tray.ShowBalloon(L.T("Tastenkürzel nicht verfügbar"),
@@ -166,6 +169,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         ReloadHotkeys();
         _pill?.SettingsChanged();
         _tray?.Refresh();
+        UpdateCallMonitor();
         if (Services.Transcription.HasModel && !Services.Transcription.IsReady && !Dictation.IsBusy) WarmUp();
     }
 
@@ -208,11 +212,47 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
 
     private bool MeetingIsBusy => _meeting is { IsBusy: true };
 
-    public void StartMeeting(bool online)
+    public void StartMeeting(MeetingSource source)
     {
         if (MeetingIsBusy) return;
         var session = NewMeetingSession();
-        _ = session.StartAsync(online);
+        _ = session.StartAsync(source);
+    }
+
+    /// The source picked on the meeting page (or the default from the settings).
+    internal MeetingSource MeetingSource => MeetingSourceInfo.Resolve(Services.Settings.App.MeetingSource, legacySystemAudio: false, canRecordSystemAudio: true);
+
+    /// Polls the audio apps only while it is wanted and no meeting records or is evaluated.
+    private void UpdateCallMonitor()
+    {
+        if (_disposed) return;
+        if (Services.Settings.App.SuggestsMeetingOnCall && !MeetingIsBusy) _calls.Start();
+        else _calls.Stop();
+    }
+
+    /// A call app has the microphone open: offers to record it. A click opens the meeting page
+    /// set to an online meeting.
+    private void OnCallStarted(string app)
+    {
+        if (!Services.Settings.App.SuggestsMeetingOnCall || MeetingIsBusy) return;
+        var title = app == "Browser" ? L.T("Ein Anruf im Browser läuft") : L.F("{0} läuft", app);
+        _tray?.ShowBalloon(title, L.T("Soll Diktat das Meeting aufnehmen? Ein Klick öffnet die Meeting-Seite. Bitte vorher alle um Einverständnis bitten."), PrepareOnlineMeeting);
+    }
+
+    private void PrepareOnlineMeeting()
+    {
+        Services.Settings.App.MeetingSource = MeetingSource.Online;
+        Services.SaveSettings();
+        ShowMainWindow("meetings");
+    }
+
+    /// The running recording got a problem: said with a notification, since the meeting page is
+    /// rarely on screen during a meeting. A new problem replaces the old message.
+    private void OnMeetingProblem(MeetingSession session)
+    {
+        if (session.Problem is not { } problem || session.Phase != MeetingPhase.Recording) return;
+        Log.Warn($"Meeting problem: {problem}");
+        _tray?.ShowBalloon(L.F("Meeting: {0}", problem.Title()), problem.Detail(), () => ShowMainWindow("meetings"), warning: true);
     }
 
     public void StopMeeting() => _meeting?.Stop();
@@ -231,9 +271,12 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
     private MeetingSession NewMeetingSession()
     {
         var session = new MeetingSession(Services);
-        session.PropertyChanged += (_, _) =>
+        session.PropertyChanged += (_, e) =>
         {
-            if (session == _meeting) MeetingChanged?.Invoke(this, EventArgs.Empty);
+            if (session != _meeting) return;
+            if (e.PropertyName == nameof(MeetingSession.Problem)) OnMeetingProblem(session);
+            if (e.PropertyName == nameof(MeetingSession.Phase)) UpdateCallMonitor();
+            MeetingChanged?.Invoke(this, EventArgs.Empty);
         };
         session.Finished += (_, record) =>
         {
@@ -358,6 +401,7 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _calls.Dispose();
         _updates.Dispose();
         _pill?.Dispose();
         _pill = null;

@@ -241,6 +241,10 @@ public sealed class AppSettings
     /// The microphone for dictation (its endpoint ID); null follows the Windows default input.
     [JsonPropertyName("windowsMicrophoneId")] public string? MicrophoneId { get; set; }
     [JsonPropertyName("summarizesMeetings")] public bool SummarizesMeetings { get; set; } = true;
+    /// The source picked on the meeting page; null until one is picked (see MeetingSourceInfo.Resolve).
+    [JsonPropertyName("meetingSource")] public MeetingSource? MeetingSource { get; set; }
+    /// A call app opened the microphone: suggest recording the meeting.
+    [JsonPropertyName("suggestsMeetingOnCall")] public bool SuggestsMeetingOnCall { get; set; } = true;
     [JsonPropertyName("launchAtLogin")] public bool LaunchAtLogin { get; set; } = true;
     [JsonPropertyName("checksForUpdates")] public bool ChecksForUpdates { get; set; } = true;
     /// The language of the interface; applies after a restart.

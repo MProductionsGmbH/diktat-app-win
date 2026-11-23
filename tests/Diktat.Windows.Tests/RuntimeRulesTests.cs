@@ -1,3 +1,4 @@
+using System.IO;
 using Diktat.Core.Settings;
 using Diktat.Transcription;
 using Diktat.Windows.Pill;
@@ -92,6 +93,18 @@ public class PillLayoutTests
         Assert.Equal("Kein Ton", PillLayout.HintText(PillState.Recording, null, true, true));
         Assert.Equal("Nicht eingefügt, der Text liegt in der Zwischenablage", PillLayout.HintText(PillState.Copied, null, false, false));
         Assert.Null(PillLayout.HintText(PillState.Done, "Headset", false, true));
+    }
+
+    /// A meeting with a problem says so above the pill, for as long as it lasts, and the pill
+    /// grows for the warning.
+    [Fact]
+    public void AMeetingProblemShowsAboveAWiderPill()
+    {
+        Assert.Null(PillLayout.HintText(PillState.Meeting, "Headset", false, true));
+        Assert.Equal("Das Mikrofon liefert keinen Ton", PillLayout.HintText(PillState.Meeting, null, false, false, "Das Mikrofon liefert keinen Ton"));
+        Assert.Equal(118, PillLayout.CapsuleWidth(PillState.Meeting));
+        Assert.True(PillLayout.CapsuleWidth(PillState.Meeting, meetingProblem: true) > 118);
+        Assert.Equal(78, PillLayout.CapsuleWidth(PillState.Recording, meetingProblem: true));
     }
 }
 
@@ -225,5 +238,24 @@ public class MeetingAudioTests
         var id = Guid.NewGuid();
         Assert.StartsWith(AppPaths.TempDirectory, MeetingAudio.MicrophonePath(id));
         Assert.EndsWith($"{id}-system.wav", MeetingAudio.SystemAudioPath(id));
+    }
+
+    /// "Nur System-Audio" has no microphone file and can still be evaluated again.
+    [Fact]
+    public void AMeetingWithOnlySystemAudioHasAudio()
+    {
+        var id = Guid.NewGuid();
+        Assert.False(MeetingAudio.Exists(id));
+        Directory.CreateDirectory(MeetingAudio.Directory);
+        File.WriteAllBytes(MeetingAudio.SystemAudioPath(id), [0]);
+        try
+        {
+            Assert.True(MeetingAudio.Exists(id));
+        }
+        finally
+        {
+            MeetingAudio.Delete(id);
+        }
+        Assert.False(MeetingAudio.Exists(id));
     }
 }

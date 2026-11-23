@@ -42,10 +42,11 @@ public static class PillLayout
     /// Below this input level the room counts as quiet: room noise reads about 0.1, speech 0.4 and above.
     public const double VoiceGate = 0.12;
 
-    public static double CapsuleWidth(PillState state) => state switch
+    /// A meeting with a problem needs room for the warning ("Mikrofon prüfen").
+    public static double CapsuleWidth(PillState state, bool meetingProblem = false) => state switch
     {
         PillState.Recording or PillState.Processing => 78,
-        PillState.Meeting => 118,
+        PillState.Meeting => meetingProblem ? 176 : 118,
         _ => 52,
     };
 
@@ -100,11 +101,14 @@ public static class PillLayout
     }
 
     /// The label above the pill: the microphone while a recording starts, a warning while
-    /// nothing comes in, and why a text is only on the clipboard.
-    public static string? HintText(PillState state, string? microphone, bool noSignal, bool showsMicrophone)
+    /// nothing comes in, why a text is only on the clipboard, and what is wrong with a running
+    /// meeting, for as long as it is wrong.
+    public static string? HintText(PillState state, string? microphone, bool noSignal, bool showsMicrophone, string? meetingProblem = null)
     {
         switch (state)
         {
+            case PillState.Meeting:
+                return meetingProblem;
             case PillState.Recording:
                 var name = microphone ?? "";
                 if (noSignal) return name.Length == 0 ? L.T("Kein Ton") : L.F("Kein Ton ({0})", name);

@@ -38,7 +38,9 @@ public partial class MeetingsPage : UserControl, IMainPage
         _shown = true;
         _app.PropertyChanged += OnAppChanged;
         _app.Services.Meetings.Changed += OnMeetingsChanged;
+        _app.Services.SettingsChanged += OnSettingsChanged;
         WatchSession();
+        _model.OnSourceChanged();
         _model.ReloadList();
         _model.OnSessionChanged();
         UpdateTimer();
@@ -50,6 +52,8 @@ public partial class MeetingsPage : UserControl, IMainPage
         _shown = false;
         _app.PropertyChanged -= OnAppChanged;
         _app.Services.Meetings.Changed -= OnMeetingsChanged;
+        _app.Services.SettingsChanged -= OnSettingsChanged;
+        SoundTest.Stop();
         if (_watched is not null) _watched.PropertyChanged -= OnSessionChanged;
         _watched = null;
         _timer.Stop();
@@ -84,6 +88,9 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     private void OnMeetingsChanged(object? sender, EventArgs e) => Ui.Post(_model.ReloadList);
 
+    /// The source may have changed elsewhere: the default in the settings, or a call notification.
+    private void OnSettingsChanged(object? sender, EventArgs e) => Ui.Post(_model.OnSourceChanged);
+
     private void UpdateTimer()
     {
         if (_shown && _model.Session is { Phase: not MeetingPhase.Idle }) _timer.Start();
@@ -108,14 +115,13 @@ public partial class MeetingsPage : UserControl, IMainPage
 
     // --- Start ------------------------------------------------------------------------
 
-    private void OnStartRoom(object sender, RoutedEventArgs e) => Start(online: false);
-    private void OnStartOnline(object sender, RoutedEventArgs e) => Start(online: true);
-
-    private void Start(bool online)
+    private void OnStart(object sender, RoutedEventArgs e)
     {
+        // The meeting records the sound itself.
+        SoundTest.Stop();
         try
         {
-            _app.StartMeeting(online);
+            _app.StartMeeting(_model.Source);
         }
         catch (Exception ex)
         {
