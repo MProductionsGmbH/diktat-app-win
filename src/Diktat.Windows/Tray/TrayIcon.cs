@@ -104,7 +104,7 @@ public sealed class TrayIcon : IDisposable
             DictationPhase.Processing => (_images.Processing, "Diktat – " + (_app.StatusMessage ?? L.T("wird verarbeitet ..."))),
             DictationPhase.Error => (_images.Idle, "Diktat – " + (_app.StatusMessage ?? L.T("Fehler"))),
             // A problem outranks the plain "recording": what is not recorded is lost.
-            _ when meeting is { Phase: MeetingPhase.Recording, Problem: { } problem } => (_images.Recording, "Diktat – " + L.F("Meeting: {0}", problem.Title())),
+            _ when meeting is { Phase: MeetingPhase.Recording, Problem: { } problem } => (_images.Warning, "Diktat – " + L.F("Meeting: {0}", problem.Title())),
             _ when meeting?.Phase == MeetingPhase.Recording => (_images.Recording, L.T("Diktat – Meeting wird aufgenommen")),
             _ when meeting?.Phase == MeetingPhase.Processing => (_images.Processing, L.T("Diktat – Meeting wird ausgewertet")),
             _ => (_images.Idle, L.T("Diktat – bereit")),

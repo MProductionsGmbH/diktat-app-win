@@ -216,6 +216,9 @@ public partial class AIProviderSection : UserControl, IMainPage
 
     private void OnSaveKey(object sender, RoutedEventArgs e)
     {
+        // An address typed just before belongs to the key: write it first, so the key is tied to
+        // that server and the late address change does not delete it again.
+        if (_saveTimer.IsEnabled) SaveModelAndAddress();
         if (SafeConfig() is not { } config) return;
         var key = KeyBox.Password;
         KeyBox.Password = "";

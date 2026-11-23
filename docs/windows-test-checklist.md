@@ -64,11 +64,22 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 - [ ] Meetings, "Im Raum" and "Online-Meeting": the right sources are recorded; with a headset the others still arrive from the system audio.
 - [ ] Call detection on (Einstellungen › Meetings): a Teams or Zoom call shows a notification that offers to record; off, nothing appears.
 - [ ] Problems shown large: pull the microphone out during a meeting; the meeting page, the pill and the tray warn at once, and the recording goes on after plugging in a monitor.
-- [ ] Dictation fixes: the first word is kept, a missing or very quiet microphone is reported, English dictation keeps its language.
+- [ ] Online-Meeting with "Mein Mikrofon mit aufnehmen" off: only the system audio is recorded, the transcript has no "Ich"; with nothing playing, a clear message instead of an empty meeting.
+- [ ] "Ton testen" on the online card and in Einstellungen › Meetings: the level moves while a video plays, nothing is recorded, it stops by itself.
+- [ ] Problem during a meeting: the tray icon shows the amber warning sign and goes back to the red dot once the microphone works again (the notification itself stays in the Windows notification centre).
+- [ ] Dictation in German with "um" ("Wir treffen uns um 10 Uhr"): "um" stays; an English dictation with "um, I think" loses the filler.
+- [ ] AI mode with the network unplugged: the word-for-word text is in the clipboard, the notice says so, the history has it.
+- [ ] Record a shortcut: Strg+V shows "Belegt, anderes wählen" and keeps listening; switching to another window or waiting 15 s ends the recording.
+- [ ] Hold Escape to cancel a dictation, start a new one from the tray while still holding it: the new one keeps running.
+- [ ] German Windows with region Schweiz and app language "Automatisch": the interface shows "ss" (e.g. "Schliessen"); with "Deutsch" it shows "ß".
+- [ ] Meeting summary: no "**" or "##" on screen or when copied; a long meeting with the built-in model is not cut off.
+- [ ] The notification "Meeting ausgewertet" opens that meeting; "Meetings" in the sidebar leads back to the list.
+- [ ] Delete a meeting that was not evaluated: its `%TEMP%\Diktat\meetings\<id>-*.wav` files are gone.
 - [ ] Whisper Large v3 models in Einstellungen › Modelle: download, select, dictate a minute of Swiss German without losing passages.
 - [ ] "Schweizer Schreibweise" on: dictation, AI modes and audio files write "ss" instead of "ß"; off, "ß" is back.
 - [ ] Meetings list: rename a meeting and delete one; both hold after a restart.
 - [ ] Drag an `.m4a` or `.opus` from Explorer onto the Verlauf page: a dashed frame appears, the drop opens "Audiodatei" and transcribes; a `.txt` shows no frame.
 - [ ] Main window sidebar: "Alles auf diesem PC" with the built-in AI model; with OpenAI and "Immer Modell-Anbieter" it says "Sprache auf diesem PC" and names OpenAI.
 - [ ] "Eigene Adresse" with a saved key: change only the path, the key stays; change the host or port, the key is gone.
+- [ ] "Eigene Adresse" with a saved key, then OpenAI or "Keiner", then "Eigene Adresse" again with the default address: no key is shown or sent; back on the first address, the key is there again.
 - [ ] Einstellungen › Datenschutz › "Alle Daten löschen …" (with a model loaded and a meeting running): Diktat quits, `%APPDATA%\Diktat`, `%LOCALAPPDATA%\Diktat`, `%TEMP%\Diktat` and the Run entry are gone, and stay gone after Diktat has ended.

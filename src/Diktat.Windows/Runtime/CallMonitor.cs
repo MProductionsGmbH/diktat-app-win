@@ -47,11 +47,8 @@ public sealed class CallMonitor : IDisposable
             var calls = await Task.Run(() => CallDetection.Calls(AudioApps.Candidates()));
             // Stopped meanwhile (a meeting started): this check does not count.
             if (!_timer.IsEnabled) return;
-            foreach (var app in _streaks.Evaluate(calls, DateTimeOffset.Now))
-            {
-                Log.Info($"Call detected: {app}");
-                CallStarted?.Invoke(this, app);
-            }
+            // Not logged: when which call ran stays nowhere (docs/privacy.md).
+            foreach (var app in _streaks.Evaluate(calls, DateTimeOffset.Now)) CallStarted?.Invoke(this, app);
         }
         catch (Exception ex)
         {

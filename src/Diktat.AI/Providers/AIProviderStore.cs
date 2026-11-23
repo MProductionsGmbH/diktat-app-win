@@ -42,15 +42,21 @@ public sealed class AIProviderStore
         }
         set
         {
-            var old = Config;
+            // Read before the change: a key from an older version belongs to the address set up now.
+            var keyScope = CustomKeyScope();
             lock (_lock)
             {
                 _config = value;
                 _loaded = true;
                 Save(value);
             }
-            // A key saved for one server of "Eigene Adresse" is not sent to another one.
-            if (value?.MovesCustomServer(old) == true) _secrets.Delete(SecretName(AIProvider.Custom));
+            // A key saved for one server of "Eigene Adresse" is not sent to another one, also not
+            // after a detour over another provider or "Keiner".
+            if (value is { Provider: AIProvider.Custom } && keyScope is not null && keyScope != value.KeyScope)
+            {
+                _secrets.Delete(SecretName(AIProvider.Custom));
+                _secrets.Delete(CustomScopeName);
+            }
             Changed?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -58,24 +64,50 @@ public sealed class AIProviderStore
     /// True when a provider is set up and has its key (or needs none).
     public bool IsConfigured => Config is { } config && (!config.Provider.RequiresApiKey() || Key(config.Provider) is not null);
 
+    /// The server (scheme, host and port) the key of "Eigene Adresse" was saved for.
+    public const string CustomScopeName = "ai-provider/custom-server";
+
+    /// The key of a provider. The key of "Eigene Adresse" only while "Eigene Adresse" points at
+    /// the server it was saved for.
     public string? Key(AIProvider provider)
     {
         var key = _secrets.Get(SecretName(provider));
-        return string.IsNullOrEmpty(key) ? null : key;
+        if (string.IsNullOrEmpty(key)) return null;
+        if (provider == AIProvider.Custom && Config is { Provider: AIProvider.Custom } config && CustomKeyScope() != config.KeyScope) return null;
+        return key;
     }
 
-    /// Saves the key trimmed; an empty key deletes it.
+    /// The server the key of "Eigene Adresse" belongs to. A key from a version before this was
+    /// stored belongs to the address set up then.
+    private string? CustomKeyScope()
+    {
+        var scope = _secrets.Get(CustomScopeName);
+        if (!string.IsNullOrEmpty(scope)) return scope;
+        if (string.IsNullOrEmpty(_secrets.Get(SecretName(AIProvider.Custom)))) return null;
+        if (Config is not { Provider: AIProvider.Custom, KeyScope: { } current }) return null;
+        _secrets.Set(CustomScopeName, current);
+        return current;
+    }
+
+    /// Saves the key trimmed; an empty key deletes it. The key of "Eigene Adresse" is tied to
+    /// the server set up right now.
     public void SaveKey(AIProvider provider, string? key)
     {
         var trimmed = key?.Trim() ?? "";
         _secrets.Delete(SecretName(provider));
-        if (trimmed.Length > 0) _secrets.Set(SecretName(provider), trimmed);
+        if (provider == AIProvider.Custom) _secrets.Delete(CustomScopeName);
+        if (trimmed.Length > 0)
+        {
+            _secrets.Set(SecretName(provider), trimmed);
+            if (provider == AIProvider.Custom && Config is { Provider: AIProvider.Custom, KeyScope: { } scope }) _secrets.Set(CustomScopeName, scope);
+        }
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void DeleteKey(AIProvider provider)
     {
         _secrets.Delete(SecretName(provider));
+        if (provider == AIProvider.Custom) _secrets.Delete(CustomScopeName);
         Changed?.Invoke(this, EventArgs.Empty);
     }
 

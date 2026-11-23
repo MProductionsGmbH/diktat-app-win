@@ -232,6 +232,56 @@ public sealed class CustomServerKeyTests
         store.Config = new AIProviderConfig(AIProvider.OpenAI);
         Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
     }
+
+    [Theory]
+    [InlineData(AIProvider.OpenAI)]
+    [InlineData(null)]
+    public void ADetourOverAnotherProviderDoesNotTakeTheKeyToAnotherServer(AIProvider? detour)
+    {
+        using var directory = new TempDirectory();
+        var store = new AIProviderStore(Path.Combine(directory.Path, "p.json"), new InMemorySecretStore())
+        {
+            Config = Custom("https://a.example.com/v1"),
+        };
+        store.SaveKey(AIProvider.Custom, "sk-proxy-1234567890");
+        store.Config = detour is { } provider ? new AIProviderConfig(provider) : null;
+
+        // Back to "Eigene Adresse" with its default address, a server on this PC.
+        store.Config = new AIProviderConfig(AIProvider.Custom);
+        Assert.Null(store.Key(AIProvider.Custom));
+        store.Config = Custom("https://a.example.com/v1");
+        Assert.Null(store.Key(AIProvider.Custom));
+    }
+
+    [Fact]
+    public void ADetourBackToTheSameServerKeepsTheKey()
+    {
+        using var directory = new TempDirectory();
+        var store = new AIProviderStore(Path.Combine(directory.Path, "p.json"), new InMemorySecretStore())
+        {
+            Config = Custom("https://a.example.com/v1"),
+        };
+        store.SaveKey(AIProvider.Custom, "sk-proxy-1234567890");
+        store.Config = new AIProviderConfig(AIProvider.OpenAI);
+        store.Config = Custom("https://a.example.com/api/v1");
+        Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
+    }
+
+    [Fact]
+    public void AKeyFromAnOlderVersionBelongsToTheAddressSetUpThen()
+    {
+        using var directory = new TempDirectory();
+        var path = Path.Combine(directory.Path, "p.json");
+        var secrets = new InMemorySecretStore();
+        new AIProviderStore(path, secrets) { Config = Custom("https://a.example.com/v1") };
+        // Stored without the server, as before.
+        secrets.Set(AIProviderStore.SecretName(AIProvider.Custom), "sk-proxy-1234567890");
+
+        var store = new AIProviderStore(path, secrets);
+        Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
+        store.Config = Custom("https://b.example.com/v1");
+        Assert.Null(store.Key(AIProvider.Custom));
+    }
 }
 
 public sealed class TextRewriterTests
