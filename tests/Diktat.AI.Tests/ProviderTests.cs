@@ -162,6 +162,78 @@ public sealed class AIProviderStoreTests
     }
 }
 
+/// The key of "Eigene Adresse" belongs to one server.
+public sealed class CustomServerKeyTests
+{
+    private static AIProviderConfig Custom(string address) => new(AIProvider.Custom, baseUrl: address);
+
+    [Fact]
+    public void AnotherHostIsAnotherServer()
+    {
+        Assert.True(Custom("https://b.example.com/v1").MovesCustomServer(Custom("https://a.example.com/v1")));
+        Assert.True(Custom("http://localhost:11434/v1").MovesCustomServer(Custom("https://proxy.example.com/v1")));
+    }
+
+    [Fact]
+    public void AnotherPortOrSchemeIsAnotherServer()
+    {
+        Assert.True(Custom("http://localhost:1234/v1").MovesCustomServer(Custom("http://localhost:11434/v1")));
+        Assert.True(Custom("http://proxy.example.com/v1").MovesCustomServer(Custom("https://proxy.example.com/v1")));
+    }
+
+    [Fact]
+    public void AnEditedPathKeepsTheServer()
+    {
+        Assert.False(Custom("https://proxy.example.com/api/v1").MovesCustomServer(Custom("https://proxy.example.com/v1")));
+        Assert.False(Custom("https://Proxy.Example.com/v1").MovesCustomServer(Custom("https://proxy.example.com/v1")));
+        // The default port written out is the same server.
+        Assert.False(Custom("https://proxy.example.com:443/v1").MovesCustomServer(Custom("https://proxy.example.com/v1")));
+    }
+
+    [Fact]
+    public void NamedProvidersNeverMove()
+    {
+        var openAI = new AIProviderConfig(AIProvider.OpenAI);
+        Assert.False(openAI.MovesCustomServer(Custom("https://proxy.example.com/v1")));
+        Assert.False(Custom("https://proxy.example.com/v1").MovesCustomServer(openAI));
+        Assert.False(Custom("https://proxy.example.com/v1").MovesCustomServer(null));
+    }
+
+    [Fact]
+    public void TheStoreDeletesTheKeyWhenTheServerChanges()
+    {
+        using var directory = new TempDirectory();
+        var secrets = new InMemorySecretStore();
+        var store = new AIProviderStore(Path.Combine(directory.Path, "p.json"), secrets)
+        {
+            Config = Custom("https://proxy.example.com/v1"),
+        };
+        store.SaveKey(AIProvider.Custom, "sk-proxy-1234567890");
+        store.SaveKey(AIProvider.OpenAI, "sk-openai-1234567890");
+
+        store.Config = Custom("https://proxy.example.com/api/v1") with { Model = "other" };
+        Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
+
+        store.Config = Custom("https://other.example.com/v1");
+        Assert.Null(store.Key(AIProvider.Custom));
+        // Only the key of "Eigene Adresse" goes.
+        Assert.Equal("sk-openai-1234567890", store.Key(AIProvider.OpenAI));
+    }
+
+    [Fact]
+    public void SwitchingToANamedProviderKeepsTheCustomKey()
+    {
+        using var directory = new TempDirectory();
+        var store = new AIProviderStore(Path.Combine(directory.Path, "p.json"), new InMemorySecretStore())
+        {
+            Config = Custom("https://proxy.example.com/v1"),
+        };
+        store.SaveKey(AIProvider.Custom, "sk-proxy-1234567890");
+        store.Config = new AIProviderConfig(AIProvider.OpenAI);
+        Assert.Equal("sk-proxy-1234567890", store.Key(AIProvider.Custom));
+    }
+}
+
 public sealed class TextRewriterTests
 {
     private static (TextRewriter Rewriter, FakeHandler Handler, AIProviderStore Store, TempDirectory Directory) Make(AIProviderConfig? config, string? key = null,
@@ -268,6 +340,38 @@ public sealed class TextRewriterTests
         using var _d = directory;
         Assert.Null(rewriter.BuiltInModel);
         Assert.False(rewriter.CanRewrite(RewriteEngine.Automatic));
+    }
+
+    /// "Alles auf diesem PC" in the main window is said only while no text leaves the PC.
+    [Fact]
+    public void TheProviderInUseIsNamedOnlyWhenTextLeavesThePC()
+    {
+        var (none, _, _, d1) = Make(null);
+        using var _d1 = d1;
+        Assert.Null(none.ProviderInUse(RewriteEngine.Automatic));
+
+        var (hosted, _, _, d2) = Make(new AIProviderConfig(AIProvider.OpenAI), "sk-test-123456789");
+        using var _d2 = d2;
+        Assert.Equal("OpenAI", hosted.ProviderInUse(RewriteEngine.Automatic));
+
+        // Without its key the provider is not used.
+        var (noKey, _, _, d3) = Make(new AIProviderConfig(AIProvider.OpenAI));
+        using var _d3 = d3;
+        Assert.Null(noKey.ProviderInUse(RewriteEngine.Provider));
+
+        var (onThisPC, _, _, d4) = Make(new AIProviderConfig(AIProvider.Custom, model: "llama3.2"));
+        using var _d4 = d4;
+        Assert.Null(onThisPC.ProviderInUse(RewriteEngine.Provider));
+
+        var (inTheNetwork, _, _, d5) = Make(new AIProviderConfig(AIProvider.Custom, model: "llama3.2", baseUrl: "http://studio.local:11434/v1"));
+        using var _d5 = d5;
+        Assert.Equal("studio.local", inTheNetwork.ProviderInUse(RewriteEngine.Automatic));
+
+        // The built-in model goes first with "Modell auf dem PC zuerst", the provider with "Immer Modell-Anbieter".
+        var (both, _, _, d6) = Make(new AIProviderConfig(AIProvider.OpenAI), "sk-test-123456789", new FakeLocalModel("Vom PC."));
+        using var _d6 = d6;
+        Assert.Null(both.ProviderInUse(RewriteEngine.Automatic));
+        Assert.Equal("OpenAI", both.ProviderInUse(RewriteEngine.Provider));
     }
 
     [Theory]

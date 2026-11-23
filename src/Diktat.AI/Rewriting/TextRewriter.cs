@@ -62,6 +62,17 @@ public sealed class TextRewriter : ITextRewriter
     /// Either engine runs with the built-in model or the provider; only the order differs.
     public bool CanRewrite(RewriteEngine engine) => _store.IsConfigured || BuiltInModel is not null;
 
+    /// Where the text of the AI modes goes when it leaves this PC: the provider's name, or the
+    /// host of "Eigene Adresse". Null while it stays here (the built-in model first, or a server
+    /// on this PC), so "Alles auf diesem PC" is only said when it is true.
+    public string? ProviderInUse(RewriteEngine engine)
+    {
+        if (!_store.IsConfigured || _store.Config is not { } config || config.IsOnThisPC) return null;
+        if (engine == RewriteEngine.Automatic && BuiltInModel is not null) return null;
+        if (config.Provider != AIProvider.Custom) return config.Provider.DisplayName();
+        return Uri.TryCreate(config.BaseUrl.Trim(), UriKind.Absolute, out var uri) && uri.Host.Length > 0 ? uri.Host : config.Provider.DisplayName();
+    }
+
     /// Tokens the answer may take: about as long as the text, with room for emoji and markup.
     internal static int MaxTokensFor(string text) => Math.Clamp(text.Length / 2 + 256, 512, 4096);
 

@@ -19,6 +19,14 @@ public sealed class SettingsStore
 
     public string BackupPath => Path + ".bak";
 
+    private bool _stopped;
+
+    /// After "Alle Daten löschen": nothing is written any more, so the deleted file stays deleted.
+    public void StopWriting()
+    {
+        lock (_lock) _stopped = true;
+    }
+
     public SettingsContainer Load()
     {
         lock (_lock)
@@ -51,6 +59,7 @@ public sealed class SettingsStore
     {
         lock (_lock)
         {
+            if (_stopped) return;
             var directory = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(Path));
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
             var temporary = Path + ".tmp";

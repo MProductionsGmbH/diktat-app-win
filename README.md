@@ -63,9 +63,10 @@ Every shortcut can be changed in the settings, also to "press once to start, aga
 - **Text lands in the right place:** if you click into another window while a writing mode still works, the text goes to the clipboard instead of the wrong field.
 - **Sound off while recording:** music or a podcast is muted while you speak and back right after.
 - **Meetings:** record a conversation through the microphone, or an online meeting (Teams, Zoom, Meet) with the sound your PC plays. You get the transcript by person and, with the built-in AI model or a model server on this PC, a summary with decisions and to-dos. Meetings never go to an internet provider. Please ask everyone before you record.
-- **Voice memos and WhatsApp voice messages:** drop an audio file on Diktat and get the text.
+- **Voice memos and WhatsApp voice messages:** drop an audio file onto the main window, on any page, and get the text.
 - **Dictionary:** names and terms spelled your way, fixed replacements ("n acht n" becomes "n8n").
 - **History:** recent results, encrypted for your Windows user (DPAPI) and stored only on your PC.
+- **Delete all data:** Einstellungen › Datenschutz removes settings, history, meetings, API keys, models, logs and the autostart entry in one go; Diktat then quits, so nothing is written back.
 - **Updates:** Diktat tells you when a new version is on GitHub (can be turned off).
 
 - **German and English:** the app follows the Windows language, or you pick one under Einstellungen › Allgemein › Sprache. See [docs/localization.md](docs/localization.md).
@@ -77,13 +78,15 @@ Speech recognition:  your PC (Parakeet via sherpa-onnx or Whisper via whisper.cp
 Writing modes:       your PC with the built-in AI model (Gemma 4 via llama.cpp),
                      your own model provider with your own API key,
                      or a local server on your PC (Ollama, LM Studio)
-Meetings:            your PC; summaries only with a model on this PC
-API keys, history:   encrypted for your Windows user (DPAPI)
+Meetings:            your PC; audio in the temp folder until evaluated;
+                     summaries only with a model on this PC
+API keys, history:   encrypted for your Windows user (DPAPI); a custom
+                     server's key is deleted when the server changes
 Model download:      Hugging Face / GitHub, once per model
 Update check:        GitHub releases of this repository (can be turned off)
 ```
 
-Diktat has no backend and collects no data.
+Diktat has no backend and collects no data. The sidebar says "Alles auf diesem PC" only while no text leaves the PC; with a provider it names it. Details in [docs/privacy.md](docs/privacy.md), security notes in [SECURITY.md](SECURITY.md).
 
 ## Requirements
 

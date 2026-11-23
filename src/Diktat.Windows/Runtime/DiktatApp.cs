@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Diktat.AI.Meetings;
 using Diktat.AI.Updates;
 using Diktat.Core.Settings;
+using Diktat.Core.Support;
 using Diktat.Transcription.Models;
 using Diktat.Windows.Pill;
 using Diktat.Windows.Platform;
@@ -322,6 +323,43 @@ public sealed class DiktatApp : ObservableObject, IDiktatApp, IDisposable
         _quitting = true;
         Log.Info("Diktat quits");
         Shutdown();
+        WpfApplication.Current?.Shutdown();
+    }
+
+    /// "Alle Daten löschen": settings, history, meetings, API keys, models, logs, meeting audio and
+    /// the autostart entry go, then Diktat quits. First the stores stop writing and everything
+    /// that could still write ends (recording, meeting, downloads, models, windows); only then
+    /// are the folders removed, so nothing is written back.
+    public void RemoveAllDataAndQuit()
+    {
+        if (_quitting) return;
+        _quitting = true;
+        Log.Info("Removing all data, then Diktat quits");
+        Services.StopWriting();
+        Views.ModelDownloads.CancelAll();
+        Shutdown();
+        Log.Stop();
+
+        var failed = new List<string>();
+        try
+        {
+            AutostartService.Unregister();
+        }
+        catch (Exception ex)
+        {
+            failed.Add(L.T("Autostart") + ": " + ex.Message);
+        }
+        var report = UserDataCleanup.Remove(AppPaths.UserDataFolders);
+        failed.AddRange(report.Failed.Select(f => $"{f.Path}: {f.Error}"));
+
+        if (!Diktat.Windows.App.IsUnattended)
+        {
+            var message = failed.Count == 0
+                ? L.T("Alle Daten von Diktat sind von diesem PC gelöscht. Diktat beendet sich jetzt. Diktat selbst deinstallierst du unter Windows-Einstellungen › Apps.")
+                : L.F("Nicht alles konnte gelöscht werden:\n{0}\n\nDiktat beendet sich jetzt. Lösche den Rest danach von Hand.", string.Join("\n", failed));
+            System.Windows.MessageBox.Show(message, "Diktat", System.Windows.MessageBoxButton.OK,
+                failed.Count == 0 ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Warning);
+        }
         WpfApplication.Current?.Shutdown();
     }
 

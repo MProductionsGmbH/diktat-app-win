@@ -175,6 +175,19 @@ public sealed class MeetingStoreTests
         Assert.Single(Directory.GetFiles(directory.Path, ".meetings.unreadable-*"));
     }
 
+    /// After "Alle Daten löschen" a meeting that ends while Diktat quits is not written back.
+    [Fact]
+    public void MeetingsAreNotWrittenBackAfterStopWriting()
+    {
+        using var directory = new TempDirectory();
+        var folder = Path.Combine(directory.Path, "Meetings");
+        var store = new MeetingStore(folder, new PassThroughDataProtector());
+        store.StopWriting();
+        Assert.False(store.Upsert(new MeetingRecord { Title = "Läuft noch" }));
+        Assert.Single(store.Meetings);
+        Assert.False(Directory.Exists(folder));
+    }
+
     [Fact]
     public void OldSpeakerLabelsAreMigrated()
     {

@@ -50,3 +50,17 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 - [ ] Import the settings export of the Mac app: custom terms and replacements arrive.
 - [ ] Change a shortcut, also to a combination with a letter key; toggle mode "Umschalten".
 - [ ] Second start of `Diktat.exe` brings the open window to the front.
+
+## New in 0.2.3 (Mac 0.1.13 to 0.1.16)
+
+- [ ] Meetings, "Im Raum" and "Online-Meeting": the right sources are recorded; with a headset the others still arrive from the system audio.
+- [ ] Call detection on (Einstellungen › Meetings): a Teams or Zoom call shows a notification that offers to record; off, nothing appears.
+- [ ] Problems shown large: pull the microphone out during a meeting; the meeting page, the pill and the tray warn at once, and the recording goes on after plugging in a monitor.
+- [ ] Dictation fixes: the first word is kept, a missing or very quiet microphone is reported, English dictation keeps its language.
+- [ ] Whisper Large v3 models in Einstellungen › Modelle: download, select, dictate a minute of Swiss German without losing passages.
+- [ ] "Schweizer Schreibweise" on: dictation, AI modes and audio files write "ss" instead of "ß"; off, "ß" is back.
+- [ ] Meetings list: rename a meeting and delete one; both hold after a restart.
+- [ ] Drag an `.m4a` or `.opus` from Explorer onto the Verlauf page: a dashed frame appears, the drop opens "Audiodatei" and transcribes; a `.txt` shows no frame.
+- [ ] Main window sidebar: "Alles auf diesem PC" with the built-in AI model; with OpenAI and "Immer Modell-Anbieter" it says "Sprache auf diesem PC" and names OpenAI.
+- [ ] "Eigene Adresse" with a saved key: change only the path, the key stays; change the host or port, the key is gone.
+- [ ] Einstellungen › Datenschutz › "Alle Daten löschen …" (with a model loaded and a meeting running): Diktat quits, `%APPDATA%\Diktat`, `%LOCALAPPDATA%\Diktat`, `%TEMP%\Diktat` and the Run entry are gone, and stay gone after Diktat has ended.

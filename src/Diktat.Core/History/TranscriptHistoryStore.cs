@@ -25,6 +25,7 @@ public sealed class TranscriptHistoryStore
     private readonly Func<DateTimeOffset> _clock;
     private List<TranscriptHistoryEntry> _entries;
     private HistoryRetention _retention;
+    private bool _stopped;
 
     public event EventHandler? Changed;
 
@@ -91,6 +92,12 @@ public sealed class TranscriptHistoryStore
         OnChanged();
     }
 
+    /// After "Alle Daten löschen": the entries in memory are never written back.
+    public void StopWriting()
+    {
+        lock (_lock) _stopped = true;
+    }
+
     public void UpdateRetention(HistoryRetention retention)
     {
         lock (_lock) _retention = retention;
@@ -129,6 +136,7 @@ public sealed class TranscriptHistoryStore
 
     private void Save()
     {
+        if (_stopped) return;
         if (_entries.Count == 0)
         {
             DeleteFile();

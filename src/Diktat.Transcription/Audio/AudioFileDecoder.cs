@@ -43,6 +43,14 @@ public sealed class AudioFileDecoder
     /// The extensions of the built-in decoders, for file dialogs.
     public static IReadOnlyList<string> BuiltInExtensions { get; } = [".wav", ".wave", ".mp3", ".ogg", ".opus", ".oga"];
 
+    /// The first of the dropped files whose extension is one of <paramref name="extensions"/>,
+    /// or null when none is an audio file.
+    public static string? FirstAudioFile(IEnumerable<string>? paths, IEnumerable<string> extensions)
+    {
+        var known = extensions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return paths?.FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && known.Contains(Path.GetExtension(path)));
+    }
+
     /// Adds a decoder that is tried after the built-in ones (and after those registered earlier).
     public void Register(IAudioFileDecoder decoder)
     {

@@ -92,7 +92,7 @@ public partial class SettingsPage : UserControl, IMainPage
         "apps" => new AppRulesSection(_app),
         "ai" => new AIProviderSection(_app),
         "meetings" => new MeetingSettingsSection(_app),
-        "privacy" => new PrivacySection(),
+        "privacy" => new PrivacySection(_app),
         _ => new GeneralSection(_app),
     };
 }

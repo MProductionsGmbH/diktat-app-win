@@ -37,7 +37,7 @@
                                  v:Hint.Text="http://localhost:11434/v1"/>
                     </Grid>
                     <TextBlock x:Name="AddressNote" Style="{DynamicResource Diktat.SmallText}" Margin="110,-6,0,0"
-                               Text="{l:T 'OpenAI-kompatible Adresse. Ollama läuft unter http://localhost:11434/v1, LM Studio unter http://localhost:1234/v1. Auch Azure oder ein Firmen-Proxy gehen.'}"/>
+                               Text="{l:T 'OpenAI-kompatible Adresse. Ollama läuft unter http://localhost:11434/v1, LM Studio unter http://localhost:1234/v1. Auch Azure oder ein Firmen-Proxy gehen. Wechselst du den Server, löscht Diktat einen dafür gesicherten API-Key, damit er nicht an den neuen geht.'}"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>

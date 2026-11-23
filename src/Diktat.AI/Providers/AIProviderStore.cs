@@ -42,12 +42,15 @@ public sealed class AIProviderStore
         }
         set
         {
+            var old = Config;
             lock (_lock)
             {
                 _config = value;
                 _loaded = true;
                 Save(value);
             }
+            // A key saved for one server of "Eigene Adresse" is not sent to another one.
+            if (value?.MovesCustomServer(old) == true) _secrets.Delete(SecretName(AIProvider.Custom));
             Changed?.Invoke(this, EventArgs.Empty);
         }
     }

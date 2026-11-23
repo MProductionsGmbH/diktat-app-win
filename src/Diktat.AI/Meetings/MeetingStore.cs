@@ -124,6 +124,7 @@ public sealed class MeetingStore
     private readonly IDataProtector _protector;
     private readonly object _lock = new();
     private List<MeetingRecord> _meetings = new();
+    private bool _stopped;
 
     public MeetingStore(string directory, IDataProtector protector)
     {
@@ -198,6 +199,12 @@ public sealed class MeetingStore
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// After "Alle Daten löschen": the meetings in memory are never written back.
+    public void StopWriting()
+    {
+        lock (_lock) _stopped = true;
+    }
+
     private void Load()
     {
         if (!File.Exists(FilePath)) return;
@@ -247,6 +254,7 @@ public sealed class MeetingStore
 
     private bool Save()
     {
+        if (_stopped) return false;
         try
         {
             Directory.CreateDirectory(_directory);

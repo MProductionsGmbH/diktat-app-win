@@ -61,6 +61,14 @@ public static class AutostartService
         key?.DeleteValue(ValueName, throwOnMissingValue: false);
     }
 
+    /// Removes the Run entry and a Task Manager mark ("Alle Daten löschen").
+    public static void Unregister()
+    {
+        Disable();
+        using var approved = Registry.CurrentUser.OpenSubKey(ApprovedKey, writable: true);
+        approved?.DeleteValue(ValueName, throwOnMissingValue: false);
+    }
+
     /// Applies the setting; keeps the path current after the app moved or updated.
     public static void Apply(bool enabled)
     {

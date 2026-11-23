@@ -45,23 +45,32 @@
                            Text="{l:T 'Immer auf diesem PC (Parakeet über sherpa-onnx oder Whisper über whisper.cpp). Die Aufnahme wird nach dem Diktat gelöscht.'}"/>
                 <TextBlock Grid.Row="1" Text="{l:T 'KI-Modi'}" Style="{StaticResource FactLabel}"/>
                 <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource FactText}"
-                           Text="{l:T 'Über deinen eigenen Modell-Anbieter mit deinem API-Key oder über einen Modell-Server auf diesem PC (Ollama, LM Studio). Zum Anbieter geht nur der erkannte Text, nie die Sprache, und der Text am Cursor nur, wenn du das einschaltest.'}"/>
+                           Text="{l:T 'Mit dem KI-Modell auf diesem PC, einem Modell-Server wie Ollama oder LM Studio oder deinem eigenen Modell-Anbieter mit deinem API-Key. Ein Anbieter oder ein Server auf einem anderen Rechner in deinem Netz bekommt den erkannten Text, nie die Sprache, und den Text am Cursor nur, wenn du das einschaltest.'}"/>
                 <TextBlock Grid.Row="2" Text="{l:T 'Meetings'}" Style="{StaticResource FactLabel}"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource FactText}"
-                           Text="{l:T 'Auf diesem PC. Zusammenfassungen nur mit einem Modell-Server auf diesem PC.'}"/>
-                <TextBlock Grid.Row="3" Text="{l:T 'API-Keys, Verlauf'}" Style="{StaticResource FactLabel}"/>
+                           Text="{l:T 'Auf diesem PC. Bis das Meeting ausgewertet ist, liegt die Aufnahme als Audiodatei im Temp-Ordner von Windows, danach wird sie gelöscht. Zusammenfassungen nur mit dem KI-Modell oder einem Modell-Server auf diesem PC.'}"/>
+                <TextBlock Grid.Row="3" Text="{l:T 'API-Keys, Verlauf, Meetings'}" Style="{StaticResource FactLabel}"/>
                 <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource FactText}"
-                           Text="{l:T 'Verschlüsselt für dein Windows-Konto (DPAPI). Der Verlauf hält höchstens 7 Tage und lässt sich ausschalten.'}"/>
+                           Text="{l:T 'Verschlüsselt für dein Windows-Konto (DPAPI): Auf einem anderen PC oder aus einer kopierten Datei lassen sie sich nicht lesen. Gegen Programme, die in deinem Windows-Konto laufen, schützt das nicht. Der Verlauf hält höchstens 7 Tage und lässt sich ausschalten. Einstellungen liegen als einfache Dateien in deinem Benutzerordner.'}"/>
                 <TextBlock Grid.Row="4" Text="{l:T 'Modell-Download'}" Style="{StaticResource FactLabel}"/>
-                <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource FactText}" Text="{l:T 'Hugging Face und GitHub, einmal je Modell.'}"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource FactText}" Text="{l:T 'Hugging Face und GitHub, einmal je Modell. Die Modelle zum Unterscheiden der Personen lädt Diktat beim ersten Meeting.'}"/>
                 <TextBlock Grid.Row="5" Text="{l:T 'Update-Check'}" Style="{StaticResource FactLabel}"/>
-                <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource FactText}" Text="{l:T 'Die Releases dieses Projekts auf GitHub. Abschaltbar unter Allgemein.'}"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource FactText}" Text="{l:T 'Die Releases dieses Projekts auf GitHub. Abschaltbar unter Allgemein, „Automatisch nach Updates suchen“.'}"/>
             </Grid>
         </HeaderedContentControl>
 
         <HeaderedContentControl Header="{l:T 'Textfelder'}" Style="{DynamicResource Diktat.Section}">
             <TextBlock Style="{DynamicResource Diktat.CaptionText}"
                        Text="{l:T 'Damit der Text passend am Cursor landet, liest Diktat das Textfeld über die Windows-Bedienungshilfen (UI Automation). Passwortfelder liest Diktat nie. Eingefügt wird über die Zwischenablage, die danach wiederhergestellt wird.'}"/>
+        </HeaderedContentControl>
+
+        <HeaderedContentControl Header="{l:T 'Alle Daten löschen'}" Style="{DynamicResource Diktat.Section}">
+            <v:Stack Spacing="12">
+                <TextBlock Style="{DynamicResource Diktat.CaptionText}"
+                           Text="{l:T 'Löscht Einstellungen, Verlauf, Meetings mit ihren Aufnahmen, API-Keys, die geladenen Modelle, die Protokolle und den Autostart. Danach beendet sich Diktat, damit nichts davon zurückgeschrieben wird. Diktat selbst deinstallierst du danach unter Windows-Einstellungen › Apps.'}"/>
+                <Button Content="{l:T 'Alle Daten löschen …'}" Style="{DynamicResource Diktat.DangerButton}" HorizontalAlignment="Left"
+                        Click="OnRemoveAllData"/>
+            </v:Stack>
         </HeaderedContentControl>
     </v:Stack>
 </UserControl>
