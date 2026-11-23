@@ -38,7 +38,7 @@ public sealed class AppServices : IDisposable
         Rewriter = new TextRewriter(AIProviders, AIClient, LocalModel);
         ModeRewriter = new ModeRewriter(Rewriter);
         SpeechPolisher = new SpeechPolisher(Rewriter);
-        ServerDiscovery = new LocalServerDiscovery();
+        ServerDiscovery = new LocalServerDiscovery(foundryStatus: FoundryLocalCli.StatusAsync);
         MeetingSummaries = new MeetingSummaryService(Rewriter);
 
         Transcription = new LocalTranscriptionService(Models, Settings.App.TranscriptionModel);

@@ -102,6 +102,48 @@ public sealed class LocalServerDiscoveryTests
         Assert.Equal(LocalServerDiscovery.OllamaBaseUrl, server.BaseUrl);
         Assert.Equal(["llama3.2"], server.Models);
     }
+
+    [Theory]
+    [InlineData("🟢 Model management service is running on http://127.0.0.1:5272/openai/status", "http://127.0.0.1:5272/v1")]
+    [InlineData("Service is running on http://localhost:22334/", "http://localhost:22334/v1")]
+    [InlineData("running on http://[::1]:5273/openai/status", "http://[::1]:5273/v1")]
+    public void ReadsTheFoundryLocalAddress(string status, string expected) =>
+        Assert.Equal(expected, LocalServerDiscovery.FoundryBaseUrl(status));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("🔴 Model management service is not running!")]
+    [InlineData("running on http://192.168.1.20:5272/openai/status")]
+    [InlineData("running on http://127.0.0.1:99999/")]
+    public void FoundryLocalWithoutAnAddressOnThisPCIsNotThere(string? status) =>
+        Assert.Null(LocalServerDiscovery.FoundryBaseUrl(status));
+
+    [Fact]
+    public async Task FindsFoundryLocalOnTheAddressItsToolNames()
+    {
+        var handler = new FakeHandler(request => request.RequestUri!.AbsoluteUri == "http://127.0.0.1:5272/v1/models"
+            ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"object":"list","data":[{"id":"Phi-4-mini-instruct-generic-cpu"},{"id":"qwen2.5-7b-instruct-generic-cpu"}]}""") }
+            : throw new HttpRequestException("connection refused"));
+        var discovery = new LocalServerDiscovery(handler, _ => Task.FromResult<string?>("🟢 Model management service is running on http://127.0.0.1:5272/openai/status"));
+
+        var server = Assert.Single(await discovery.DiscoverAsync());
+        Assert.Equal(LocalServerDiscovery.FoundryLocalName, server.Name);
+        Assert.Equal("http://127.0.0.1:5272/v1", server.BaseUrl);
+        Assert.Equal(["Phi-4-mini-instruct-generic-cpu", "qwen2.5-7b-instruct-generic-cpu"], server.Models);
+        // A server on this PC: meetings may use it too.
+        Assert.True(new AIProviderConfig(AIProvider.Custom, server.Models[0], server.BaseUrl).IsOnThisPC);
+    }
+
+    [Fact]
+    public async Task AFailingFoundryToolDoesNotStopTheSearch()
+    {
+        var handler = new FakeHandler(request => request.RequestUri!.Port == 11434
+            ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"models":[{"name":"llama3.2"}]}""") }
+            : throw new HttpRequestException("connection refused"));
+        var discovery = new LocalServerDiscovery(handler, _ => throw new InvalidOperationException("foundry not installed"));
+        Assert.Equal("Ollama", Assert.Single(await discovery.DiscoverAsync()).Name);
+    }
 }
 
 public sealed class AIProviderStoreTests

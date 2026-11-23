@@ -81,7 +81,7 @@
         <HeaderedContentControl Header="{l:T 'Modell auf diesem PC'}" Style="{DynamicResource Diktat.Section}">
             <v:Stack Spacing="12">
                 <TextBlock Style="{DynamicResource Diktat.CaptionText}"
-                           Text="{l:T 'Mit Ollama oder LM Studio laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen.'}"/>
+                           Text="{l:T 'Mit Ollama, LM Studio oder Foundry Local von Microsoft laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen.'}"/>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="SearchButton" Content="{l:T 'Auf diesem PC suchen'}" Click="OnSearch" Margin="0,0,12,0"/>
                     <ProgressBar x:Name="SearchProgress" IsIndeterminate="True" Width="120" Visibility="Collapsed" VerticalAlignment="Center"

@@ -83,3 +83,9 @@ CI builds the app on Windows, runs the unit tests and starts the app with `--smo
 - [ ] "Eigene Adresse" with a saved key: change only the path, the key stays; change the host or port, the key is gone.
 - [ ] "Eigene Adresse" with a saved key, then OpenAI or "Keiner", then "Eigene Adresse" again with the default address: no key is shown or sent, and the key is gone (also back on the first address it has to be entered again).
 - [ ] Einstellungen › Datenschutz › "Alle Daten löschen …" (with a model loaded and a meeting running): Diktat quits, `%APPDATA%\Diktat`, `%LOCALAPPDATA%\Diktat`, `%TEMP%\Diktat` and the Run entry are gone, and stay gone after Diktat has ended.
+
+## Foundry Local
+
+- [ ] With Foundry Local installed (`winget install Microsoft.FoundryLocal`) and a model downloaded (`foundry model run phi-4-mini`): Einstellungen › KI-Anbieter › "Auf diesem PC suchen" lists Foundry Local with its address and models; "Verwenden" sets it up, "Testen" answers, a KI mode rewrites, and a meeting gets a summary from it.
+- [ ] Without Foundry Local installed, the search still finds Ollama and LM Studio and takes no longer than before.
+- [ ] Restart Foundry Local (`foundry service restart`): if the port changed, the AI modes fail with a connection message, and searching again and "Verwenden" fixes it.

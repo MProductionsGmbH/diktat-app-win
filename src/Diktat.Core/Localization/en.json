@@ -370,7 +370,6 @@
   "Kein Konto, keine Telemetrie. Audio wird nach dem Diktat gelöscht.": "No account, no telemetry. Audio is deleted after the dictation.",
   "Kein Mikrofon gefunden.": "No microphone found.",
   "Kein Modell-Anbieter eingerichtet. Bitte in den Einstellungen einen API-Key hinterlegen.": "No model provider is set up. Please add an API key in the settings.",
-  "Kein Ollama und kein LM Studio gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com.": "No Ollama and no LM Studio found. Is the program running? You can download Ollama at ollama.com.",
   "Kein Sprachmodell geladen. Bitte in den Einstellungen unter Modelle eines laden.": "No speech model downloaded. Please download one in the settings under Models.",
   "Kein Text erkannt.": "No text recognized.",
   "Kein Textfeld im Fokus. Mit Strg + V einfügen.": "No text field in focus. Paste with Ctrl + V.",
@@ -461,7 +460,6 @@
   "Mit KI-Schreibstil": "With AI writing style",
   "Mit KI-Schreibstil: klar und neutral formuliert": "With AI writing style: worded clearly and neutrally",
   "Mit KI-Schreibstil: sachlich und höflich formuliert": "With AI writing style: worded factually and politely",
-  "Mit Ollama oder LM Studio laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen.": "With Ollama or LM Studio the AI modes run entirely on this PC, without an API key. Only then does Diktat also summarize meetings.",
   "Mit Whisper hört Diktat nur auf Deutsch. Sprichst du Englisch, wird daraus deutscher Text. Parakeet erkennt die Sprache immer selbst.": "With Whisper, Diktat only listens for German. If you speak English, it turns into German text. Parakeet always detects the language itself.",
   "Mit Whisper hört Diktat nur auf Englisch. Sprichst du Deutsch, wird daraus englischer Text. Parakeet erkennt die Sprache immer selbst.": "With Whisper, Diktat only listens for English. If you speak German, it turns into English text. Parakeet always detects the language itself.",
   "Mit Whisper hört Diktat nur auf diese Sprache. Parakeet erkennt die Sprache immer selbst.": "With Whisper, Diktat only listens for this language. Parakeet always detects the language itself.",
@@ -777,5 +775,8 @@
   "Am genauesten, aber deutlich langsamer als die anderen Modelle.": "The most accurate, but clearly slower than the other models.",
   "Erkennt die Sprache selbst, rund 100 Sprachen. Das genaueste Whisper, auch bei Mundart, dafür langsamer und größer.": "Detects the language itself, about 100 languages. The most accurate Whisper, also with dialect, but slower and larger.",
   "Schweizer Schreibweise": "Swiss spelling",
-  "Schreibt ss statt ß, zum Beispiel „Strasse“ und „gross“: in Diktaten, in den Texten der KI-Modi und in Meetings.": "Writes ss instead of ß, for example “Strasse” and “gross”: in dictations, in the texts of the AI modes and in meetings."
+  "Schreibt ss statt ß, zum Beispiel „Strasse“ und „gross“: in Diktaten, in den Texten der KI-Modi und in Meetings.": "Writes ss instead of ß, for example “Strasse” and “gross”: in dictations, in the texts of the AI modes and in meetings.",
+  "Mit Ollama, LM Studio oder Foundry Local von Microsoft laufen die KI-Modi ganz auf diesem PC, ohne API-Key. Nur damit fasst Diktat auch Meetings zusammen.": "With Ollama, LM Studio or Microsoft's Foundry Local, the AI modes run entirely on this PC, without an API key. Only then does Diktat summarize meetings too.",
+  "Foundry Local wählt seinen Port bei jedem Start neu. Antwortet es später nicht mehr, hier erneut suchen und verwenden.": "Foundry Local picks a new port each time it starts. If it stops answering later, search again here and use it.",
+  "Kein Ollama, LM Studio oder Foundry Local gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com.": "No Ollama, LM Studio or Foundry Local found. Is the program running? You can get Ollama at ollama.com."
 }

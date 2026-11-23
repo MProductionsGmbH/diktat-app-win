@@ -303,7 +303,11 @@ public partial class AIProviderSection : UserControl, IMainPage
             Servers.ItemsSource = withModels;
             var lines = servers.Where(s => s.Models.Count == 0)
                 .Select(s => L.F("{0} läuft, hat aber noch kein Modell. In {0} ein Modell laden und erneut suchen.", s.Name)).ToList();
-            if (servers.Count == 0) lines.Add(L.T("Kein Ollama und kein LM Studio gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com."));
+            if (servers.Any(s => s.Name == LocalServerDiscovery.FoundryLocalName && s.Models.Count > 0))
+            {
+                lines.Add(L.T("Foundry Local wählt seinen Port bei jedem Start neu. Antwortet es später nicht mehr, hier erneut suchen und verwenden."));
+            }
+            if (servers.Count == 0) lines.Add(L.T("Kein Ollama, LM Studio oder Foundry Local gefunden. Ist das Programm gestartet? Ollama lädst du auf ollama.com."));
             SearchResult.Text = string.Join("\n", lines);
             SearchResult.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
