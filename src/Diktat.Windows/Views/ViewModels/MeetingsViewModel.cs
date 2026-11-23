@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Diktat.AI.Meetings;
+using Diktat.Core.Settings;
 using Diktat.Windows.Runtime;
 
 namespace Diktat.Windows.Views.ViewModels;
@@ -27,6 +28,26 @@ public sealed record SpeakerItem(int Speaker, string Name)
 
 public sealed record TurnItem(string Name, string Time, string Text, int Speaker);
 
+/// A card of the source picker: "Im Raum" or "Online-Meeting". The online card's subtitle says
+/// whether the own microphone is recorded too.
+public sealed class SourceCardItem(MeetingSource value, string glyph) : ObservableObject
+{
+    private MeetingSource _current = value;
+
+    public MeetingSource Value { get; } = value;
+    public string Glyph { get; } = glyph;
+    public string Title => Value.Title();
+    public string Subtitle => _current.Card() == Value ? _current.Subtitle() : Value.Subtitle();
+    public string AutomationName => $"{Title}, {Subtitle}";
+
+    public void Show(MeetingSource current)
+    {
+        _current = current;
+        OnPropertyChanged(nameof(Subtitle));
+        OnPropertyChanged(nameof(AutomationName));
+    }
+}
+
 /// "Meetings": start a recording, follow the running one, read and share the saved ones.
 public sealed class MeetingsViewModel : ObservableObject
 {
@@ -42,7 +63,13 @@ public sealed class MeetingsViewModel : ObservableObject
     private bool _chatNoteCopied;
     private string _copiedTarget = "";
 
-    public MeetingsViewModel(IDiktatApp app) => _app = app;
+    public MeetingsViewModel(IDiktatApp app)
+    {
+        _app = app;
+        // People for the room, a video call for online.
+        SourceCards = [new SourceCardItem(MeetingSource.Room, ""), new SourceCardItem(MeetingSource.Online, "")];
+        ShowSource();
+    }
 
     public ObservableCollection<MeetingListItem> Meetings { get; } = new();
     public ObservableCollection<SpeakerItem> Speakers { get; } = new();
@@ -91,6 +118,68 @@ public sealed class MeetingsViewModel : ObservableObject
 
     public bool HasMeetings => Meetings.Count > 0;
 
+    public IReadOnlyList<SourceCardItem> SourceCards { get; }
+
+    /// The picked source, kept in the settings for the next meeting.
+    public MeetingSource Source
+    {
+        get => MeetingSourceInfo.Resolve(_app.Services.Settings.App.MeetingSource, legacySystemAudio: false, canRecordSystemAudio: true);
+        set
+        {
+            if (Source == value && _app.Services.Settings.App.MeetingSource is not null) return;
+            _app.Services.Settings.App.MeetingSource = value;
+            _app.Services.SaveSettings();
+            OnSourceChanged();
+        }
+    }
+
+    /// The card that is selected. The online card keeps the choice of its microphone switch.
+    public MeetingSource SelectedCard
+    {
+        get => Source.Card();
+        set
+        {
+            if (Source.Card() != value) Source = value;
+        }
+    }
+
+    public bool IsOnlineCard => Source.UsesSystemAudio();
+
+    /// "Mein Mikrofon mit aufnehmen" on the online card.
+    public bool RecordsOwnMicrophone
+    {
+        get => Source.UsesMicrophone();
+        set => Source = MeetingSourceInfo.Online(withMicrophone: value);
+    }
+
+    public string OwnMicrophoneDetail => Source.UsesMicrophone()
+        ? L.T("Das System-Audio enthält nur die anderen. Dein Mikrofon bringt dazu, was du selbst sagst.")
+        : L.T("Ausgeschaltet fehlt im Transkript, was du selbst sagst. Gedacht für Webinare und Videos.");
+
+    public string SourceExplanation => Source.Explanation();
+
+    /// The question for the chat belongs to a call one takes part in.
+    public bool ShowsChatNote => Source == MeetingSource.Online;
+
+    /// The settings changed elsewhere (the default source, or a call notification picked online).
+    public void OnSourceChanged()
+    {
+        ShowSource();
+        OnPropertyChanged(nameof(Source));
+        OnPropertyChanged(nameof(SelectedCard));
+        OnPropertyChanged(nameof(IsOnlineCard));
+        OnPropertyChanged(nameof(RecordsOwnMicrophone));
+        OnPropertyChanged(nameof(OwnMicrophoneDetail));
+        OnPropertyChanged(nameof(SourceExplanation));
+        OnPropertyChanged(nameof(ShowsChatNote));
+    }
+
+    private void ShowSource()
+    {
+        var source = Source;
+        foreach (var card in SourceCards) card.Show(source);
+    }
+
     /// Asked in the call's chat before starting, so everyone can agree in writing.
     public static string ChatNote => L.T("Ich würde dieses Meeting gern mit Diktat aufnehmen und auf meinem PC transkribieren und zusammenfassen lassen. Ton und Text bleiben auf meinem PC, die Aufnahme wird nach der Auswertung gelöscht. Ist das für alle in Ordnung?");
 
@@ -105,9 +194,19 @@ public sealed class MeetingsViewModel : ObservableObject
 
     // --- Live ---------------------------------------------------------------------------
 
-    public string LiveTitle => _session?.IsOnline == true ? L.T("Aufnahme läuft, mit Ton des PCs") : L.T("Aufnahme läuft");
+    public string LiveTitle => _session?.IsOnline == true ? L.T("Aufnahme läuft, mit System-Audio") : L.T("Aufnahme läuft");
     public string Elapsed => Ui.Clock(_session?.Elapsed ?? TimeSpan.Zero);
     public bool IsOnline => _session?.IsOnline == true;
+    public bool RecordsMicrophone => _session?.RecordsMicrophone != false;
+
+    /// Which microphone hears the room, so a wrong one is noticed at the start.
+    public string MicrophoneLine => _session?.MicrophoneName is { Length: > 0 } name ? L.F("Mikrofon: {0}", name) : "";
+
+    public bool HasProblem => IsLive && _session?.Problem is not null;
+    public string ProblemTitle => _session?.Problem is { } problem ? problem.Title() : "";
+    public string ProblemDetail => _session?.Problem is { } problem ? problem.Detail() : "";
+    /// A notice of the running recording, e.g. that the microphone changed.
+    public string LiveNotice => IsLive ? _session?.StatusMessage ?? "" : "";
     public string LiveNotes => _session?.LiveNotes ?? "";
     public string ProcessingText => _session?.StatusMessage ?? L.T("Meeting wird ausgewertet …");
     public string FailureText => _session?.ErrorMessage ?? "";

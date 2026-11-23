@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Diktat.AI.Meetings;
 using Diktat.AI.Updates;
 using Diktat.Core.Settings;
 
@@ -32,8 +33,15 @@ public enum MeetingPhase
 public interface IMeetingSession : INotifyPropertyChanged
 {
     MeetingPhase Phase { get; }
-    /// True when the system audio (Teams, Zoom, Meet) is recorded too.
+    /// True when the system audio (Teams, Zoom, Meet) is recorded.
     bool IsOnline { get; }
+    /// False for "Nur System-Audio": the microphone stays off.
+    bool RecordsMicrophone { get; }
+    /// The microphone the recording runs on, null without one.
+    string? MicrophoneName { get; }
+    /// What is wrong with the running recording right now, the most urgent when there are several.
+    /// Unlike StatusMessage it is shown large and everywhere: what is not recorded is lost.
+    MeetingProblem? Problem { get; }
     TimeSpan Elapsed { get; }
     float MicrophoneLevel { get; }
     float SystemAudioLevel { get; }
@@ -92,7 +100,7 @@ public interface IDiktatApp : INotifyPropertyChanged
 
     /// The running or last meeting session, or null before the first one.
     IMeetingSession? Meeting { get; }
-    void StartMeeting(bool online);
+    void StartMeeting(MeetingSource source);
     void StopMeeting();
     void CancelMeeting();
     /// Writes (again) the summary of a saved meeting.

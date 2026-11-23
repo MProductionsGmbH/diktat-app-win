@@ -17,7 +17,7 @@
                             <TextBlock Text="{l:T 'Meeting aufnehmen'}" Style="{DynamicResource Diktat.HeadingText}" Foreground="{DynamicResource Diktat.Accent}"/>
                         </StackPanel>
                         <TextBlock Style="{DynamicResource Diktat.CaptionText}" FontSize="13"
-                                   Text="{l:T 'Diktat nimmt das Gespräch über das Mikrofon auf, erkennt, wer spricht, und schreibt auf Wunsch eine Zusammenfassung mit To-dos. Alles läuft auf diesem PC, die Aufnahme wird nach der Auswertung gelöscht.'}"/>
+                                   Text="{l:T 'Diktat nimmt ein Meeting auf, im Raum oder online, erkennt, wer spricht, und schreibt auf Wunsch eine Zusammenfassung mit To-dos. Alles läuft auf diesem PC, die Aufnahme wird nach der Auswertung gelöscht.'}"/>
                     </v:Stack>
                 </Border>
 
@@ -26,6 +26,56 @@
                         <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59322;" Foreground="{DynamicResource Diktat.ErrorText}" Margin="0,0,10,0"/>
                         <TextBlock Text="{l:T 'Bitte frag alle, bevor du aufnimmst.'}" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.ErrorText}" TextWrapping="Wrap"/>
                     </StackPanel>
+                </Border>
+
+                <!-- Source: two cards, then what the online card needs -->
+                <Border Style="{DynamicResource Diktat.CardStyle}">
+                    <v:Stack Spacing="12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T 'Quelle'}" FontWeight="SemiBold"/>
+                            <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="8,0,0,0">
+                                <TextBlock Text="{l:T 'Beta'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
+                            </Border>
+                        </StackPanel>
+                        <ListBox Style="{DynamicResource Diktat.ChoiceList}" ItemsSource="{Binding SourceCards}" SelectedValue="{Binding SelectedCard}"
+                                 AutomationProperties.Name="{l:T 'Quelle'}" KeyboardNavigation.DirectionalNavigation="Cycle">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource Diktat.ChoiceItem}">
+                                    <Setter Property="Margin" Value="4,0"/>
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel HorizontalAlignment="Center" Margin="0,4">
+                                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="{Binding Glyph}" FontSize="18" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource Diktat.Accent}"/>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13.5" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                        <TextBlock Text="{Binding Subtitle}" Style="{DynamicResource Diktat.CaptionText}" FontSize="12" HorizontalAlignment="Center"
+                                                   TextAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <v:Stack Spacing="12" Visibility="{Binding IsOnlineCard, Converter={StaticResource Diktat.BoolToVisibility}}">
+                            <CheckBox IsChecked="{Binding RecordsOwnMicrophone}">
+                                <StackPanel>
+                                    <TextBlock Text="{l:T 'Mein Mikrofon mit aufnehmen'}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding OwnMicrophoneDetail}" Style="{DynamicResource Diktat.CaptionText}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </CheckBox>
+                            <c:SystemSoundTestPanel x:Name="SoundTest"/>
+                            <Button Content="{Binding ChatNoteButton}" Style="{DynamicResource Diktat.LinkButton}" Click="OnCopyChatNote" HorizontalAlignment="Left"
+                                    ToolTip="{l:T 'Eine Frage um Einverständnis für den Chat eines Online-Meetings'}"
+                                    Visibility="{Binding ShowsChatNote, Converter={StaticResource Diktat.BoolToVisibility}}"/>
+                        </v:Stack>
+                    </v:Stack>
                 </Border>
 
                 <Border Style="{DynamicResource Diktat.CardStyle}">
@@ -37,34 +87,9 @@
                     </CheckBox>
                 </Border>
 
-                <UniformGrid Rows="1">
-                    <Button Style="{DynamicResource Diktat.PrimaryButton}" Margin="0,0,6,0" Padding="16,12" Click="OnStartRoom"
-                            AutomationProperties.Name="{l:T 'Meeting im Raum aufnehmen. Alle sind einverstanden, starten'}">
-                        <StackPanel>
-                            <TextBlock Text="{l:T 'Im Raum'}" FontSize="14.5" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{l:T 'Nur das Mikrofon'}" FontSize="12" FontWeight="Normal" Opacity="0.85" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Margin="6,0,0,0" Padding="16,12" Click="OnStartOnline"
-                            AutomationProperties.Name="{l:T 'Online-Meeting aufnehmen, Beta. Alle sind einverstanden, starten'}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <TextBlock Text="{l:T 'Online-Meeting'}" FontSize="14.5"/>
-                                <Border Style="{DynamicResource Diktat.BetaBadge}" Margin="6,0,0,0">
-                                    <TextBlock Text="{l:T 'Beta'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.Accent}"/>
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="{l:T 'Mikrofon und Ton des PCs'}" FontSize="12" FontWeight="Normal" Foreground="{DynamicResource Diktat.TextSecondary}"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </UniformGrid>
-
-                <v:Stack Spacing="6">
-                    <TextBlock Style="{DynamicResource Diktat.SmallText}"
-                               Text="{l:T 'Im Raum nimmt Diktat nur das Mikrofon auf. Ein Online-Meeting nimmt dein Mikrofon (Ich) und den Ton des PCs (die anderen) auf, zum Beispiel aus Teams, Zoom oder Meet. Mit Kopfhörern wird das Transkript am saubersten.'}"/>
-                    <Button Content="{Binding ChatNoteButton}" Style="{DynamicResource Diktat.LinkButton}" Click="OnCopyChatNote"
-                            ToolTip="{l:T 'Eine Frage um Einverständnis für den Chat eines Online-Meetings'}"/>
+                <v:Stack Spacing="8">
+                    <Button Content="{l:T 'Alle sind einverstanden, starten'}" Style="{DynamicResource Diktat.PrimaryButton}" Padding="16,12" Click="OnStart"/>
+                    <TextBlock Style="{DynamicResource Diktat.SmallText}" Text="{Binding SourceExplanation}"/>
                 </v:Stack>
 
                 <!-- Saved meetings -->
@@ -114,6 +139,35 @@
 
             <!-- ============ Live ============ -->
             <v:Stack Spacing="14" Visibility="{Binding IsLive, Converter={StaticResource Diktat.BoolToVisibility}}">
+                <!-- A problem with the recording, as large as the page allows: what is not recorded is lost -->
+                <Border Background="{DynamicResource Diktat.Error}" CornerRadius="12" Padding="16,14"
+                        Visibility="{Binding HasProblem, Converter={StaticResource Diktat.BoolToVisibility}}"
+                        AutomationProperties.LiveSetting="Assertive" AutomationProperties.Name="{Binding ProblemTitle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59322;" FontSize="24" Foreground="White"
+                                   VerticalAlignment="Top" Margin="0,2,14,0"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding ProblemTitle}" FontSize="16" FontWeight="Bold" Foreground="White" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ProblemDetail}" FontSize="13" Foreground="White" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border BorderBrush="{DynamicResource Diktat.Error}" CornerRadius="14">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasProblem}" Value="True">
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                 <Border Style="{DynamicResource Diktat.CardStyle}">
                     <v:Stack Spacing="14">
                         <Grid>
@@ -124,7 +178,7 @@
                             <TextBlock Text="{Binding Elapsed}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="14"
                                        Foreground="{DynamicResource Diktat.TextSecondary}" AutomationProperties.Name="{l:T 'Dauer'}"/>
                         </Grid>
-                        <Grid>
+                        <Grid Visibility="{Binding RecordsMicrophone, Converter={StaticResource Diktat.BoolToVisibility}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -137,11 +191,18 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="{l:T 'Ton des PCs'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
+                            <TextBlock Text="{l:T 'System-Audio'}" Style="{DynamicResource Diktat.CaptionText}" VerticalAlignment="Center" Width="96"/>
                             <c:LevelBars x:Name="SystemBars" Grid.Column="1" Height="32" BarCount="48" IsActive="{Binding IsLive}"
                                          Fill="{DynamicResource Diktat.Mode.Night}"/>
                         </Grid>
+                        <TextBlock Text="{Binding MicrophoneLine}" Style="{DynamicResource Diktat.CaptionText}"
+                                   Visibility="{Binding MicrophoneLine, Converter={StaticResource Diktat.EmptyToCollapsed}}"/>
                     </v:Stack>
+                </Border>
+                </Border>
+
+                <Border Style="{DynamicResource Diktat.Notice}" Visibility="{Binding LiveNotice, Converter={StaticResource Diktat.EmptyToCollapsed}}">
+                    <TextBlock Text="{Binding LiveNotice}" Style="{DynamicResource Diktat.CaptionText}"/>
                 </Border>
 
                 <Border Style="{DynamicResource Diktat.CardStyle}" Visibility="{Binding LiveNotes, Converter={StaticResource Diktat.EmptyToCollapsed}}">

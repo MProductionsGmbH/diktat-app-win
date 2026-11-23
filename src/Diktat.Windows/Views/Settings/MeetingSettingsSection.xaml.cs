@@ -6,18 +6,24 @@ using UserControl = System.Windows.Controls.UserControl;
 
 namespace Diktat.Windows.Views.SettingsSections;
 
-/// "Meetings": summarize automatically, where summaries run, speaker detection.
+/// "Meetings": the default source, call suggestions, summarize automatically, where summaries
+/// run, the system audio with its test, speaker detection (MeetingSettingsPane.swift). The
+/// meeting page itself holds the choices made per meeting.
 public partial class MeetingSettingsSection : UserControl, IMainPage
 {
     private readonly IDiktatApp _app;
     private bool _shown;
+    private bool _loading;
 
     public MeetingSettingsSection(IDiktatApp app)
     {
         _app = app;
         InitializeComponent();
+        Sources.ItemsSource = Option.List(MeetingSourceInfo.AllCases, s => s.Title());
         Load();
     }
+
+    private MeetingSource Source => MeetingSourceInfo.Resolve(_app.Services.Settings.App.MeetingSource, legacySystemAudio: false, canRecordSystemAudio: true);
 
     public void OnShown()
     {
@@ -36,6 +42,7 @@ public partial class MeetingSettingsSection : UserControl, IMainPage
         _app.Services.SettingsChanged -= OnChanged;
         _app.Services.AIProviders.Changed -= OnChanged;
         _app.Services.Models.Changed -= OnModelChanged;
+        SoundTest.Stop();
     }
 
     private void OnChanged(object? sender, EventArgs e) => Ui.Post(Load);
@@ -43,6 +50,12 @@ public partial class MeetingSettingsSection : UserControl, IMainPage
 
     private void Load()
     {
+        _loading = true;
+        var source = Source;
+        Sources.SelectedValue = source;
+        SourceExplanation.Text = source.Explanation();
+        _loading = false;
+        SuggestOnCall.IsChecked = _app.Services.Settings.App.SuggestsMeetingOnCall;
         Summarize.IsChecked = _app.Services.Settings.App.SummarizesMeetings;
         var server = _app.Services.Rewriter.ServerOnThisPC;
         var builtIn = _app.Services.Rewriter.BuiltInModel;
@@ -55,6 +68,20 @@ public partial class MeetingSettingsSection : UserControl, IMainPage
         try { installed = _app.Services.Models.IsInstalled(ModelCatalog.SpeakerDiarization); }
         catch { installed = false; }
         SpeakerState.Text = installed ? L.T("Installiert") : L.T("Nicht installiert");
+    }
+
+    private void OnSourceChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_loading || Sources.SelectedValue is not MeetingSource source || source == _app.Services.Settings.App.MeetingSource) return;
+        _app.Services.Settings.App.MeetingSource = source;
+        SourceExplanation.Text = source.Explanation();
+        _app.Services.SaveSettings();
+    }
+
+    private void OnSuggestOnCallClick(object sender, RoutedEventArgs e)
+    {
+        _app.Services.Settings.App.SuggestsMeetingOnCall = SuggestOnCall.IsChecked == true;
+        _app.Services.SaveSettings();
     }
 
     private void OnSummarizeClick(object sender, RoutedEventArgs e)

@@ -244,6 +244,10 @@ public sealed class AppSettings
     /// "ss" instead of the sharp s in everything Diktat writes. On from the start in Switzerland
     /// and Liechtenstein (the Windows region).
     [JsonPropertyName("swissSpelling")] public bool SwissSpelling { get; set; } = Diktat.Core.Text.SwissSpelling.IsUsualHere;
+    /// The source picked on the meeting page; null until one is picked (see MeetingSourceInfo.Resolve).
+    [JsonPropertyName("meetingSource")] public MeetingSource? MeetingSource { get; set; }
+    /// A call app opened the microphone: suggest recording the meeting.
+    [JsonPropertyName("suggestsMeetingOnCall")] public bool SuggestsMeetingOnCall { get; set; } = true;
     [JsonPropertyName("launchAtLogin")] public bool LaunchAtLogin { get; set; } = true;
     [JsonPropertyName("checksForUpdates")] public bool ChecksForUpdates { get; set; } = true;
     /// The language of the interface; applies after a restart.

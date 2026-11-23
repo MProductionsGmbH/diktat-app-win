@@ -17,7 +17,8 @@ public static class MeetingAudio
     public static string MicrophonePath(Guid id) => Path.Combine(Directory, MeetingAudioFiles.MicrophoneFile(id));
     public static string SystemAudioPath(Guid id) => Path.Combine(Directory, MeetingAudioFiles.SystemAudioFile(id));
 
-    public static bool Exists(Guid id) => File.Exists(MicrophonePath(id));
+    /// "Nur System-Audio" has no microphone track, so either track counts.
+    public static bool Exists(Guid id) => File.Exists(MicrophonePath(id)) || File.Exists(SystemAudioPath(id));
 
     public static void Delete(Guid id)
     {
