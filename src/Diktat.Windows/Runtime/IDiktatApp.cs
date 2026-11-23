@@ -120,6 +120,8 @@ public interface IDiktatApp : INotifyPropertyChanged
     void ShowSetupAssistant();
     void ShowTrayPanel();
     void Quit();
+    /// "Alle Daten löschen": removes everything Diktat stored on this PC and quits.
+    void RemoveAllDataAndQuit();
     /// Quits and starts Diktat again (a new app language applies then).
     void Restart();
 }

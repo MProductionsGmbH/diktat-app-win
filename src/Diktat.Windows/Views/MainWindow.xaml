@@ -11,7 +11,9 @@
         Foreground="{DynamicResource Diktat.Text}"
         Background="{DynamicResource Diktat.Sidebar}"
         TextOptions.TextFormattingMode="Display"
-        UseLayoutRounding="True">
+        UseLayoutRounding="True"
+        AllowDrop="True" PreviewDragEnter="OnWindowDragOver" PreviewDragOver="OnWindowDragOver"
+        PreviewDragLeave="OnWindowDragLeave" PreviewDrop="OnWindowDrop">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="236"/>
@@ -57,14 +59,15 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Border Grid.Row="3" CornerRadius="10" Padding="12" Background="{DynamicResource Diktat.SuccessSoft}">
+            <!-- What stays on this PC; UpdatePrivacyBadge says it when the AI modes send text elsewhere. -->
+            <Border x:Name="PrivacyBadge" Grid.Row="3" CornerRadius="10" Padding="12" Background="{DynamicResource Diktat.SuccessSoft}">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{DynamicResource Diktat.IconText}" Text="&#59182;" FontSize="12" Margin="0,0,6,0"
+                        <TextBlock x:Name="PrivacyIcon" Style="{DynamicResource Diktat.IconText}" Text="&#59182;" FontSize="12" Margin="0,0,6,0"
                                    Foreground="{DynamicResource Diktat.SuccessText}"/>
-                        <TextBlock Text="{l:T 'Alles auf diesem PC'}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.SuccessText}"/>
+                        <TextBlock x:Name="PrivacyTitle" Text="{l:T 'Alles auf diesem PC'}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Diktat.SuccessText}"/>
                     </StackPanel>
-                    <TextBlock Text="{l:T 'Kein Konto, keine Telemetrie. Audio wird nach dem Diktat gelöscht.'}" Margin="0,4,0,0"
+                    <TextBlock x:Name="PrivacyText" Text="{l:T 'Kein Konto, keine Telemetrie. Audio wird nach dem Diktat gelöscht.'}" Margin="0,4,0,0"
                                Style="{DynamicResource Diktat.CaptionText}" FontSize="12"/>
                 </StackPanel>
             </Border>
@@ -73,9 +76,18 @@
         </Grid>
 
         <!-- Page -->
+        <!-- An audio file dropped on any page goes to "Audiodatei"; that page shows its own drop zone. -->
         <Border Grid.Column="1" Background="{DynamicResource Diktat.Page}" CornerRadius="10,0,0,0"
                 BorderBrush="{DynamicResource Diktat.CardEdge}" BorderThickness="1,1,0,0">
-            <ContentControl x:Name="PageHost" Focusable="False"/>
+            <Grid>
+                <ContentControl x:Name="PageHost" Focusable="False"/>
+                <Grid x:Name="DropOverlay" Visibility="Collapsed" IsHitTestVisible="False" Margin="12">
+                    <Rectangle RadiusX="16" RadiusY="16" StrokeThickness="2" StrokeDashArray="4 3"
+                               Stroke="{DynamicResource Diktat.Accent}" Fill="{DynamicResource Diktat.AccentSoft}"/>
+                    <TextBlock Text="{l:T 'Loslassen zum Transkribieren'}" Style="{DynamicResource Diktat.HeadingText}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
         </Border>
     </Grid>
 </Window>

@@ -85,4 +85,15 @@ public static class Log
     {
         lock (Gate) _writer?.Flush();
     }
+
+    /// Closes the file and writes nothing more (before "Alle Daten löschen" removes the logs).
+    public static void Stop()
+    {
+        lock (Gate)
+        {
+            _failed = true;
+            _writer?.Dispose();
+            _writer = null;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Diktat.Transcription.Audio;
 using Diktat.Windows.Platform;
 using Diktat.Windows.Runtime;
 using DataFormats = System.Windows.DataFormats;
@@ -15,8 +16,6 @@ namespace Diktat.Windows.Views.Pages;
 /// "Audiodatei": transcribes a voice memo or WhatsApp voice message on this PC.
 public partial class AudioFilePage : UserControl, IMainPage
 {
-    public static readonly string[] Extensions = [".wav", ".mp3", ".m4a", ".ogg", ".opus", ".aac", ".mp4", ".wma", ".flac"];
-
     private readonly IDiktatApp _app;
     private CancellationTokenSource? _cts;
     private string? _fileName;
@@ -31,17 +30,17 @@ public partial class AudioFilePage : UserControl, IMainPage
     public void OnShown() { }
     public void OnHidden() { }
 
-    /// Starts with a file, e.g. one dropped on the tray icon (for the runtime, optional).
+    /// Starts with a file, e.g. one dropped on another page of the main window.
     public void Transcribe(string path) => _ = RunAsync(path);
 
-    private bool IsWorking => _cts is not null;
+    public bool IsWorking => _cts is not null;
 
     private void OnChoose(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
         {
             Title = L.T("Audiodatei wählen"),
-            Filter = L.T("Audiodateien") + "|*.wav;*.mp3;*.m4a;*.ogg;*.opus;*.aac;*.mp4;*.wma;*.flac|" + L.T("Alle Dateien") + "|*.*",
+            Filter = L.T("Audiodateien") + "|" + string.Join(";", AudioFileTranscriber.Extensions.Select(x => "*" + x)) + "|" + L.T("Alle Dateien") + "|*.*",
             CheckFileExists = true,
             Multiselect = false,
         };
@@ -50,11 +49,11 @@ public partial class AudioFilePage : UserControl, IMainPage
 
     // --- Drag and drop ----------------------------------------------------------------
 
-    private static string? DroppedAudio(System.Windows.IDataObject data)
+    /// The first dropped file in a format Diktat reads, the same ones as in the file dialog.
+    internal static string? DroppedAudio(System.Windows.IDataObject data)
     {
         if (!data.GetDataPresent(DataFormats.FileDrop)) return null;
-        var files = data.GetData(DataFormats.FileDrop) as string[];
-        return files?.FirstOrDefault(f => Extensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+        return AudioFileDecoder.FirstAudioFile(data.GetData(DataFormats.FileDrop) as string[], AudioFileTranscriber.Extensions);
     }
 
     private void OnDragOver(object sender, DragEventArgs e)

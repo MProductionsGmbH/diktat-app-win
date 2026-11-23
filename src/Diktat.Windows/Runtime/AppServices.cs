@@ -66,12 +66,27 @@ public sealed class AppServices : IDisposable
 
     public void SaveSettings()
     {
+        // After "Alle Daten löschen" nothing is saved, and the autostart entry stays removed.
+        if (StoppedWriting) return;
         SettingsStore.Save(Settings);
         SwissSpelling.IsEnabled = Settings.App.SwissSpelling;
         Transcription.SelectModel(Settings.App.TranscriptionModel);
         History.UpdateRetention(Settings.App.HistoryRetention);
         AutostartService.Apply(Settings.App.LaunchAtLogin);
         SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// True after <see cref="StopWriting"/>.
+    public bool StoppedWriting { get; private set; }
+
+    /// Before "Alle Daten löschen": settings, history and meetings in memory are never written
+    /// back, so what is deleted stays deleted while Diktat quits.
+    public void StopWriting()
+    {
+        StoppedWriting = true;
+        SettingsStore.StopWriting();
+        History.StopWriting();
+        Meetings.StopWriting();
     }
 
     /// Imports a settings export of the macOS app (custom terms, replacements, modes).

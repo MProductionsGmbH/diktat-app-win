@@ -42,6 +42,12 @@ public static class ModelDownloads
 
     public static bool IsAnyRunning => Running.Count > 0;
 
+    /// Stops every running download (before "Alle Daten löschen" removes the models).
+    public static void CancelAll()
+    {
+        foreach (var download in Running.Values.ToList()) download.Cancel();
+    }
+
     /// Starts the download, or returns the one already running.
     public static ModelDownload Start(AppServices services, ModelInfo model)
     {

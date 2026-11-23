@@ -209,6 +209,17 @@ public class AudioFileDecoderTests
         Assert.Equal("Diese Audiodatei kann Diktat nicht öffnen.", error.Message);
     }
 
+    /// A drop on the main window takes the first file in a format the app reads.
+    [Fact]
+    public void ADropTakesTheFirstAudioFile()
+    {
+        string[] extensions = [.. AudioFileDecoder.BuiltInExtensions, ".m4a"];
+        Assert.Equal(@"C:\Users\a\Memo.M4A", AudioFileDecoder.FirstAudioFile([@"C:\Users\a\notes.txt", @"C:\Users\a\Memo.M4A", @"C:\Users\a\b.wav"], extensions));
+        Assert.Equal("voice.opus", AudioFileDecoder.FirstAudioFile(["voice.opus"], extensions));
+        Assert.Null(AudioFileDecoder.FirstAudioFile(["notes.txt", "folder", ""], extensions));
+        Assert.Null(AudioFileDecoder.FirstAudioFile(null, extensions));
+    }
+
     [Fact]
     public void RegisteredDecodersAreUsedForOtherFormats()
     {

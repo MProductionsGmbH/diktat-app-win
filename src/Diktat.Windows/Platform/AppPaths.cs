@@ -1,4 +1,5 @@
 using System.IO;
+using Diktat.Core.Support;
 namespace Diktat.Windows.Platform;
 
 /// Where Diktat keeps its files.
@@ -29,6 +30,12 @@ public static class AppPaths
 
     /// Temporary audio and the like; safe to delete when nothing records.
     public static string TempDirectory => Path.Combine(Path.GetTempPath(), AppFolderName);
+
+    /// What "Alle Daten löschen" removes: the roaming, local and temp folder, each as a whole.
+    public static IReadOnlyList<string> UserDataFolders => UserDataCleanup.Folders(AppFolderName,
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        Path.GetTempPath());
 
     /// Creates the directories that must exist. Safe to call repeatedly.
     public static void EnsureCreated()

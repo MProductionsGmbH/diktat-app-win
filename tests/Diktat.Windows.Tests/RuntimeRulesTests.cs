@@ -233,3 +233,20 @@ public class MeetingAudioTests
         Assert.EndsWith($"{id}-system.wav", MeetingAudio.SystemAudioPath(id));
     }
 }
+
+public class AppPathsTests
+{
+    /// "Alle Daten löschen" removes three folders; everything Diktat writes lies in one of them.
+    [Fact]
+    public void AllDataLiesInTheFoldersThatAreRemoved()
+    {
+        var folders = AppPaths.UserDataFolders;
+        Assert.Equal([AppPaths.RoamingDirectory, AppPaths.LocalDirectory, AppPaths.TempDirectory], folders);
+        string[] written =
+        [
+            AppPaths.SettingsFile, AppPaths.HistoryDirectory, AppPaths.MeetingsDirectory, AppPaths.SecretsDirectory,
+            AppPaths.ModelsDirectory, AppPaths.LogsDirectory, AppPaths.MuteMarkerFile, MeetingAudio.Directory,
+        ];
+        Assert.All(written, path => Assert.Contains(folders, folder => path.StartsWith(folder + System.IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)));
+    }
+}

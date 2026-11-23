@@ -115,6 +115,20 @@ public sealed record AIProviderConfig
         }
     }
 
+    /// The server a key saved for "Eigene Adresse" was given to: scheme, host and port. A key
+    /// must not travel on to another server just because the address was edited. Null for the
+    /// named providers, whose address is fixed.
+    [JsonIgnore]
+    public string? KeyScope =>
+        Host is { } host && Uri.TryCreate(BaseUrl.Trim(), UriKind.Absolute, out var uri)
+            ? $"{uri.Scheme.ToLowerInvariant()}://{host}:{uri.Port}"
+            : null;
+
+    /// True when changing from <paramref name="old"/> to this config moves "Eigene Adresse" to
+    /// another server.
+    public bool MovesCustomServer(AIProviderConfig? old) =>
+        old is { Provider: AIProvider.Custom } && Provider == AIProvider.Custom && old.KeyScope != KeyScope;
+
     /// True when the address is a server on this PC itself (Ollama, LM Studio on localhost):
     /// the text does not leave the PC. Meetings may use only this.
     [JsonIgnore]
